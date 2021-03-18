@@ -1,0 +1,75 @@
+Każdy punkt w przestrzeni 3d ma współrzędne [x, y, z].
+Jednak ekran jest 2d, więc trzeba wykonać trochę matematycznej magii żeby współrzędne w przestrzeni 3d przekształcić w współrzędne 2d w poprawny sposób.
+
+Najpierw trzeba znormalizować wymiary ekranu:
+- podziel ekran na osie x i y,
+- prawa/dolna krawędź ekranu to +1 w osi x/y, tzn 1,0/0,1,
+- lewa/górna krawędź ekranu to -1 w osi x/y, tzn -1,0/0,-1,
+- środek ekranu to 0,0.
+
+Jako że ekran nie zawsze jest kwadratem, to przy normalizowaniu jego wymiarów trzeba obliczyć aspec ratio i przemnożyć x przez nie.
+Nasze nowe współrzędne to: [(h/w)*x, y, z]
+Gdzie h i w to odpowiednio wysokość i szerokość ekranu.
+
+Dodatkowo dzięki normalizacji ekranu nic o współrzędnych większych/mniejszych od +1/-1 nie będzie rysowanie.
+
+Jednak ludzie nie widzą ekranu w ten sposób, tylko mają kąt widzenia.
+Przez to obiekty które są na krawędzi ekranu mają współrzędne +1/-1, ale też obiekty które są "w środku" monitora, tzn na krawędziach pola widzenia, czyli dalej od głowy użytkownika, też są widoczne i też mają współrzędne +1/-1.
+Dodatkowo zmniejszanie/zwiększanie pola widzenia daje efekt przybliżenia/oddalenia widocznych obiektów
+
+Nazwijmy pole widzenia FOV.
+Możemy narysować trójkąt prostokątny, gdzie jego przyprostokątne to: 
+- niewidzialne tło na którym widzimy obiekty, oraz
+- niewidzialna linia, którą idze przez środek naszego FOV
+Przeciwprostokątna to granica naszego pola widzenia.
+Odległość naszego niewidzialnego tła i naszego ekranu jest przez nas ustalona, więc możemy obliczyć przyprostokątne.
+Dzięki temu możemy obliczać pozycje obiektów na ekranie w zależności od ich odległości od naszych oczów za pomocą wzorów trygonometrycznych, a w szczególności tangensa tan(FOV/2).
+
+Jednak z tym wzorem zwiększanie FOV robi że obiekty się oddalają od środka ekranu i vice versa. My jednak potrzebujemy odwrotnego efektu, czyli 1/tan(FOV/2).
+
+Nasze nowe współrzędne to [(h/w)*F*x, F*y, z],
+gdzie F = 1/tan(FOV/2).
+
+Skoro znormalizowaliśmy x i y, to możemy też znormalizować z.
+Pozwoli nam to dodać ciekawe efekty graficzne jak przezroczystość czy głębia.
+Musimy jednak użyć innego wzoru.
+
+Ustalamy odległość użytkownika od wcześniej wspomnianego niewidzialnego tła, odległość do ekranu i odległość między tymi dwoma.
+Oczywiście odległości są względne, więc odległość między ekranem a tłem jest wymyślona przez nas.
+Załóżmy, że odległość do tła(Zfar) wynosi 10, i odległość do ekranu(Znear) wynosi 1.
+Więc punkty w osi z mogą się znajdywać na współrzędnych od 1 do 10.
+Długość(głębia) renderowanego obrazu wynosi 9.
+
+Żeby zeskalować punkty w przestrzeni z musimy współrzędne z przemnożyć przez Zfar/(Zfar-Znear).
+Jednak musimy jeszcze uwzględnić odległość użytkownika od ekranu, czyli od z odjąć zeskalowaną odległość od ekranu, czyli -Znear*Zfar/(Zfar-Znear).
+
+To daje nam współrzędne [(w/h)*(1/tan(FOV/2)*x, (1/tan(FOV/2)*y, z*(Zfar/(Zfar-Znear))*(-Znear*Zfar/(Zfar-Znear))].
+Dodatkowo intuicyjnie wiemy, że obiekty przemieszczające się w osi z wpływają na współrzędne x i y, więc musimy podzielić x i y przez z, co ostatecznie daje nam:
+[(w/h)*(1/tan(FOV/2)*x/z, (1/tan(FOV/2)*y/z, z*(Zfar/(Zfar-Znear))*(-Znear*Zfar/(Zfar-Znear))].
+Dla uproszczenia, nazwijmy aspect ratio(w/h) "a",
+skalar pola widzenia(1/tan(FOV/2) nazwijmy "F",
+skalar głębi(Zfar/(Zfar-Znear)) nazwijmy "q".
+Uproszczone współrzędne to:
+[a*F*x/z, F*y/z, z*q-Znear*q].
+
+Żeby nie liczyć tego wzorami za każdym razem, użyjemy mnożenia macierzy.
+Przemnożymy [x, y, z, 1] przez macierz
+|aF 0 	   0   0|
+|0  F 	   0   0|
+|0  0 	   q   1|
+|0  0 -Znear*q 0|
+
+Ostatni element wynikowej macierzy służy do podzielenia pozostałych elementów, żeby zeskalować je w osi z.
+Daje nam to wynik:
+[a*F*x/z, F*y/z, z*q-Znear*q/z, z]
+
+
+Macierz
+|aF 0 	   0   0|
+|0  F 	   0   0|
+|0  0 	   q   1|
+|0  0 -Znear*q 0|
+nazwya się macierzą projekcji(Projection matrix) i jest jedną z najbardziej skomplikowanych operacji jakie mi będą potrzebne(mam nadzieję).
+
+Na szczęścię nie muszę pamiętać co to dokłądnie robi, wystarczy wrzucać współrzędne punktu w przestrzeni 3d i to wypluje mi jego współrzędne w przestrzeni 2d.
+Te współrzędne mogę wykorzystać do rysowania trójkątów, z których mogę utworzyć dowolny kształt.

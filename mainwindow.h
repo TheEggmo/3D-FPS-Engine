@@ -7,6 +7,7 @@
 #include <tools.h>
 #include <tools3d.h>
 #include <QTimer>
+#include <QKeyEvent>
 
 class MainWindow : public QWidget{
     Q_OBJECT
@@ -24,13 +25,16 @@ protected:
 //    void mousePressEvent(QMouseEvent *event) override;
 //    void mouseMoveEvent(QMouseEvent *event) override;
 //    void mouseReleaseEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
     Tools3D::Mesh meshCube;
     Tools3D::Mat4x4 matProj; // Projection matrix
 
-    Tools3D::Vector3 vCamera; // Vector representing the camera
+    Tools3D::Vector3 camera; // Vector representing the camera
+    Tools3D::Vector3 lookDir;
+    float yaw = 0;
 
-    float fTheta = 1;
+    float fTheta = 0;
 
 public slots:
     void screenUpdate();

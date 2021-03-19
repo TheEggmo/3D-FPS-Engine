@@ -181,26 +181,26 @@ void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color color){
 
 //    return out;
 //}
-Tools3D::Vector3 Tools3D::multiplyMatrix(Vector3 &in, Mat4x4 &m){
-    Vector3 out;
-    out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + m.m[3][0];
-    out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + m.m[3][1];
-    out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + m.m[3][2];
-    float w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
+//Tools3D::Vector3 Tools3D::multiplyMatrix(Vector3 &in, Mat4x4 &m){
+//    Vector3 out;
+//    out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + m.m[3][0];
+//    out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + m.m[3][1];
+//    out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + m.m[3][2];
+//    float w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
 
-    if (w != 0.0f)
-    {
-        out.x /= w; out.y /= w; out.z /= w;
-    }
-    return out;
-}
+//    if (w != 0.0f)
+//    {
+//        out.x /= w; out.y /= w; out.z /= w;
+//    }
+//    return out;
+//}
 float Tools3D::dotProduct(Vector3 v1, Vector3 v2){
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 float Tools3D::length(Vector3 v){
     return sqrtf(dotProduct(v, v));
 }
-Tools3D::Vector3 Tools3D::normalize(Vector3 v){
+Tools3D::Vector3 Tools3D::normalise(Vector3 v){
     float l = length(v); // Length of the input vector
     return {v.x/l, v.y/l, v.z/l};
 }
@@ -223,4 +223,104 @@ Tools3D::Vector3 Tools3D::crossProduct(Vector3 v1, Vector3 v2){
 //    return { v1.x / k, v1.y / k, v1.z / k};
 //}
 
+Tools3D::Mat4x4 Tools3D::newMatIdentity(){
+    Mat4x4 out;
+    out.m[0][0] = 1.0f;
+    out.m[1][1] = 1.0f;
+    out.m[2][2] = 1.0f;
+    out.m[3][3] = 1.0f;
+    return out;
+}
+// Create a matrix for rotating in x/y/z axis by the specified angle
+Tools3D::Mat4x4 Tools3D::newMatRotX(float angle){
+    Mat4x4 mat;
+    mat.m[0][0] = 1;
+    mat.m[1][1] = cosf(angle);
+    mat.m[1][2] = sinf(angle);
+    mat.m[2][1] = -sinf(angle);
+    mat.m[2][2] = cosf(angle);
+    mat.m[3][3] = 1;
+    return mat;
+}
+Tools3D::Mat4x4 Tools3D::newMatRotY(float angle){
+    Mat4x4 mat;
+    mat.m[0][0] = cosf(angle);
+    mat.m[0][2] = sinf(angle);
+    mat.m[2][0] = -sinf(angle);
+    mat.m[1][1] = 1.0f;
+    mat.m[2][2] = cosf(angle);
+    mat.m[3][3] = 1.0f;
+    return mat;
+}
+Tools3D::Mat4x4 Tools3D::newMatRotZ(float angle){
+    Mat4x4 mat;
+    mat.m[0][0] = cosf(angle);
+    mat.m[0][1] = sinf(angle);
+    mat.m[1][0] = -sinf(angle);
+    mat.m[1][1] = cosf(angle);
+    mat.m[2][2] = 1;
+    mat.m[3][3] = 1;
+    return mat;
+}
+// Translation matrix
+Tools3D::Mat4x4 Tools3D::newMatTrans(float x, float y, float z){
+    Mat4x4 mat;
+    mat.m[0][0] = 1.0f;
+    mat.m[1][1] = 1.0f;
+    mat.m[2][2] = 1.0f;
+    mat.m[3][3] = 1.0f;
+    mat.m[3][0] = x;
+    mat.m[3][1] = y;
+    mat.m[3][2] = z;
+    return mat;
+}
+// Creates a projection matrix.
+// fovDeg is the field of vision in degrees
+// near/fear determine the scale of the view
+Tools3D::Mat4x4 Tools3D::newMatProj(float fovDeg, float aspectRatio, float near, float far){
+    Mat4x4 mat;
+    float fovRad = 1.0f / tanf(fovDeg * 0.5f / 180.0f * 3.14159f);
+    mat.m[0][0] = aspectRatio * fovRad;
+    mat.m[1][1] = fovRad;
+    mat.m[2][2] = far / (far - near);
+    mat.m[3][2] = (-far * near) / (far - near);
+    mat.m[2][3] = 1.0f;
+    mat.m[3][3] = 0.0f;
+    return mat;
+}
 
+Tools3D::Mat4x4 Tools3D::matPointAt(Vector3 pos, Vector3 target, Vector3 up){
+    // Calculate the new directions
+    // Forward
+    Vector3 newForward = target - pos;
+    newForward = normalise(newForward);
+
+    // Up
+    Vector3 a = newForward * dotProduct(up, newForward);
+    Vector3 newUp = up - a;
+    newUp = normalise(newUp);
+
+    // Right
+    Vector3 newRight = crossProduct(newUp, newForward);
+
+    // Dimensioning and translation matrix
+    Mat4x4 mat;
+    mat.m[0][0] = newRight.x;   mat.m[0][1] = newRight.y;   mat.m[0][2] = newRight.z;   mat.m[0][3] = 0;
+    mat.m[1][0] = newUp.x;      mat.m[1][1] = newUp.y;      mat.m[1][2] = newUp.z;      mat.m[1][3] = 0;
+    mat.m[2][0] = newForward.x; mat.m[2][1] = newForward.y; mat.m[2][2] = newForward.z; mat.m[2][3] = 0;
+    mat.m[3][0] = pos.x;        mat.m[3][1] = pos.y;        mat.m[3][2] = pos.z;        mat.m[3][3] = 1.0f;
+
+    return mat;
+}
+// Works only for rotation/translation matrices, i.e. the one returned by matPointAt()
+Tools3D::Mat4x4 Tools3D::matQuickInverse(Mat4x4 in){
+    Mat4x4 out;
+    out.m[0][0] = in.m[0][0]; out.m[0][1] = in.m[1][0]; out.m[0][2] = in.m[2][0];
+    out.m[1][0] = in.m[0][1]; out.m[1][1] = in.m[1][1]; out.m[1][2] = in.m[2][1];
+    out.m[2][0] = in.m[0][2]; out.m[2][1] = in.m[1][2]; out.m[2][2] = in.m[2][2];
+    out.m[3][0] = -(in.m[3][0] * out.m[0][0] + in.m[3][1] * out.m[1][0] + in.m[3][2] * out.m[2][0]);
+    out.m[3][1] = -(in.m[3][0] * out.m[0][1] + in.m[3][1] * out.m[1][1] + in.m[3][2] * out.m[2][1]);
+    out.m[3][2] = -(in.m[3][0] * out.m[0][2] + in.m[3][1] * out.m[1][2] + in.m[3][2] * out.m[2][2]);
+    out.m[3][3] = 1.0f;
+    return out;
+}

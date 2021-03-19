@@ -15,8 +15,18 @@ public:
 
     // Struct repsresenting a 3d vector
     struct Vector3{
-    public:
         float x, y, z, w;
+
+        Vector3(){
+            x = y = z = 0;
+            w = 1;
+        }
+        Vector3(float a, float b, float c){
+            x = a;
+            y = b;
+            z = c;
+            w = 1;
+        }
 
         // Overloads for basic math
         Vector3 operator+(Vector3 v){
@@ -53,18 +63,28 @@ public:
         }
 
         // Overload for 4x4 matrices, like the projection matrix
+//        Vector3 operator*(Mat4x4 m){
+//            Vector3 in = *this;
+//            Vector3 out;
+//            out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + m.m[3][0];
+//            out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + m.m[3][1];
+//            out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + m.m[3][2];
+//            float w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
+
+//            if (w != 0.0f)
+//            {
+//                out.x /= w; out.y /= w; out.z /= w;
+//            }
+//            return out;
+//        }
         Vector3 operator*(Mat4x4 m){
             Vector3 in = *this;
             Vector3 out;
             out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + m.m[3][0];
             out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + m.m[3][1];
             out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + m.m[3][2];
-            float w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
+            out.w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
 
-            if (w != 0.0f)
-            {
-                out.x /= w; out.y /= w; out.z /= w;
-            }
             return out;
         }
         Vector3 operator*=(Mat4x4 m){
@@ -84,6 +104,15 @@ public:
             out.p[0] = in.p[0] * m;
             out.p[1] = in.p[1] * m;
             out.p[2] = in.p[2] * m;
+
+            return out;
+        }
+        Triangle operator/(float k){
+            Triangle in = *this;
+            Triangle out;
+            out.p[0] = in.p[0] / k;
+            out.p[1] = in.p[1] / k;
+            out.p[2] = in.p[2] / k;
 
             return out;
         }
@@ -156,7 +185,20 @@ public:
     // Struct representing a 4x4 matrix
     struct Mat4x4{
         float m[4][4] = {0};
-    };
+
+        Mat4x4 operator*(Mat4x4 m){
+            Mat4x4 out;
+            for(int c = 0; c < 4; c++){
+                for(int r = 0; r < 4; r++){
+                    out.m[r][c] = this->m[r][0] * m.m[0][c] +
+                            this->m[r][1] * m.m[1][c] +
+                            this->m[r][2] * m.m[2][c] +
+                            this->m[r][3] * m.m[3][c];
+                }
+            }
+            return out;
+        }
+   };
 
 
     // Drawing functions
@@ -167,6 +209,9 @@ public:
     static void fillTri(QImage *image, Triangle tri, Tools::Color8 color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color color);
 
+
+    // Math functions
+
     // Vector functions
     // Multiply a vector by a matrix
     static Vector3 multiplyMatrix(Vector3 &in, Mat4x4 &m);
@@ -175,14 +220,29 @@ public:
     // Calculate the length of a vector
     static float length(Vector3 v);
     // Normalize a vector
-    static Vector3 normalize(Vector3 v);
+    static Vector3 normalise(Vector3 v);
     // Calculate the normal vector(cross product) of two vectors/lines
     static Vector3 crossProduct(Vector3 v1, Vector3 v2);
     // Add, subtract, multiply and divide vectors
-    static Vector3 addVectors(Vector3 &v1, Vector3 &v2);
-    static Vector3 subVectors(Vector3 &v1, Vector3 &v2);
-    static Vector3 mulVectors(Vector3 &v1, float k);
-    static Vector3 divVectors(Vector3 &v1, float k);
+//    static Vector3 addVectors(Vector3 &v1, Vector3 &v2);
+//    static Vector3 subVectors(Vector3 &v1, Vector3 &v2);
+//    static Vector3 mulVectors(Vector3 &v1, float k);
+//    static Vector3 divVectors(Vector3 &v1, float k);
+
+    // Matrix creation functions
+    // Identity matrix
+    static Mat4x4 newMatIdentity();
+    // Rotation matrix
+    static Mat4x4 newMatRotX(float angle);
+    static Mat4x4 newMatRotY(float angle);
+    static Mat4x4 newMatRotZ(float angle);
+    // Translation matrix
+    static Mat4x4 newMatTrans(float x, float y, float z);
+    // Projection matrix
+    static Mat4x4 newMatProj(float fovDeg, float aspectRatio, float near, float far);
+
+    static Mat4x4 matPointAt(Vector3 pos, Vector3 target, Vector3 up);
+    static Mat4x4 matQuickInverse(Mat4x4 mat);
 };
 
 #endif // TOOLS3D_H

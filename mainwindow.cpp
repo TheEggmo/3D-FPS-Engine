@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Create a timer that will redraw the screen
     sUpdateTimer = new QTimer(this);
     sUpdateTimer->setSingleShot(false);
-    connect(sUpdateTimer, SIGNAL(timeout()), this, SLOT(screenUpdate()));
+    connect(sUpdateTimer, SIGNAL(timeout()), this, SLOT(process()));
     int targetFps = 60;
     sUpdateTimer->start(1000/targetFps); // Refresh every 16 msec, which is aprox 60fps
 
@@ -44,6 +44,23 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
+
+    // Initiate the InputMap
+    Input.addAction("JUMP", Qt::Key_Space);
+//    Input.addKey(Qt::Key_Space, "JUMP");
+    Input.addAction("CROUCH", Qt::Key_Control);
+    Input.addAction("LEFT");
+    Input.addKey(Qt::Key_A, "LEFT");
+    Input.addKey(Qt::Key_Left, "LEFT");
+    Input.addAction("RIGHT");
+    Input.addKey(Qt::Key_D, "RIGHT");
+    Input.addKey(Qt::Key_Right, "RIGHT");
+    Input.addAction("UP");
+    Input.addKey(Qt::Key_W, "UP");
+    Input.addKey(Qt::Key_Up, "UP");
+    Input.addAction("DOWN");
+    Input.addKey(Qt::Key_S, "DOWN");
+    Input.addKey(Qt::Key_Down, "DOWN");
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
@@ -51,13 +68,12 @@ void MainWindow::paintEvent(QPaintEvent*){
     p.drawImage(offset, offset, *mainImage);
 }
 
-//// Simplified drawPixel
-//void drawPixel(int x, int y){
-//    T2::drawPixel(mainImage, x, y, drawingColor);
-//}
+// The main engine/game loop function, called every frame
+void MainWindow::process(){
+    mainImage->fill(defaultBg); // Wipe the screen
+    Input.processInput(); // Update inputs
 
-void MainWindow::screenUpdate(){
-    mainImage->fill(defaultBg);
+    movePlayer();
 
     T3::Mat4x4 matRotZ, matRotX, matTrans, matWorld;
 
@@ -176,37 +192,64 @@ void MainWindow::screenUpdate(){
 // This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
 // TEMPORARY, REPLACE THIS WITH ANOTHER IMPLEMENTATION
 void MainWindow::keyPressEvent(QKeyEvent *event){
+    if(event->isAutoRepeat()) return;
     int keyCode = event->key();
+    Input.pressKey(keyCode);
+}
+void MainWindow::keyReleaseEvent(QKeyEvent *event){
+    int keyCode = event->key();
+    Input.releaseKey(keyCode);
+}
 
-    float jumpSpeed = 4;
-    float moveSpeed = 4;
+void MainWindow::movePlayer(){
+    float jumpSpeed = 0.4;
+    float moveSpeed = 0.1;
 
     T3::Vector3 forward = lookDir * moveSpeed;
 
-    switch(keyCode){
-    case Qt::Key_W:
-    case Qt::Key_Up:
+    //    switch(keyCode){
+    //    case Qt::Key_W:
+    //    case Qt::Key_Up:
+    //        camera = camera + forward;
+    //        break;
+    //    case Qt::Key_S:
+    //    case Qt::Key_Down:
+    //        camera = camera - forward;
+    //        break;
+    //    case Qt::Key_A:
+    //    case Qt::Key_Left:
+    //        yaw -= 0.2;
+    ////        camera.x += moveSpeed;
+    //        break;
+    //    case Qt::Key_D:
+    //    case Qt::Key_Right:
+    //        yaw += 0.2;
+    ////        camera.x -= moveSpeed;
+    //        break;
+    //    case Qt::Key_Space:
+    //        camera.y += jumpSpeed;
+    //        break;
+    //    case Qt::Key_Control:
+    //        camera.y -= jumpSpeed;
+    //        break;
+    //    }
+    if(Input.isActionPressed("UP")){
         camera = camera + forward;
-        break;
-    case Qt::Key_S:
-    case Qt::Key_Down:
+    }
+    if(Input.isActionPressed("DOWN")){
         camera = camera - forward;
-        break;
-    case Qt::Key_A:
-    case Qt::Key_Left:
-        yaw -= 0.2;
-//        camera.x += moveSpeed;
-        break;
-    case Qt::Key_D:
-    case Qt::Key_Right:
-        yaw += 0.2;
-//        camera.x -= moveSpeed;
-        break;
-    case Qt::Key_Space:
+    }
+    if(Input.isActionPressed("LEFT")){
+        yaw -= 0.02;
+    }
+    if(Input.isActionPressed("RIGHT")){
+        yaw += 0.02;
+    }
+    if(Input.isActionPressed("JUMP")){
         camera.y += jumpSpeed;
-        break;
-    case Qt::Key_Control:
+//        qDebug("jumping");
+    }
+    if(Input.isActionPressed("CROUCH")){
         camera.y -= jumpSpeed;
-        break;
     }
 }

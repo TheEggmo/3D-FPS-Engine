@@ -47,20 +47,19 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
     // Initiate the InputMap
     Input.addAction("JUMP", Qt::Key_Space);
-//    Input.addKey(Qt::Key_Space, "JUMP");
     Input.addAction("CROUCH", Qt::Key_Control);
     Input.addAction("LEFT");
-    Input.addKey(Qt::Key_A, "LEFT");
-    Input.addKey(Qt::Key_Left, "LEFT");
+    Input.addKey("LEFT", Qt::Key_A);
+    Input.addKey("LEFT", Qt::Key_Left);
     Input.addAction("RIGHT");
-    Input.addKey(Qt::Key_D, "RIGHT");
-    Input.addKey(Qt::Key_Right, "RIGHT");
+    Input.addKey("RIGHT", Qt::Key_D);
+    Input.addKey("RIGHT", Qt::Key_Right);
     Input.addAction("UP");
-    Input.addKey(Qt::Key_W, "UP");
-    Input.addKey(Qt::Key_Up, "UP");
+    Input.addKey("UP", Qt::Key_W);
+    Input.addKey("UP", Qt::Key_Up);
     Input.addAction("DOWN");
-    Input.addKey(Qt::Key_S, "DOWN");
-    Input.addKey(Qt::Key_Down, "DOWN");
+    Input.addKey("DOWN", Qt::Key_S);
+    Input.addKey("DOWN", Qt::Key_Down);
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
@@ -68,13 +67,16 @@ void MainWindow::paintEvent(QPaintEvent*){
     p.drawImage(offset, offset, *mainImage);
 }
 
-// The main engine/game loop function, called every frame
 void MainWindow::process(){
     mainImage->fill(defaultBg); // Wipe the screen
     Input.processInput(); // Update inputs
+    movePlayer(); // Move the player
+    screenUpdate(); // Transform the 3D space into a 2D image
+    update();
+}
 
-    movePlayer();
-
+// The main engine/game loop function, called every frame
+void MainWindow::screenUpdate(){
     T3::Mat4x4 matRotZ, matRotX, matTrans, matWorld;
 
 //    fTheta += 0.025f;
@@ -184,55 +186,28 @@ void MainWindow::process(){
         T3::fillTri(mainImage, triProjected, triProjected.color);
         T3::drawTri(mainImage, triProjected, T2::Color8(0, 0, 0)); // Draw outline on edges
     }
-
-    update();
 }
 
-// Handle keyboard inputs to change camera position
-// This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
-// TEMPORARY, REPLACE THIS WITH ANOTHER IMPLEMENTATION
+// Capture keyboard inputs and store them in the InputMap
 void MainWindow::keyPressEvent(QKeyEvent *event){
     if(event->isAutoRepeat()) return;
     int keyCode = event->key();
     Input.pressKey(keyCode);
 }
 void MainWindow::keyReleaseEvent(QKeyEvent *event){
+    if(event->isAutoRepeat()) return;
     int keyCode = event->key();
     Input.releaseKey(keyCode);
 }
 
+// Change player position based on inputs
+// This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
 void MainWindow::movePlayer(){
     float jumpSpeed = 0.4;
     float moveSpeed = 0.1;
 
     T3::Vector3 forward = lookDir * moveSpeed;
 
-    //    switch(keyCode){
-    //    case Qt::Key_W:
-    //    case Qt::Key_Up:
-    //        camera = camera + forward;
-    //        break;
-    //    case Qt::Key_S:
-    //    case Qt::Key_Down:
-    //        camera = camera - forward;
-    //        break;
-    //    case Qt::Key_A:
-    //    case Qt::Key_Left:
-    //        yaw -= 0.2;
-    ////        camera.x += moveSpeed;
-    //        break;
-    //    case Qt::Key_D:
-    //    case Qt::Key_Right:
-    //        yaw += 0.2;
-    ////        camera.x -= moveSpeed;
-    //        break;
-    //    case Qt::Key_Space:
-    //        camera.y += jumpSpeed;
-    //        break;
-    //    case Qt::Key_Control:
-    //        camera.y -= jumpSpeed;
-    //        break;
-    //    }
     if(Input.isActionPressed("UP")){
         camera = camera + forward;
     }
@@ -247,7 +222,6 @@ void MainWindow::movePlayer(){
     }
     if(Input.isActionPressed("JUMP")){
         camera.y += jumpSpeed;
-//        qDebug("jumping");
     }
     if(Input.isActionPressed("CROUCH")){
         camera.y -= jumpSpeed;

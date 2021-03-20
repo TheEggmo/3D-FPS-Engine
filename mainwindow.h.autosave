@@ -196,7 +196,10 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
 
-    void movePlayer(); // Called every frame, updates player position based on input
+    // Functions called every frame by process()
+    // They update the game state, i.e. visuals, positions, inputs
+    void movePlayer(); // Updates player position based on input
+    void screenUpdate(); // Updates the screen by transforming the 3D world
 
     Tools3D::Mesh meshCube;
     Tools3D::Mat4x4 matProj; // Projection matrix

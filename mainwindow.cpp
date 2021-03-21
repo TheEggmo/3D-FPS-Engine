@@ -3,6 +3,8 @@
 #include <vector>
 #include <QDebug>
 #include <algorithm>
+#include <list>
+
 
 using T2 = Tools;
 using T3 = Tools3D;
@@ -65,6 +67,12 @@ void MainWindow::paintEvent(QPaintEvent*){
 }
 
 void MainWindow::process(){
+    // Track how long each frame takes(for physics and debugging)
+    auto newFrameTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> frameTime = newFrameTime - lastFrameTime;
+    lastFrameTime = newFrameTime;
+    if(bool displayFrameTime = true) qDebug("Frame Time: %f", frameTime.count());
+
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
@@ -135,37 +143,45 @@ void MainWindow::screenUpdate(){
             // Convert world space to view space
             triViewed = triTransformed * viewMatrix;
 
-            // Project from 3D to 2D
-//            triProjected = triTransformed * matProj;
-            triProjected = triViewed * matProj;
+            // Clip viewed triangle against the near plane
+            // This could form two additional triangles
+            int clippedTriangles = 0;
+            T3::Triangle clipped[2];
+            clippedTriangles = T3::clipTriangle({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f}, triViewed, clipped[0], clipped[1]); // TODO: REPLACE THE VECTOR CONSTRUCTOR WITH A VARIABLE
 
-            triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
-            triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
-            triProjected.p[2] = triProjected.p[2] / triProjected.p[2].w;
+            for(int i = 0; i < clippedTriangles; i++){
 
-            // Fix inverted x/y
-            triProjected.p[0].x *= -1.0f;
-            triProjected.p[1].x *= -1.0f;
-            triProjected.p[2].x *= -1.0f;
-            triProjected.p[0].y *= -1.0f;
-            triProjected.p[1].y *= -1.0f;
-            triProjected.p[2].y *= -1.0f;
+                // Project from 3D to 2D
+                triProjected = clipped[i] * matProj;
 
-            // Scale into view
-            T3::Vector3 viewOffset = {1, 1, 0};
-            triProjected.p[0] = triProjected.p[0] + viewOffset;
-            triProjected.p[1] = triProjected.p[1] + viewOffset;
-            triProjected.p[2] = triProjected.p[2] + viewOffset;
+                triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
+                triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
+                triProjected.p[2] = triProjected.p[2] / triProjected.p[2].w;
 
-            triProjected.p[0].x *= 0.5f * (float)sWidth;
-            triProjected.p[0].y *= 0.5f * (float)sHeight;
-            triProjected.p[1].x *= 0.5f * (float)sWidth;
-            triProjected.p[1].y *= 0.5f * (float)sHeight;
-            triProjected.p[2].x *= 0.5f * (float)sWidth;
-            triProjected.p[2].y *= 0.5f * (float)sHeight;
+                // Fix inverted x/y
+                triProjected.p[0].x *= -1.0f;
+                triProjected.p[1].x *= -1.0f;
+                triProjected.p[2].x *= -1.0f;
+                triProjected.p[0].y *= -1.0f;
+                triProjected.p[1].y *= -1.0f;
+                triProjected.p[2].y *= -1.0f;
 
-            triProjected.color = shadedColor;
-            triangleQueue.push_back(triProjected);
+                // Scale into view
+                T3::Vector3 viewOffset = {1, 1, 0};
+                triProjected.p[0] = triProjected.p[0] + viewOffset;
+                triProjected.p[1] = triProjected.p[1] + viewOffset;
+                triProjected.p[2] = triProjected.p[2] + viewOffset;
+
+                triProjected.p[0].x *= 0.5f * (float)sWidth;
+                triProjected.p[0].y *= 0.5f * (float)sHeight;
+                triProjected.p[1].x *= 0.5f * (float)sWidth;
+                triProjected.p[1].y *= 0.5f * (float)sHeight;
+                triProjected.p[2].x *= 0.5f * (float)sWidth;
+                triProjected.p[2].y *= 0.5f * (float)sHeight;
+
+                triProjected.color = shadedColor;
+                triangleQueue.push_back(triProjected);
+            }
 
         }
     }
@@ -177,10 +193,53 @@ void MainWindow::screenUpdate(){
         return z1 > z2;
     });
 
-    for(auto &triProjected : triangleQueue){
-        // Rasterize triangles
-        T3::fillTri(mainImage, triProjected, triProjected.color);
-        T3::drawTri(mainImage, triProjected, T2::Color8(0, 0, 0)); // Draw outline on edges
+    // Rasterize triangles
+    for(auto &tri : triangleQueue){
+        // Clip triangles against screen edges(walls of the view frustrum
+        T3::Triangle clipped[2];
+        std::list<T3::Triangle> cTriangleQueue; // Queue of triangles for clipping
+        cTriangleQueue.push_back(tri);
+        int newTriangles = 1;
+
+        for(int p = 0; p < 4; p++){
+            int trianglesToAdd = 0;
+            while(newTriangles > 0){
+                T3::Triangle test = cTriangleQueue.front();
+                cTriangleQueue.pop_front();
+                newTriangles--;
+
+                switch(p){
+                case 0:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 1:
+                    trianglesToAdd = T3::clipTriangle({0.0f, (float)sHeight - 1, 0.0f}, {0.0f, -1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 2:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 3:
+                    trianglesToAdd = T3::clipTriangle({(float)sWidth - 1, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                }
+
+                // Add newly created triangles to the queue for clipping against next planes
+                for(int w = 0; w < trianglesToAdd; w++){
+                    cTriangleQueue.push_back(clipped[w]);
+                }
+            }
+            newTriangles = cTriangleQueue.size();
+        }
+
+        // Finally, draw the modified triangles on the screen
+        for(T3::Triangle &tri : cTriangleQueue){
+            T3::fillTri(mainImage, tri, tri.color);
+            T3::drawTri(mainImage, tri, T2::Color8(0, 0, 0)); // Draw outline on edges
+        }
     }
 }
 

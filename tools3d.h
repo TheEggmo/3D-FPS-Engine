@@ -243,6 +243,12 @@ public:
 
     static Mat4x4 matPointAt(Vector3 pos, Vector3 target, Vector3 up);
     static Mat4x4 matQuickInverse(Mat4x4 mat);
+
+    //
+    static Vector3 intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd);
+    // Clips a triangle against a plane. Returns the amount of triangles produced by clipping (0-2).
+    // New triangles created by clipping are placed in outTri1 and outTri2.
+    static int clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTri, Triangle &outTri1, Triangle &outTri2);
 };
 
 #endif // TOOLS3D_H

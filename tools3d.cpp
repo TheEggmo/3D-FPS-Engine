@@ -259,7 +259,7 @@ Tools3D::Mat4x4 Tools3D::newMatTrans(float x, float y, float z){
 }
 // Creates a projection matrix.
 // fovDeg is the field of vision in degrees
-// near/fear determine the scale of the view
+// near/fear determine the view frustrum
 Tools3D::Mat4x4 Tools3D::newMatProj(float fovDeg, float aspectRatio, float near, float far){
     Mat4x4 mat;
     float fovRad = 1.0f / tanf(fovDeg * 0.5f / 180.0f * 3.14159f);
@@ -306,4 +306,95 @@ Tools3D::Mat4x4 Tools3D::matQuickInverse(Mat4x4 in){
     out.m[3][2] = -(in.m[3][0] * out.m[0][2] + in.m[3][1] * out.m[1][2] + in.m[3][2] * out.m[2][2]);
     out.m[3][3] = 1.0f;
     return out;
+}
+
+// Returns the point at which a line interescts with a plane
+Tools3D::Vector3 Tools3D::intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd){
+    planeNormal = normalise(planeNormal);
+    float planeDotP = -dotProduct(planeNormal, planePoint);
+    float startDotP = dotProduct(lineStart, planeNormal);
+    float endDotP = dotProduct(lineEnd, planeNormal);
+    float t = (-planeDotP - startDotP) / (endDotP - startDotP);
+    Vector3 lineStartToEnd = lineEnd - lineStart;
+    Vector3 lineToIntersect = lineStartToEnd * t;
+    return lineStart + lineToIntersect;
+}
+
+int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTri, Triangle &outTri1, Triangle &outTri2){
+    // Make sure the plane normal is normal
+    planeNormal = normalise(planeNormal);
+
+    // Return signed shortest distance from point to plane
+    auto dist = [&](Vector3 &p){
+        Vector3 n = normalise(p);
+        return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - dotProduct(planeNormal, planePoint));
+    };
+
+    // Create two temporary storage arrays to classify points either side of the plane
+    // If distance sign is positive, point lies on the "inside" of the plane
+    Vector3* insidePoints[3]; int insidePointCount = 0;
+    Vector3* outsidePoints[3]; int outsidePointCount = 0;
+
+    //Get distance of each poin in triangle to plane
+    float d0 = dist(inTri.p[0]);
+    float d1 = dist(inTri.p[1]);
+    float d2 = dist(inTri.p[2]);
+
+    if(d0 >= 0){ insidePoints[insidePointCount++] = &inTri.p[0]; }
+    else{ outsidePoints[outsidePointCount++] = &inTri.p[0]; }
+    if(d1 >= 0){ insidePoints[insidePointCount++] = &inTri.p[1]; }
+    else{ outsidePoints[outsidePointCount++] = &inTri.p[1]; }
+    if(d2 >= 0){ insidePoints[insidePointCount++] = &inTri.p[2]; }
+    else{ outsidePoints[outsidePointCount++] = &inTri.p[2]; }
+
+    // Classify triangle points and split triangles into smaller triangles if necessary
+
+    // All points are on the outside, the triangle is removed
+    if(insidePointCount == 0){
+        return 0; // No triangles are valid
+    }
+    // All points are on the inside, the triangle is preserved completly
+    if(insidePointCount == 3){
+        outTri1 = inTri;
+        return 1; // One triangle is valid
+    }
+    // One point is on the inside, the triangle is clipped into a smaller triangle
+    if(insidePointCount == 1 && outsidePointCount == 2){
+        // Copy triangle color/texture data into the new triangle
+        outTri1.color = inTri.color;
+
+        // Contruct the output triangle
+        // One point is valid, so it doesn't need to be calculated
+        outTri1.p[0] = *insidePoints[0];
+        // The other two points are on the intersecting plane
+        outTri1.p[1] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0]);
+        outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[1]);
+
+        return 1; // One triangle is valid
+    }
+    // Two points are on the inside, the triangle is clipped and split into two smaller triangles
+    if(insidePointCount == 2 && outsidePointCount == 1){
+        // Copy triangle color/texture data into the new triangles
+        outTri1.color = inTri.color;
+        outTri2.color = inTri.color;
+
+        // Contruct the first output triangle
+        // It consists of the two inside points,
+        // and a new point determined by the point where one side of the triangle intersects with the plane
+        outTri1.p[0] = *insidePoints[0];
+        outTri1.p[1] = *insidePoints[1];
+        outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0]);
+
+        // Contruct the second output triangle
+        // It consists of one inside point,
+        // the new point created for the first triangle,
+        // and a new point determined by the intersection of the other side of the triangle and the plane
+        outTri2.p[0] = *insidePoints[1];
+        outTri2.p[1] = outTri1.p[2];
+        outTri2.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[1], *outsidePoints[0]);
+
+        return 2; // Two triangles are valid
+    }
+
+    qDebug("CLIP TRIANGLE REACHED AN UNEXPETED END");
 }

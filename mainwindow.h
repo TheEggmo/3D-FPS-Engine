@@ -10,6 +10,8 @@
 #include <QKeyEvent>
 #include <string>
 #include <inputmap.h>
+#include <chrono>
+#include <ctime>
 
 using string = std::string;
 
@@ -49,6 +51,8 @@ protected:
     float yaw = 0;
 
     float fTheta = 0;
+
+    std::chrono::time_point<std::chrono::system_clock> lastFrameTime; // Used to calculate time since last process() call
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc

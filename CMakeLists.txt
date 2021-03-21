@@ -43,6 +43,8 @@ else()
     tools.cpp
     tools3d.h
     tools3d.cpp
+    inputmap.h
+    inputmap.cpp
   )
 endif()
 

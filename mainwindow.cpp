@@ -32,14 +32,15 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
     drawingColor = T2::Color8(255, 0, 0);
 
-    // Create a timer that will redraw the screen
-    sUpdateTimer = new QTimer(this);
-    sUpdateTimer->setSingleShot(false);
-    connect(sUpdateTimer, SIGNAL(timeout()), this, SLOT(process()));
+    // Create a timer that will call process() every frame
+    processTimer = new QTimer(this);
+    processTimer->setSingleShot(false);
+    connect(processTimer, SIGNAL(timeout()), this, SLOT(process()));
+    // Refresh every 16 msec, which is aprox 60fps
     int targetFps = 60;
-    sUpdateTimer->start(1000/targetFps); // Refresh every 16 msec, which is aprox 60fps
+    processTimer->start(1000/targetFps);
 
-
+    // Load debug/testing model
     meshCube.loadFromFile("axis.obj");
 
     // Initiate the projection Matrix
@@ -48,17 +49,13 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Initiate the InputMap
     Input.addAction("JUMP", Qt::Key_Space);
     Input.addAction("CROUCH", Qt::Key_Control);
-    Input.addAction("LEFT");
-    Input.addKey("LEFT", Qt::Key_A);
+    Input.addAction("LEFT", Qt::Key_A);
     Input.addKey("LEFT", Qt::Key_Left);
-    Input.addAction("RIGHT");
-    Input.addKey("RIGHT", Qt::Key_D);
+    Input.addAction("RIGHT", Qt::Key_D);
     Input.addKey("RIGHT", Qt::Key_Right);
-    Input.addAction("UP");
-    Input.addKey("UP", Qt::Key_W);
+    Input.addAction("UP", Qt::Key_W);
     Input.addKey("UP", Qt::Key_Up);
-    Input.addAction("DOWN");
-    Input.addKey("DOWN", Qt::Key_S);
+    Input.addAction("DOWN", Qt::Key_S);
     Input.addKey("DOWN", Qt::Key_Down);
 }
 
@@ -68,7 +65,7 @@ void MainWindow::paintEvent(QPaintEvent*){
 }
 
 void MainWindow::process(){
-    mainImage->fill(defaultBg); // Wipe the screen
+    mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
     screenUpdate(); // Transform the 3D space into a 2D image
@@ -96,7 +93,6 @@ void MainWindow::screenUpdate(){
     T3::Vector3 up = {0, 1, 0};
     T3::Vector3 target = {0, 0, 1};
     T3::Mat4x4 cameraRotationMatrix = T3::newMatRotY(yaw);
-//    lookDir = {0, 0, 1};
     lookDir = target * cameraRotationMatrix;
     target = camera + lookDir;
 

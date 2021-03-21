@@ -2,6 +2,15 @@
 
 using T2 = Tools;
 
+
+/*--------------------------------------------------------------->*/
+/*--------------------------------------------------------------->*/
+/*--------------------------------------------------------------->*/
+/*---------------------- Drawing functions ---------------------->*/
+/*--------------------------------------------------------------->*/
+/*--------------------------------------------------------------->*/
+/*--------------------------------------------------------------->*/
+
 // Draw a triangle using drawLine
 void Tools3D::drawTri(QImage *image, Triangle tri, T2::Color8 color){
     T2::drawLine(image, tri.p[0].x, tri.p[0].y,
@@ -16,7 +25,7 @@ void Tools3D::drawTri(QImage *image, Triangle tri, T2::Color color){
 }
 
 // Draw a filled triangle
-// Taken from OneLonelyCoder game engine tutorial, modified by me
+// Taken from OneLonelyCoder game engine tutorial, slightly modified by me
 void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color8 color){
     auto SWAP = [](int &x, int &y) { int t = x; x = y; y = t; }; // Swaps the two values
 
@@ -172,28 +181,14 @@ void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color color){
     fillTri(image, tri, color.convert());
 }
 
-//Tools::Vector3 Tools::multiplyMatrix(Vector3 &in, Mat4x4 &m){
-//    Tools::Vector3 out;
-//    out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + in.w * m.m[3][0];
-//    out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + in.w * m.m[3][1];
-//    out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + in.w * m.m[3][2];
-//    out.w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + in.w * m.m[3][3];
 
-//    return out;
-//}
-//Tools3D::Vector3 Tools3D::multiplyMatrix(Vector3 &in, Mat4x4 &m){
-//    Vector3 out;
-//    out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + m.m[3][0];
-//    out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + m.m[3][1];
-//    out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + m.m[3][2];
-//    float w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
 
-//    if (w != 0.0f)
-//    {
-//        out.x /= w; out.y /= w; out.z /= w;
-//    }
-//    return out;
-//}
+/*------------------------------------------------------------>*/
+/*------------------------------------------------------------>*/
+/*---------------------- Math functions ---------------------->*/
+/*------------------------------------------------------------>*/
+/*------------------------------------------------------------>*/
+
 float Tools3D::dotProduct(Vector3 v1, Vector3 v2){
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
@@ -210,18 +205,6 @@ Tools3D::Vector3 Tools3D::crossProduct(Vector3 v1, Vector3 v2){
     float Nz = v1.x * v2.y - v1.y * v2.x;
     return {Nx, Ny, Nz};
 }
-//Tools::Vector3 Tools::addVectors(Vector3 &v1, Vector3 &v2){
-//    return { v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
-//}
-//Tools::Vector3 Tools::subVectors(Vector3 &v1, Vector3 &v2){
-//    return { v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
-//}
-//Tools::Vector3 Tools::mulVectors(Vector3 &v1, float k){
-//    return { v1.x * k, v1.y * k, v1.z * k};
-//}
-//Tools::Vector3 Tools::divVectors(Vector3 &v1, float k){
-//    return { v1.x / k, v1.y / k, v1.z / k};
-//}
 
 Tools3D::Mat4x4 Tools3D::newMatIdentity(){
     Mat4x4 out;

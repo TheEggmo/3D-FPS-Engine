@@ -214,7 +214,7 @@ Tools3D::Mat4x4 Tools3D::newMatIdentity(){
     out.m[3][3] = 1.0f;
     return out;
 }
-// Create a matrix for rotating in x/y/z axis by the specified angle
+// Create a matrix for rotating in x/y/z axis by the specified angle in radians
 Tools3D::Mat4x4 Tools3D::newMatRotX(float angle){
     Mat4x4 mat;
     mat.m[0][0] = 1;
@@ -309,12 +309,12 @@ Tools3D::Mat4x4 Tools3D::matQuickInverse(Mat4x4 in){
 }
 
 // Returns the point at which a line interescts with a plane
-Tools3D::Vector3 Tools3D::intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd){
+Tools3D::Vector3 Tools3D::intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd, float &t){
     planeNormal = normalise(planeNormal);
     float planeDotP = -dotProduct(planeNormal, planePoint);
     float startDotP = dotProduct(lineStart, planeNormal);
     float endDotP = dotProduct(lineEnd, planeNormal);
-    float t = (-planeDotP - startDotP) / (endDotP - startDotP);
+    t = (-planeDotP - startDotP) / (endDotP - startDotP);
     Vector3 lineStartToEnd = lineEnd - lineStart;
     Vector3 lineToIntersect = lineStartToEnd * t;
     return lineStart + lineToIntersect;
@@ -334,18 +334,20 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     // If distance sign is positive, point lies on the "inside" of the plane
     Vector3* insidePoints[3]; int insidePointCount = 0;
     Vector3* outsidePoints[3]; int outsidePointCount = 0;
+    UV* insideTex[3]; int insideTexCount = 0;
+    UV* outsideTex[3]; int outsideTexCount = 0;
 
     //Get distance of each poin in triangle to plane
     float d0 = dist(inTri.p[0]);
     float d1 = dist(inTri.p[1]);
     float d2 = dist(inTri.p[2]);
 
-    if(d0 >= 0){ insidePoints[insidePointCount++] = &inTri.p[0]; }
-    else{ outsidePoints[outsidePointCount++] = &inTri.p[0]; }
-    if(d1 >= 0){ insidePoints[insidePointCount++] = &inTri.p[1]; }
-    else{ outsidePoints[outsidePointCount++] = &inTri.p[1]; }
-    if(d2 >= 0){ insidePoints[insidePointCount++] = &inTri.p[2]; }
-    else{ outsidePoints[outsidePointCount++] = &inTri.p[2]; }
+    if(d0 >= 0){ insidePoints[insidePointCount++] = &inTri.p[0]; insideTex[insideTexCount++] = &inTri.t[0];}
+    else{ outsidePoints[outsidePointCount++] = &inTri.p[0]; outsideTex[outsideTexCount++] = &inTri.t[0];}
+    if(d1 >= 0){ insidePoints[insidePointCount++] = &inTri.p[1]; insideTex[insideTexCount++] = &inTri.t[1];}
+    else{ outsidePoints[outsidePointCount++] = &inTri.p[1]; outsideTex[outsideTexCount++] = &inTri.t[1];}
+    if(d2 >= 0){ insidePoints[insidePointCount++] = &inTri.p[2]; insideTex[insideTexCount++] = &inTri.t[2];}
+    else{ outsidePoints[outsidePointCount++] = &inTri.p[2]; outsideTex[outsideTexCount++] = &inTri.t[2];}
 
     // Classify triangle points and split triangles into smaller triangles if necessary
 
@@ -364,11 +366,20 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         outTri1.color = inTri.color;
 
         // Contruct the output triangle
+        float t;
         // One point is valid, so it doesn't need to be calculated
         outTri1.p[0] = *insidePoints[0];
+        outTri1.t[0] = *insideTex[0];
         // The other two points are on the intersecting plane
-        outTri1.p[1] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0]);
-        outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[1]);
+        outTri1.p[1] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0], t);
+        outTri1.t[1].u = t * (outsideTex[0]->u - insideTex[0]->u) + insideTex[0]->u;
+        outTri1.t[1].v = t * (outsideTex[0]->v - insideTex[0]->v) + insideTex[0]->v;
+//        outTri1.t[1].w = t * (outsideTex[0]->w - insideTex[0]->w) + insideTex[0]->w;
+
+        outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[1], t);
+        outTri1.t[2].u = t * (outsideTex[1]->u - insideTex[0]->u) + insideTex[0]->u;
+        outTri1.t[2].v = t * (outsideTex[1]->v - insideTex[0]->v) + insideTex[0]->v;
+//        outTri1.t[2].w = t * (outsideTex[1]->w - insideTex[0]->w) + insideTex[0]->w;
 
         return 1; // One triangle is valid
     }
@@ -382,16 +393,25 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         // It consists of the two inside points,
         // and a new point determined by the point where one side of the triangle intersects with the plane
         outTri1.p[0] = *insidePoints[0];
+        outTri1.t[0] = *insideTex[0];
         outTri1.p[1] = *insidePoints[1];
-        outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0]);
+        outTri1.t[1] = *insideTex[1];
+        float t;
+        outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0], t);
+        outTri1.t[2].u = t * (outsideTex[0]->u - insideTex[0]->u) + insideTex[0]->u;
+        outTri1.t[2].v = t * (outsideTex[0]->v - insideTex[0]->v) + insideTex[0]->v;
 
         // Contruct the second output triangle
         // It consists of one inside point,
         // the new point created for the first triangle,
         // and a new point determined by the intersection of the other side of the triangle and the plane
         outTri2.p[0] = *insidePoints[1];
+        outTri2.t[0] = *insideTex[1];
         outTri2.p[1] = outTri1.p[2];
-        outTri2.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[1], *outsidePoints[0]);
+        outTri2.t[1] = outTri1.t[2];
+        outTri2.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[1], *outsidePoints[0], t);
+        outTri2.t[2].u = t * (outsideTex[0]->u - insideTex[1]->u) + insideTex[1]->u;
+        outTri2.t[2].v = t * (outsideTex[0]->v - insideTex[1]->v) + insideTex[1]->v;
 
         return 2; // Two triangles are valid
     }

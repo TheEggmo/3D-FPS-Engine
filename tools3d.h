@@ -3,6 +3,9 @@
 
 #include "tools.h"
 
+#include <QFile>
+#include <QRegularExpression>
+
 using T2 = Tools;
 
 class Tools3D{
@@ -12,6 +15,21 @@ public:
     class Mat4x4;
     class Triangle;
     class Mesh;
+
+    struct UV{
+        float u, v, w;
+
+        UV(){
+            u = 0;
+            v = 0;
+            w = 1;
+        }
+        UV(float a, float b){
+            u = a;
+            v = b;
+            w = 1;
+        }
+    };
 
     // Struct repsresenting a 3d vector
     struct Vector3{
@@ -26,6 +44,12 @@ public:
             y = b;
             z = c;
             w = 1;
+        }
+        Vector3(float a, float b, float c, float d){
+            x = a;
+            y = b;
+            z = c;
+            w = d;
         }
 
         // Overloads for basic math
@@ -62,21 +86,6 @@ public:
             return out;
         }
 
-        // Overload for 4x4 matrices, like the projection matrix
-//        Vector3 operator*(Mat4x4 m){
-//            Vector3 in = *this;
-//            Vector3 out;
-//            out.x = in.x * m.m[0][0] + in.y * m.m[1][0] + in.z * m.m[2][0] + m.m[3][0];
-//            out.y = in.x * m.m[0][1] + in.y * m.m[1][1] + in.z * m.m[2][1] + m.m[3][1];
-//            out.z = in.x * m.m[0][2] + in.y * m.m[1][2] + in.z * m.m[2][2] + m.m[3][2];
-//            float w = in.x * m.m[0][3] + in.y * m.m[1][3] + in.z * m.m[2][3] + m.m[3][3];
-
-//            if (w != 0.0f)
-//            {
-//                out.x /= w; out.y /= w; out.z /= w;
-//            }
-//            return out;
-//        }
         Vector3 operator*(Mat4x4 m){
             Vector3 in = *this;
             Vector3 out;
@@ -94,9 +103,29 @@ public:
     };
     // Struct representing a triangle. Triangle points must be in clockwise order to properly calculate normals
     struct Triangle{
-        Vector3 p[3];
+        Vector3 p[3]; // Triangle points' 3D coordinates
+        UV t[3]; // Texture coordinates
 
         Tools::Color8 color;
+
+        Triangle(){
+            this->p[0] = {0,0,0};
+            this->p[1] = {0,0,0};
+            this->p[2] = {0,0,0};
+        }
+        Triangle(Vector3 v0, Vector3 v1, Vector3 v2){
+            this->p[0] = v0;
+            this->p[1] = v1;
+            this->p[2] = v2;
+        }
+        Triangle(Vector3 v0, Vector3 v1, Vector3 v2, UV uv0, UV uv1, UV uv2){
+            this->p[0] = v0;
+            this->p[1] = v1;
+            this->p[2] = v2;
+            this->t[0] = uv0;
+            this->t[1] = uv1;
+            this->t[2] = uv2;
+        }
 
         Triangle operator*(Mat4x4 m){
             Triangle in = *this;
@@ -122,7 +151,8 @@ public:
         std::vector<Triangle> tris;
 
         // Load the mesh from obj file
-        bool loadFromFile(std::string filename){
+        // If fSimple is set to true, texture_index and normal_index of faces("f") are skipped
+        bool loadFromFileOld(std::string filename, bool fSimple = true){
             std::ifstream f(filename);
             if(!f.is_open()){
                 return false;
@@ -140,45 +170,117 @@ public:
 
                 char junk;
 
-                if (line[0] == 'v'){
-                    Vector3 v;
-                    s >> junk >> v.x >> v.y >> v.z;
-                    verts.push_back(v);
-                }
-                if(line[0] == 'f'){
-                    int f[3];
-                    s >> junk >> f[0] >> f[1] >> f[2];
-                    tris.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
-                }
-//                if (line[0] == 'f'){
-//                    int f[3];
-//                    // Since some lines may contain useless(for me) data, I need to do some formatting on the fly
-//                    char c;
-//                    int i = 0;
-//                    bool skip = true;
-//                    int value = 0;
-//                    while(s.get(c)){
-//                        if (c == '\n') break;
-//                        if (!isdigit(c)) {
-//                            skip = true;
-//                            f[i] = value;
-//                            i++;
-//                            if (i > 2){
-//                                break;
-//                            }
-//                        }
-//                        if (!skip){
-//                            value = value * 10 + std::stoi(&c);
-//                        }
-
-//                        if (c == ' ') skip = false;
-//                    }
-//                    tris.push_back({verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1]});
-
+                // Read vertice data
+//                if (line[0] == 'v'){
+//                    Vector3 v;
+//                    s >> junk >> v.x >> v.y >> v.z;
+//                    verts.push_back(v);
 //                }
+                // Read face's vertice data, doesn't work if more face info is present in the file
+//                if(line[0] == 'f'){
+//                    int f[3];
+//                    s >> junk >> f[0] >> f[1] >> f[2];
+////                    qDebug("%d %d %d", f[0], f[1], f[2]);
+//                    tris.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
+//                }
+//                if(line[0] == 'f'){
+//                    int f[9];
+//                    s >> junk >> f[0] >> f[1] >> f[2] >> f[3] >> f[4] >> f[5]>> f[6] >> f[7] >> f[8];
+//                    qDebug("%d %d %d %d %d %d %d %d %d ", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8]);
+//                    tris.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
+//                }
+                if (line[0] == 'f'){
+                    int f[3];
+                    // Since some lines may contain useless(for me) data, I need to do some formatting on the fly
+                    char c;
+                    int i = 0;
+                    bool skip = true;
+                    int value = 0;
+//                    while(line.get(c)){
+                    for(int i = 0; i < 128; i++){
+                        qDebug("%c", line[i]);
+                        if (c == '\n') break;
+                        if (!isdigit(c)) {
+                            skip = true;
+                            f[i] = value;
+                            i++;
+                            if (i > 2){
+                                break;
+                            }
+                        }
+                        if (!skip){
+                            value = value * 10 + std::stoi(&c);
+                        }
+
+                        if (c == ' ') skip = false;
+                    }
+                    tris.push_back({verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1]});
+
+                }
             }
 
             return true;
+        }
+        bool loadFromFile(const QString& fileName){
+            tris.clear();
+            QFile file(fileName);
+            if(file.exists()){
+                if(file.open(QFile::ReadOnly | QFile::Text)){
+                    std::vector<Vector3> v, vn;
+                    std::vector<T2::Vector2> vt;
+
+                    while(!file.atEnd()){
+                        QString line = file.readLine().trimmed();
+                        QStringList lineParts = line.split(QRegularExpression("\\s+")); // HOW DOES THIS WORK
+                        if(lineParts.count() > 0){
+                            if(lineParts.at(0).compare("#", Qt::CaseInsensitive) == 0){
+                                //COMMENT
+                            }else if(lineParts.at(0).compare("v", Qt::CaseInsensitive) == 0){
+                                //VERTICES
+                                v.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
+                            }else if(lineParts.at(0).compare("vn", Qt::CaseInsensitive) == 0){
+                                //NORMAL
+                                vn.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
+                            }else if(lineParts.at(0).compare("vt", Qt::CaseInsensitive) == 0){
+                                //TEXTURE
+                                vt.push_back({lineParts.at(1).toFloat(), lineParts.at(2).toFloat()});
+                            }else if(lineParts.at(0).compare("f", Qt::CaseInsensitive) == 0){
+                                //FACE DATA
+                                // Faces must be triangles
+                                Triangle tri;
+                                // Vertices
+                                tri.p[0] = v.at(lineParts.at(1).split("/").at(0).toInt() - 1);
+                                tri.p[1] = v.at(lineParts.at(2).split("/").at(0).toInt() - 1);
+                                tri.p[2] = v.at(lineParts.at(3).split("/").at(0).toInt() - 1);
+                                // UV coords
+                                // Currently unused, replace x with triangle's uv structure
+//                                x = v.at(lineParts.at(1).split("/").at(1).toInt() - 1);
+//                                x = v.at(lineParts.at(2).split("/").at(1).toInt() - 1);
+//                                x = v.at(lineParts.at(3).split("/").at(1).toInt() - 1);
+                                // Normals
+                                // Currently unused
+//                                x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
+//                                x = v.at(lineParts.at(2).split("/").at(2).toInt() - 1);
+//                                x = v.at(lineParts.at(3).split("/").at(2).toInt() - 1);
+
+                                tris.push_back(tri);
+                            }
+                        }
+                    }
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
+            return true;
+        }
+        void scale(float mod){
+            for(int tIdx = 0; tIdx < tris.size(); tIdx++){
+                for(int pIdx = 0; pIdx <= 2; pIdx++){
+                    tris[tIdx].p[pIdx] = tris[tIdx].p[pIdx] * mod;
+                }
+            }
         }
     };
 
@@ -245,7 +347,7 @@ public:
     static Mat4x4 matQuickInverse(Mat4x4 mat);
 
     //
-    static Vector3 intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd);
+    static Vector3 intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd, float &t);
     // Clips a triangle against a plane. Returns the amount of triangles produced by clipping (0-2).
     // New triangles created by clipping are placed in outTri1 and outTri2.
     static int clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTri, Triangle &outTri1, Triangle &outTri2);

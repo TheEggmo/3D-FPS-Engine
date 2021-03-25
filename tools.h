@@ -79,6 +79,12 @@ public:
         float distanceToPoint(Vector2 p){
             return sqrt(pow(this->x - p.x, 2) + pow(this->y - p.y, 2));
         }
+        Vector2 operator+(Vector2 v){
+            return Vector2(this->x + v.x, this->y + v.y);
+        }
+        Vector2 operator-(Vector2 v){
+            return Vector2(this->x - v.x, this->y - v.y);
+        }
     };
 
 

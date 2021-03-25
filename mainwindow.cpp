@@ -19,7 +19,7 @@ int startX, startY; // Stores the x and y coordinates of the mouse when mousePre
 int offset = 0; // Shifts the drawn image and mouse events by this offset
 
 T2::Color8 drawingColor;
-Qt::GlobalColor defaultBg = Qt::white;
+Qt::GlobalColor defaultBg = Qt::black;
 
 MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     setWindowTitle("3D Engine");
@@ -34,6 +34,13 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
     drawingColor = T2::Color8(255, 0, 0);
 
+    // Setup mouse tracking/camera movement
+    setMouseTracking(true);
+    cursor = QCursor(Qt::BlankCursor);
+//    cursor = QCursor(Qt::CrossCursor);
+    setCursor(cursor);
+    yaw = pitch = 0;
+
     // Create a timer that will call process() every frame
     processTimer = new QTimer(this);
     processTimer->setSingleShot(false);
@@ -43,7 +50,37 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     processTimer->start(1000/targetFps);
 
     // Load debug/testing model
-    meshCube.loadFromFile("axis.obj");
+//    meshCube.loadFromFile("axis.obj");
+//    meshCube.loadFromFile("watermelon.obj");
+//    meshCube.loadFromFile("watermelon2.obj");
+//    meshCube.scale(10);
+    meshCube.tris = {
+
+            // SOUTH
+        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
+        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+            // EAST
+        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
+        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+
+            // NORTH
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+            // WEST
+        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
+        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+            // TOP
+        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
+        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+            // BOTTOM
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+            };
 
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
@@ -70,12 +107,15 @@ void MainWindow::process(){
     // Track how long each frame takes(for physics and debugging)
     auto newFrameTime = std::chrono::system_clock::now();
     std::chrono::duration<double> frameTime = newFrameTime - lastFrameTime;
+    delta = frameTime.count();
     lastFrameTime = newFrameTime;
-    if(bool displayFrameTime = true) qDebug("Frame Time: %f", frameTime.count());
+    if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
+    if(bool displayFPS = false) qDebug("FPS: %f", 1000/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
+    processPhysics(); // Calculate world physics
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
 }
@@ -100,8 +140,12 @@ void MainWindow::screenUpdate(){
 
     T3::Vector3 up = {0, 1, 0};
     T3::Vector3 target = {0, 0, 1};
-    T3::Mat4x4 cameraRotationMatrix = T3::newMatRotY(yaw);
-    lookDir = target * cameraRotationMatrix;
+    T3::Mat4x4 cameraRotationMatrixY = T3::newMatRotY(yaw);
+    T3::Mat4x4 cameraRotationMatrixX = T3::newMatRotX(pitch);
+//    lookDir = target * cameraRotationMatrixY;
+//    lookDir = lookDir * cameraRotationMatrixX;
+    lookDir = target * cameraRotationMatrixX;
+    lookDir = lookDir * cameraRotationMatrixY;
     target = camera + lookDir;
 
     T3::Mat4x4 cameraMatrix = T3::matPointAt(camera, target, up);
@@ -115,6 +159,9 @@ void MainWindow::screenUpdate(){
         T3::Triangle triTransformed, triProjected, triViewed;
 
         triTransformed = tri * matWorld;
+        triTransformed.t[0] = tri.t[0];
+        triTransformed.t[1] = tri.t[1];
+        triTransformed.t[2] = tri.t[2];
 
         // Use cross-product to get surface normal
         T3::Vector3 normal, line1, line2;
@@ -142,6 +189,10 @@ void MainWindow::screenUpdate(){
 
             // Convert world space to view space
             triViewed = triTransformed * viewMatrix;
+            triViewed.t[0] = triTransformed.t[0];
+            triViewed.t[1] = triTransformed.t[1];
+            triViewed.t[2] = triTransformed.t[2];
+
 
             // Clip viewed triangle against the near plane
             // This could form two additional triangles
@@ -153,6 +204,9 @@ void MainWindow::screenUpdate(){
 
                 // Project from 3D to 2D
                 triProjected = clipped[i] * matProj;
+                triProjected.t[0] = clipped[i].t[0];
+                triProjected.t[1] = clipped[i].t[1];
+                triProjected.t[2] = clipped[i].t[2];
 
                 triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
                 triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
@@ -193,7 +247,7 @@ void MainWindow::screenUpdate(){
         return z1 > z2;
     });
 
-    // Rasterize triangles
+    // Draw triangles
     for(auto &tri : triangleQueue){
         // Clip triangles against screen edges(walls of the view frustrum
         T3::Triangle clipped[2];
@@ -237,10 +291,25 @@ void MainWindow::screenUpdate(){
 
         // Finally, draw the modified triangles on the screen
         for(T3::Triangle &tri : cTriangleQueue){
-            T3::fillTri(mainImage, tri, tri.color);
-            T3::drawTri(mainImage, tri, T2::Color8(0, 0, 0)); // Draw outline on edges
+//            T3::fillTri(mainImage, tri, tri.color);
+            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges
         }
     }
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event){
+//    qDebug("%d %d", event->x(), event->y());
+//    printf("%d %d", event->x(), event->y());
+    T2::Vector2 sCenter = T2::Vector2(sWidth/2, sHeight/2);
+    QPoint g = this->mapFromGlobal(QPoint(0, 0));
+    sCenter.x -= g.x();
+    sCenter.y -= g.y();
+    float sensMod = 0.001; // Modifies the sensitivity of the mouse
+
+    T2::Vector2 mouseDiff = T2::Vector2(cursor.pos().x(), cursor.pos().y()) - sCenter;
+    yaw += mouseDiff.x * sensMod;
+    pitch += mouseDiff.y * sensMod * 0.5;
+    cursor.setPos(sCenter.x, sCenter.y);
 }
 
 // Capture keyboard inputs and store them in the InputMap
@@ -262,6 +331,8 @@ void MainWindow::movePlayer(){
     float moveSpeed = 0.1;
 
     T3::Vector3 forward = lookDir * moveSpeed;
+//    T3::Mat4x4 sideMat = T3::newMatRotX(3.14/2);
+//    T3::Vector3 side = lookDir * sideMat * moveSpeed;
 
     if(Input.isActionPressed("UP")){
         camera = camera + forward;
@@ -270,10 +341,12 @@ void MainWindow::movePlayer(){
         camera = camera - forward;
     }
     if(Input.isActionPressed("LEFT")){
-        yaw -= 0.02;
+//        yaw -= 0.02;
+//        camera = camera - side;
     }
     if(Input.isActionPressed("RIGHT")){
-        yaw += 0.02;
+//        yaw += 0.02;
+//        camera = camera + side;
     }
     if(Input.isActionPressed("JUMP")){
         camera.y += jumpSpeed;
@@ -281,4 +354,11 @@ void MainWindow::movePlayer(){
     if(Input.isActionPressed("CROUCH")){
         camera.y -= jumpSpeed;
     }
+}
+
+void MainWindow::processPhysics(){
+    float gravity = 0.1f;
+
+    camera.y -= gravity;
+    camera.y = std::max(0.0f, camera.y);
 }

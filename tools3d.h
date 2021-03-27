@@ -58,7 +58,7 @@ public:
             out.x = this->x + v.x;
             out.y = this->y + v.y;
             out.z = this->z + v.z;
-            out.w = this->w + v.w;
+//            out.w = this->w + v.w;
             return out;
         }
         Vector3 operator-(Vector3 v){
@@ -66,7 +66,7 @@ public:
             out.x = this->x - v.x;
             out.y = this->y - v.y;
             out.z = this->z - v.z;
-            out.w = this->w - v.w;
+//            out.w = this->w - v.w;
             return out;
         }
         Vector3 operator*(float k){
@@ -74,7 +74,7 @@ public:
             out.x = this->x * k;
             out.y = this->y * k;
             out.z = this->z * k;
-            out.w = this->w * k;
+//            out.w = this->w * k;
             return out;
         }
         Vector3 operator/(float k){
@@ -82,7 +82,7 @@ public:
             out.x = this->x / k;
             out.y = this->y / k;
             out.z = this->z / k;
-            out.w = this->w / k;
+//            out.w = this->w / k;
             return out;
         }
 
@@ -151,87 +151,21 @@ public:
         std::vector<Triangle> tris;
 
         // Load the mesh from obj file
-        // If fSimple is set to true, texture_index and normal_index of faces("f") are skipped
-        bool loadFromFileOld(std::string filename, bool fSimple = true){
-            std::ifstream f(filename);
-            if(!f.is_open()){
-                return false;
-            }
 
-            std::vector<Vector3> verts;
-
-            while(!f.eof()){
-                char line[128];
-                f.getline(line, 128);
-
-                std::strstream s;
-
-                s << line;
-
-                char junk;
-
-                // Read vertice data
-//                if (line[0] == 'v'){
-//                    Vector3 v;
-//                    s >> junk >> v.x >> v.y >> v.z;
-//                    verts.push_back(v);
-//                }
-                // Read face's vertice data, doesn't work if more face info is present in the file
-//                if(line[0] == 'f'){
-//                    int f[3];
-//                    s >> junk >> f[0] >> f[1] >> f[2];
-////                    qDebug("%d %d %d", f[0], f[1], f[2]);
-//                    tris.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
-//                }
-//                if(line[0] == 'f'){
-//                    int f[9];
-//                    s >> junk >> f[0] >> f[1] >> f[2] >> f[3] >> f[4] >> f[5]>> f[6] >> f[7] >> f[8];
-//                    qDebug("%d %d %d %d %d %d %d %d %d ", f[0], f[1], f[2], f[3], f[4], f[5], f[6], f[7], f[8]);
-//                    tris.push_back({ verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1] });
-//                }
-                if (line[0] == 'f'){
-                    int f[3];
-                    // Since some lines may contain useless(for me) data, I need to do some formatting on the fly
-                    char c;
-                    int i = 0;
-                    bool skip = true;
-                    int value = 0;
-//                    while(line.get(c)){
-                    for(int i = 0; i < 128; i++){
-                        qDebug("%c", line[i]);
-                        if (c == '\n') break;
-                        if (!isdigit(c)) {
-                            skip = true;
-                            f[i] = value;
-                            i++;
-                            if (i > 2){
-                                break;
-                            }
-                        }
-                        if (!skip){
-                            value = value * 10 + std::stoi(&c);
-                        }
-
-                        if (c == ' ') skip = false;
-                    }
-                    tris.push_back({verts[f[0] - 1], verts[f[1] - 1], verts[f[2] - 1]});
-
-                }
-            }
-
-            return true;
-        }
         bool loadFromFile(const QString& fileName){
             tris.clear();
             QFile file(fileName);
             if(file.exists()){
                 if(file.open(QFile::ReadOnly | QFile::Text)){
                     std::vector<Vector3> v, vn;
-                    std::vector<T2::Vector2> vt;
+                    std::vector<UV> vt;
 
                     while(!file.atEnd()){
+                        // Trim and split the next line.
+                        // Splitting works based on a regex looking for whitespaces.
                         QString line = file.readLine().trimmed();
-                        QStringList lineParts = line.split(QRegularExpression("\\s+")); // HOW DOES THIS WORK
+                        QStringList lineParts = line.split(QRegularExpression("\\s+"));
+                        // Process the line based on its first part
                         if(lineParts.count() > 0){
                             if(lineParts.at(0).compare("#", Qt::CaseInsensitive) == 0){
                                 //COMMENT
@@ -253,10 +187,11 @@ public:
                                 tri.p[1] = v.at(lineParts.at(2).split("/").at(0).toInt() - 1);
                                 tri.p[2] = v.at(lineParts.at(3).split("/").at(0).toInt() - 1);
                                 // UV coords
-                                // Currently unused, replace x with triangle's uv structure
-//                                x = v.at(lineParts.at(1).split("/").at(1).toInt() - 1);
-//                                x = v.at(lineParts.at(2).split("/").at(1).toInt() - 1);
-//                                x = v.at(lineParts.at(3).split("/").at(1).toInt() - 1);
+                                if(!vt.empty()){
+                                    tri.t[0] = vt.at(lineParts.at(1).split("/").at(1).toInt() - 1);
+                                    tri.t[1] = vt.at(lineParts.at(2).split("/").at(1).toInt() - 1);
+                                    tri.t[2] = vt.at(lineParts.at(3).split("/").at(1).toInt() - 1);
+                                }
                                 // Normals
                                 // Currently unused
 //                                x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
@@ -280,6 +215,14 @@ public:
                 for(int pIdx = 0; pIdx <= 2; pIdx++){
                     tris[tIdx].p[pIdx] = tris[tIdx].p[pIdx] * mod;
                 }
+            }
+        }
+        // Adds the specified vector to all vertices within this mesh
+        void moveVertices(Vector3 v){
+            for(int i = 0; i < tris.size(); i++){
+                tris[i].p[0] = tris[i].p[0] + v;
+                tris[i].p[1] = tris[i].p[1] + v;
+                tris[i].p[2] = tris[i].p[2] + v;
             }
         }
     };
@@ -310,7 +253,7 @@ public:
     static void drawTri(QImage *image, Triangle tri, Tools::Color color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color8 color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color color);
-    static void textureTri(QImage *image, Triangle tri, QImage *texture);
+    static void textureTri(QImage *image, Triangle tri, QImage *texture, float **dBuffer);
 
 
     // Math functions

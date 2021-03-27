@@ -50,40 +50,46 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     processTimer->start(1000/targetFps);
 
     // Load debug/testing model
-//    meshCube.loadFromFile("axis.obj");
-//    meshCube.loadFromFile("watermelon.obj");
-//    meshCube.loadFromFile("watermelon2.obj");
+//    meshCube.loadFromFile("Assets/axis.obj");
+//    meshCube.loadFromFile("Assets/watermelon.obj");
+//    meshCube.loadFromFile("Assets/watermelon2.obj");
+//    meshCube.loadFromFile("Assets/Hurricos.obj");
+    meshCube.loadFromFile("Assets/Artisans Hub.obj");
 //    meshCube.scale(10);
-    meshCube.tris = {
+//    meshCube.tris = {
 
-            // SOUTH
-        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
-        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // SOUTH
+//        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-            // EAST
-        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
-        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+//        // EAST
+//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
 
-            // NORTH
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // NORTH
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-            // WEST
-        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
-        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // WEST
+//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-            // TOP
-        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f}, 	{1.0f, 0.0f}, },
-        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // TOP
+//        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-            // BOTTOM
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // BOTTOM
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-            };
+//    };
+//    meshCube.moveVertices({-0.5, -0.5, -0.5});
 
-    cubeTexture = new QImage("dolphin.jpg");
-//    cubeTexture = new QImage("railgunIcon.png");
+//    cubeTexture = new QImage("Assets/dolphin.jpg");
+//    cubeTexture = new QImage("Assets/railgunIcon.png");
+//    cubeTexture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
+//    cubeTexture = new QImage("Assets/Hurricos.png");
+    cubeTexture = new QImage("Assets/Artisans Hub.png");
 
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
@@ -99,6 +105,9 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addKey("UP", Qt::Key_Up);
     Input.addAction("DOWN", Qt::Key_S);
     Input.addKey("DOWN", Qt::Key_Down);
+
+    // Create the depth buffer
+    depthBuffer = new float[sWidth * sHeight];
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
@@ -112,26 +121,28 @@ void MainWindow::process(){
     std::chrono::duration<double> frameTime = newFrameTime - lastFrameTime;
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
-    if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
+    if(bool displayFrameTime = true) qDebug("Frame Time: %f", frameTime.count());
     if(bool displayFPS = false) qDebug("FPS: %f", 1000/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
+    for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = 0.0f; // Clear the depth buffer
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
     processPhysics(); // Calculate world physics
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
 
-    fTheta = 0.1;
-    T3::Mat4x4 rot = T3::newMatRotY(fTheta);
-    for(int i = 0; i < meshCube.tris.size(); i++){
-        T3::Triangle copy = meshCube.tris[i];
-        meshCube.tris[i] = copy * rot;
-        meshCube.tris[i].t[0] = copy.t[0];
-        meshCube.tris[i].t[1] = copy.t[1];
-        meshCube.tris[i].t[2] = copy.t[2];
+    // SPEEN
+//    fTheta = 0.0;
+//    T3::Mat4x4 rot = T3::newMatRotY(-fTheta);
+//    for(int i = 0; i < meshCube.tris.size(); i++){
+//        T3::Triangle copy = meshCube.tris[i];
+//        meshCube.tris[i] = copy * rot;
+//        meshCube.tris[i].t[0] = copy.t[0];
+//        meshCube.tris[i].t[1] = copy.t[1];
+//        meshCube.tris[i].t[2] = copy.t[2];
 
-    }
+//    }
 }
 
 // The main engine/game loop function, called every frame
@@ -270,11 +281,11 @@ void MainWindow::screenUpdate(){
     }
 
     // Sort triangles for painter algorithm
-    sort(triangleQueue.begin(), triangleQueue.end(), [](Tools3D::Triangle &t1, Tools3D::Triangle &t2){
-        float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
-        float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
-        return z1 > z2;
-    });
+//    sort(triangleQueue.begin(), triangleQueue.end(), [](Tools3D::Triangle &t1, Tools3D::Triangle &t2){
+//        float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
+//        float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
+//        return z1 > z2;
+//    });
 
     // Draw triangles
     for(auto &tri : triangleQueue){
@@ -321,8 +332,8 @@ void MainWindow::screenUpdate(){
         // Finally, draw the modified triangles on the screen
         for(T3::Triangle &tri : cTriangleQueue){
 //            T3::fillTri(mainImage, tri, tri.color);
-            T3::textureTri(mainImage, tri, cubeTexture);
-//            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges
+            T3::textureTri(mainImage, tri, cubeTexture, &depthBuffer);
+            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges
         }
     }
 }
@@ -338,7 +349,10 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event){
 
     T2::Vector2 mouseDiff = T2::Vector2(cursor.pos().x(), cursor.pos().y()) - sCenter;
     yaw += mouseDiff.x * sensMod;
+//    yaw = // Add wrapping?
     pitch += mouseDiff.y * sensMod;
+//    pitch = std::clamp(pitch, -3.14/2, 3.14/2); bruh
+    pitch = clamp(pitch, -3.14/2.0, 3.14/2.0);
     cursor.setPos(sCenter.x, sCenter.y);
 }
 
@@ -358,14 +372,16 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event){
 // This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
 void MainWindow::movePlayer(){
     float jumpSpeed = 0.4;
-    float moveSpeed = 0.1;
+    float moveSpeed = 1;
 
     T3::Vector3 forward = lookDir * moveSpeed;
-//    T3::Mat4x4 sideMat = T3::newMatRotX(3.14/2);
-//    T3::Vector3 side = lookDir * sideMat * moveSpeed;
+//    forward.y = 0;
+//    T3::Vector3 forward;
+//    forward = T3::normalise(lookDir);
 
     if(Input.isActionPressed("UP")){
         camera = camera + forward;
+//        camera.z += forward.z * moveSpeed;
     }
     if(Input.isActionPressed("DOWN")){
         camera = camera - forward;
@@ -391,4 +407,15 @@ void MainWindow::processPhysics(){
 
 //    camera.y -= gravity;
 //    camera.y = std::max(0.0f, camera.y);
+}
+
+float MainWindow::clamp(float in, float lo, float hi){
+    if(lo > hi){
+        qDebug("CLAMP ERROR, LO > HI");
+        return 0;
+    }
+
+    if(in < lo) return lo;
+    if(in > hi) return hi;
+    return in;
 }

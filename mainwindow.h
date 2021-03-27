@@ -45,6 +45,8 @@ protected:
     void screenUpdate(); // Updates the screen by transforming the 3D world
     void processPhysics();
 
+    float clamp(float in, float lo, float hi);
+
     Tools3D::Mesh meshCube;
     Tools3D::Mat4x4 matProj; // Projection matrix
 
@@ -61,7 +63,8 @@ protected:
     Tools::Vector2 lastMousePos = {0, 0};
     QCursor cursor;
 
-    QImage* cubeTexture;
+    QImage *cubeTexture;
+    float *depthBuffer;
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.

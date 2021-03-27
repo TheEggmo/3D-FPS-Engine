@@ -181,7 +181,7 @@ void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color color){
     fillTri(image, tri, color.convert());
 }
 
-void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture){
+void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, float *dBuffer){
     // Split triangle into values for easier access
     int x1 = tri.p[0].x;
     int x2 = tri.p[1].x;
@@ -283,79 +283,85 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture){
                 texU = (1.0f - t) * texSu + t * texEu;
                 texV = (1.0f - t) * texSv + t * texEv;
                 texW = (1.0f - t) * texSw + t * texEw;
+                // Apply perspective to UV coords
                 texU /= texW;
                 texV /= texW;
+                // Scale UV coords to texture size
                 texU *= (texture->width() - 1);
                 texV *= (texture->height() - 1);
-//                T2::drawPixel(image, j, i, T2::getPixel(texture, texU, texV));
 
-                T2::Color8 color = T2::getPixel(texture, texU, texV);
-                if(color.valid()){
-                    T2::drawPixel(image, j, i, color);
-                }else{
-                    T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+                if(texW > dBuffer[i*image->width() + j]){
+                    T2::Color8 color = T2::getPixel(texture, texU, texV);
+                    if(color.valid()){
+                        T2::drawPixel(image, j, i, color);
+                    }else{
+                        // Draw cyan if the color is not a valid color
+                        // Failsafe in case of bad UV mapping or other issues
+                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+                    }
+                    dBuffer[i*image->width() + j] = texW;
                 }
 
-//                if(texU < 0 || texV < 0 || texU > 1 || texV > 1){
-//                    qDebug("%f %f", texU, texV);
-//                }
+
                 t += tStep;
-            }
-        }
-
-        dy1 = y3 - y2;
-        dx1 = x3 - x2;
-        dv1 = v3 - v2;
-        du1 = u3 - u2;
-        dw1 = w3 - w2;
-
-        if (dy1) daxStep = dx1 / (float)abs(dy1);
-        if (dy2) dbxStep = dx2 / (float)abs(dy2);
-
-        du1Step = 0, dv1Step = 0;
-        if (dy1) du1Step = du1 / (float)abs(dy1);
-        if (dy1) dv1Step = dv1 / (float)abs(dy1);
-        if (dy1) dw1Step = dw1 / (float)abs(dy1);
-
-        // Second loop goes from y2 to y3
-        if(dy1){
-            for(int i = y2; i <= y3; i++){
-                int ax = x2 + (float)(i - y2) * daxStep;
-                int bx = x1 + (float)(i - y1) * dbxStep;
-
-                float texSu = u2 + (float)(i - y2) * du1Step;
-                float texSv = v2 + (float)(i - y2) * dv1Step;
-                float texSw = w2 + (float)(i - y2) * dw1Step;
-
-                float texEu = u1 + (float)(i - y1) * du2Step;
-                float texEv = v1 + (float)(i - y1) * dv2Step;
-                float texEw = w1 + (float)(i - y1) * dw2Step;
-
-                if(ax > bx){
-                    std::swap(ax, bx);
-                    std::swap(texSu, texEu);
-                    std::swap(texSv, texEv);
-                    std::swap(texSw, texEw);
                 }
 
-                texU = texSu;
-                texV = texSv;
-                texW = texSw;
+            }
+    }
 
-                float tStep = 1.0f / ((float)(bx - ax));
-                float t = 0.0f;
+    dy1 = y3 - y2;
+    dx1 = x3 - x2;
+    dv1 = v3 - v2;
+    du1 = u3 - u2;
+    dw1 = w3 - w2;
 
-                for(int j = ax; j < bx; j++){
-                    texU = (1.0f - t) * texSu + t * texEu;
-                    texV = (1.0f - t) * texSv + t * texEv;
-                    texW = (1.0f - t) * texSw + t * texEw;
-                    // Apply perspective to uv coords
-                    texU /= texW;
-                    texV /= texW;
-                    // Scale uv cords to image size
-                    texU *= (texture->width() - 1);
-                    texV *= (texture->height() - 1);
-//                T2::drawPixel(image, j, i, T2::getPixel(texture, texU, texV));
+    if (dy1) daxStep = dx1 / (float)abs(dy1);
+    if (dy2) dbxStep = dx2 / (float)abs(dy2);
+
+    du1Step = 0, dv1Step = 0;
+    if (dy1) du1Step = du1 / (float)abs(dy1);
+    if (dy1) dv1Step = dv1 / (float)abs(dy1);
+    if (dy1) dw1Step = dw1 / (float)abs(dy1);
+
+    // Second loop goes from y2 to y3
+    // Mostly the same as second loop
+    if(dy1){
+        for(int i = y2; i <= y3; i++){
+            int ax = x2 + (float)(i - y2) * daxStep;
+            int bx = x1 + (float)(i - y1) * dbxStep;
+
+            float texSu = u2 + (float)(i - y2) * du1Step;
+            float texSv = v2 + (float)(i - y2) * dv1Step;
+            float texSw = w2 + (float)(i - y2) * dw1Step;
+
+            float texEu = u1 + (float)(i - y1) * du2Step;
+            float texEv = v1 + (float)(i - y1) * dv2Step;
+            float texEw = w1 + (float)(i - y1) * dw2Step;
+
+            if(ax > bx){
+                std::swap(ax, bx);
+                std::swap(texSu, texEu);
+                std::swap(texSv, texEv);
+                std::swap(texSw, texEw);
+            }
+
+            texU = texSu;
+            texV = texSv;
+            texW = texSw;
+
+            float tStep = 1.0f / ((float)(bx - ax));
+            float t = 0.0f;
+
+            for(int j = ax; j < bx; j++){
+                texU = (1.0f - t) * texSu + t * texEu;
+                texV = (1.0f - t) * texSv + t * texEv;
+                texW = (1.0f - t) * texSw + t * texEw;
+                // Apply perspective to uv coords
+                texU /= texW;
+                texV /= texW;
+                // Scale UV coordinates to texture size
+                texU *= (texture->width() - 1);
+                texV *= (texture->height() - 1);
 
                 T2::Color8 color = T2::getPixel(texture, texU, texV);
                 if(color.valid()){
@@ -363,13 +369,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture){
                 }else{
                     T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
                 }
+                dBuffer[i*image->width() + j] = texW;
 
-//                if(texU < 0 || texV < 0 || texU > 1 || texV > 1){
-//                    qDebug("%f %f", texU, texV);
-//                }
-//                    qDebug("%d %d", i, j);
-                    t += tStep;
-                }
+                t += tStep;
             }
         }
     }
@@ -520,6 +522,7 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     // Return signed shortest distance from point to plane
     auto dist = [&](Vector3 &p){
         Vector3 n = normalise(p);
+//        return (planeNormal.x * n.x + planeNormal.y * n.y + planeNormal.z * n.z - dotProduct(planeNormal, planePoint));
         return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - dotProduct(planeNormal, planePoint));
     };
 
@@ -559,11 +562,11 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         outTri1.color = inTri.color;
 
         // Contruct the output triangle
-        float t;
         // One point is valid, so it doesn't need to be calculated
         outTri1.p[0] = *insidePoints[0];
         outTri1.t[0] = *insideTex[0];
         // The other two points are on the intersecting plane
+        float t;
         outTri1.p[1] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0], t);
         outTri1.t[1].u = t * (outsideTex[0]->u - insideTex[0]->u) + insideTex[0]->u;
         outTri1.t[1].v = t * (outsideTex[0]->v - insideTex[0]->v) + insideTex[0]->v;
@@ -589,6 +592,7 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         outTri1.t[0] = *insideTex[0];
         outTri1.p[1] = *insidePoints[1];
         outTri1.t[1] = *insideTex[1];
+
         float t;
         outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0], t);
         outTri1.t[2].u = t * (outsideTex[0]->u - insideTex[0]->u) + insideTex[0]->u;

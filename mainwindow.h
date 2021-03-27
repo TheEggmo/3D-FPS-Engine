@@ -61,6 +61,8 @@ protected:
     Tools::Vector2 lastMousePos = {0, 0};
     QCursor cursor;
 
+    QImage* cubeTexture;
+
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
 };

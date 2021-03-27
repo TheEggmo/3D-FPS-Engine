@@ -27,15 +27,20 @@ public:
             this->r = r;
             this->g = g;
             this->b = b;
-        };
+        }
         Color(){
             this->r = 1;
             this->g = 1;
             this->b = 1;
-        };
+        }
         // Converts to Color8
         Color8 convert(){
             return Color8(r*255, g*255, b*255);
+        }
+        // Check if the color is valid(it's rgb values are in range 0.0f-1.0f
+        bool valid(){
+            if(r > 1 || g > 1 || b > 1 || r < 0 || g < 0 || b < 0) return false;
+            return true;
         }
     };
     class Color8{
@@ -45,12 +50,12 @@ public:
             this->r = r;
             this->g = g;
             this->b = b;
-        };
+        }
         Color8(){
             this->r = 255;
             this->g = 255;
             this->b = 255;
-        };
+        }
         Color8 operator*(float k){
             Color8 out;
             out.r *= k;
@@ -62,6 +67,12 @@ public:
         Color convert(){
             return Color(float(r)/255, float(g)/255, float(b)/255);
         }
+        // Check if the color is valid(it's rgb values are in range 0-255
+        bool valid(){
+            if(r > 255 || g > 255 || b > 255 || r < 0 || g < 0 || b < 0) return false;
+            return true;
+        }
+
     };
 
     // Class repsresenting a 2d vector
@@ -91,6 +102,8 @@ public:
 
     // Commonly used functions for drawing
 
+    // Extracts the color value of the specified pixel
+    static Color8 getPixel(QImage *image, int x, int y);
     // Draws on the specified image, at the specified x,y coordinates, using the specified color
     static void drawPixel(QImage *image, int x, int y, Color8 color);
     static void drawPixel(QImage *image, int x, int y, Color color);

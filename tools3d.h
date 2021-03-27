@@ -310,6 +310,7 @@ public:
     static void drawTri(QImage *image, Triangle tri, Tools::Color color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color8 color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color color);
+    static void textureTri(QImage *image, Triangle tri, QImage *texture);
 
 
     // Math functions
@@ -325,11 +326,7 @@ public:
     static Vector3 normalise(Vector3 v);
     // Calculate the normal vector(cross product) of two vectors/lines
     static Vector3 crossProduct(Vector3 v1, Vector3 v2);
-    // Add, subtract, multiply and divide vectors
-//    static Vector3 addVectors(Vector3 &v1, Vector3 &v2);
-//    static Vector3 subVectors(Vector3 &v1, Vector3 &v2);
-//    static Vector3 mulVectors(Vector3 &v1, float k);
-//    static Vector3 divVectors(Vector3 &v1, float k);
+
 
     // Matrix creation functions
     // Identity matrix

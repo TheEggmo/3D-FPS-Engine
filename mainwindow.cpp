@@ -82,6 +82,9 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
             };
 
+    cubeTexture = new QImage("dolphin.jpg");
+//    cubeTexture = new QImage("railgunIcon.png");
+
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
 
@@ -118,6 +121,17 @@ void MainWindow::process(){
     processPhysics(); // Calculate world physics
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
+
+    fTheta = 0.1;
+    T3::Mat4x4 rot = T3::newMatRotY(fTheta);
+    for(int i = 0; i < meshCube.tris.size(); i++){
+        T3::Triangle copy = meshCube.tris[i];
+        meshCube.tris[i] = copy * rot;
+        meshCube.tris[i].t[0] = copy.t[0];
+        meshCube.tris[i].t[1] = copy.t[1];
+        meshCube.tris[i].t[2] = copy.t[2];
+
+    }
 }
 
 // The main engine/game loop function, called every frame
@@ -204,9 +218,24 @@ void MainWindow::screenUpdate(){
 
                 // Project from 3D to 2D
                 triProjected = clipped[i] * matProj;
+
+                // Copy texture data from old triangle to new one
                 triProjected.t[0] = clipped[i].t[0];
                 triProjected.t[1] = clipped[i].t[1];
                 triProjected.t[2] = clipped[i].t[2];
+
+                // Apply perspective to texture coordinates
+                triProjected.t[0].u = triProjected.t[0].u / triProjected.p[0].w;
+                triProjected.t[1].u = triProjected.t[1].u / triProjected.p[1].w;
+                triProjected.t[2].u = triProjected.t[2].u / triProjected.p[2].w;
+
+                triProjected.t[0].v = triProjected.t[0].v / triProjected.p[0].w;
+                triProjected.t[1].v = triProjected.t[1].v / triProjected.p[1].w;
+                triProjected.t[2].v = triProjected.t[2].v / triProjected.p[2].w;
+
+                triProjected.t[0].w = 1.0f / triProjected.p[0].w;
+                triProjected.t[1].w = 1.0f / triProjected.p[1].w;
+                triProjected.t[2].w = 1.0f / triProjected.p[2].w;
 
                 triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
                 triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
@@ -292,7 +321,8 @@ void MainWindow::screenUpdate(){
         // Finally, draw the modified triangles on the screen
         for(T3::Triangle &tri : cTriangleQueue){
 //            T3::fillTri(mainImage, tri, tri.color);
-            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges
+            T3::textureTri(mainImage, tri, cubeTexture);
+//            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges
         }
     }
 }
@@ -308,7 +338,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event){
 
     T2::Vector2 mouseDiff = T2::Vector2(cursor.pos().x(), cursor.pos().y()) - sCenter;
     yaw += mouseDiff.x * sensMod;
-    pitch += mouseDiff.y * sensMod * 0.5;
+    pitch += mouseDiff.y * sensMod;
     cursor.setPos(sCenter.x, sCenter.y);
 }
 
@@ -359,6 +389,6 @@ void MainWindow::movePlayer(){
 void MainWindow::processPhysics(){
     float gravity = 0.1f;
 
-    camera.y -= gravity;
-    camera.y = std::max(0.0f, camera.y);
+//    camera.y -= gravity;
+//    camera.y = std::max(0.0f, camera.y);
 }

@@ -1,6 +1,26 @@
 #include "Tools.h"
 
 
+Tools::Color8 Tools::getPixel(QImage *image, int x, int y){
+    // If accessing outside of image bounds, return an invalid color
+    if(x < 0 || y < 0 || x >= image->width() || y>= image->height()){
+//        qDebug("ACCESSING OUT OF BOUNDS PIXELS, x: %d, y: %d", x, y);
+        return Color8(-1, -1, -1);
+    }
+
+    Color8 out;
+
+    uchar *pix = image->scanLine(y);
+    int adr = 4 * x;
+    out.b = pix[adr];
+    out.g = pix[adr+1];
+    out.r = pix[adr+2];
+
+//    qDebug("%d %d %d", out.r, out.g, out.b);
+
+    return out;
+}
+
 void Tools::drawPixel(QImage *image, int x, int y, Color8 color){
     // Prevent drawing outside of image bounds
     if(x < 0 || y < 0 || x >= image->width() || y>= image->height()){

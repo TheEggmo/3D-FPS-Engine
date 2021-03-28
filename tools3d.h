@@ -149,9 +149,9 @@ public:
     // Struct representing a mesh of triangles
     struct Mesh{
         std::vector<Triangle> tris;
+        bool flat = true;
 
         // Load the mesh from obj file
-
         bool loadFromFile(const QString& fileName){
             tris.clear();
             QFile file(fileName);
@@ -191,6 +191,8 @@ public:
                                     tri.t[0] = vt.at(lineParts.at(1).split("/").at(1).toInt() - 1);
                                     tri.t[1] = vt.at(lineParts.at(2).split("/").at(1).toInt() - 1);
                                     tri.t[2] = vt.at(lineParts.at(3).split("/").at(1).toInt() - 1);
+                                }else{
+                                    flat = true;
                                 }
                                 // Normals
                                 // Currently unused
@@ -253,7 +255,13 @@ public:
     static void drawTri(QImage *image, Triangle tri, Tools::Color color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color8 color);
     static void fillTri(QImage *image, Triangle tri, Tools::Color color);
-    static void textureTri(QImage *image, Triangle tri, QImage *texture, float **dBuffer);
+    // Draw a textured triangle
+    // texture is a pointer to the texture QImage
+    // dBuffer is a pointer to the depth buffer
+    //
+    static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float>& dBuffer);
+//    static void textureTri(QImage *image, Triangle tri, QImage *texture, float *dBuffer);
+
 
 
     // Math functions

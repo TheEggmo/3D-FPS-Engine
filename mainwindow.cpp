@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    meshCube.loadFromFile("Assets/watermelon2.obj");
 //    meshCube.loadFromFile("Assets/Hurricos.obj");
     meshCube.loadFromFile("Assets/Artisans Hub.obj");
-//    meshCube.scale(10);
+//    meshCube.loadFromFile("Assets/capsule.obj");
 //    meshCube.tris = {
 
 //        // SOUTH
@@ -81,15 +81,17 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //        // BOTTOM
 //        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
 //        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-
 //    };
+//    meshCube.scale(10);
 //    meshCube.moveVertices({-0.5, -0.5, -0.5});
+    meshCube.flat = true;
 
 //    cubeTexture = new QImage("Assets/dolphin.jpg");
 //    cubeTexture = new QImage("Assets/railgunIcon.png");
 //    cubeTexture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
 //    cubeTexture = new QImage("Assets/Hurricos.png");
-    cubeTexture = new QImage("Assets/Artisans Hub.png");
+//    cubeTexture = new QImage("Assets/Artisans Hub.png");
+//    cubeTexture = new QImage("Assets/capsule.jpg");
 
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
@@ -107,7 +109,8 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addKey("DOWN", Qt::Key_Down);
 
     // Create the depth buffer
-    depthBuffer = new float[sWidth * sHeight];
+//    depthBuffer = new float[sWidth * sHeight];
+    depthBuffer.resize(sWidth * sHeight, 0.0f);
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
@@ -121,8 +124,8 @@ void MainWindow::process(){
     std::chrono::duration<double> frameTime = newFrameTime - lastFrameTime;
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
-    if(bool displayFrameTime = true) qDebug("Frame Time: %f", frameTime.count());
-    if(bool displayFPS = false) qDebug("FPS: %f", 1000/frameTime.count());
+    if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
+    if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
     for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = 0.0f; // Clear the depth buffer
@@ -203,7 +206,8 @@ void MainWindow::screenUpdate(){
         T3::Vector3 cameraRay = triTransformed.p[0] - camera;
         if(T3::dotProduct(normal, cameraRay) < 0){
             // Add a light
-            T3::Vector3 lightDirection = { 0.0f, 0.0f, -1.0f};
+//            T3::Vector3 lightDirection = { 0.0f, 0.0f, -1.0f};
+            T3::Vector3 lightDirection = { 0.0f, 1.0f, 0.0f};
             lightDirection = T3::normalise(lightDirection);
 
             // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
@@ -281,11 +285,14 @@ void MainWindow::screenUpdate(){
     }
 
     // Sort triangles for painter algorithm
-//    sort(triangleQueue.begin(), triangleQueue.end(), [](Tools3D::Triangle &t1, Tools3D::Triangle &t2){
-//        float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
-//        float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
-//        return z1 > z2;
-//    });
+    // Only when there's no texture, textured objects use the depth buffer
+    if(meshCube.flat){
+        sort(triangleQueue.begin(), triangleQueue.end(), [](Tools3D::Triangle &t1, Tools3D::Triangle &t2){
+            float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
+            float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
+            return z1 > z2;
+        });
+    }
 
     // Draw triangles
     for(auto &tri : triangleQueue){
@@ -331,9 +338,12 @@ void MainWindow::screenUpdate(){
 
         // Finally, draw the modified triangles on the screen
         for(T3::Triangle &tri : cTriangleQueue){
-//            T3::fillTri(mainImage, tri, tri.color);
-            T3::textureTri(mainImage, tri, cubeTexture, &depthBuffer);
-            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges
+            if(meshCube.flat){
+                T3::fillTri(mainImage, tri, tri.color);
+            }else{
+                T3::textureTri(mainImage, tri, cubeTexture, depthBuffer);
+            }
+//            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
         }
     }
 }
@@ -374,25 +384,22 @@ void MainWindow::movePlayer(){
     float jumpSpeed = 0.4;
     float moveSpeed = 1;
 
+    // Calculate directions for movement relative to camera rotation
     T3::Vector3 forward = lookDir * moveSpeed;
-//    forward.y = 0;
-//    T3::Vector3 forward;
-//    forward = T3::normalise(lookDir);
+    forward.y = 0;
+    T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
 
     if(Input.isActionPressed("UP")){
         camera = camera + forward;
-//        camera.z += forward.z * moveSpeed;
     }
     if(Input.isActionPressed("DOWN")){
         camera = camera - forward;
     }
     if(Input.isActionPressed("LEFT")){
-//        yaw -= 0.02;
-//        camera = camera - side;
+        camera = camera - right;
     }
     if(Input.isActionPressed("RIGHT")){
-//        yaw += 0.02;
-//        camera = camera + side;
+        camera = camera + right;
     }
     if(Input.isActionPressed("JUMP")){
         camera.y += jumpSpeed;

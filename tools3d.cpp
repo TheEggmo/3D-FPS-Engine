@@ -181,7 +181,7 @@ void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color color){
     fillTri(image, tri, color.convert());
 }
 
-void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, float *dBuffer){
+void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float>& dBuffer){
     // Split triangle into values for easier access
     int x1 = tri.p[0].x;
     int x2 = tri.p[1].x;
@@ -286,6 +286,8 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, float *dB
                 // Apply perspective to UV coords
                 texU /= texW;
                 texV /= texW;
+                // Flip texV upside down
+                texV = abs(1.0f - texV);
                 // Scale UV coords to texture size
                 texU *= (texture->width() - 1);
                 texV *= (texture->height() - 1);
@@ -359,19 +361,23 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, float *dB
                 // Apply perspective to uv coords
                 texU /= texW;
                 texV /= texW;
+                // Flip texV upside down
+                texV = abs(1.0f - texV);
                 // Scale UV coordinates to texture size
                 texU *= (texture->width() - 1);
                 texV *= (texture->height() - 1);
 
-                T2::Color8 color = T2::getPixel(texture, texU, texV);
-                if(color.valid()){
-                    T2::drawPixel(image, j, i, color);
-                }else{
-                    T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+                if(texW > dBuffer[i*image->width() + j]){
+                    T2::Color8 color = T2::getPixel(texture, texU, texV);
+                    if(color.valid()){
+                        T2::drawPixel(image, j, i, color);
+                    }else{
+                        // Draw cyan if the color is not a valid color
+                        // Failsafe in case of bad UV mapping or other issues
+                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+                    }
+                    dBuffer[i*image->width() + j] = texW;
                 }
-                dBuffer[i*image->width() + j] = texW;
-
-                t += tStep;
             }
         }
     }

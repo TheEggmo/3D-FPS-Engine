@@ -64,7 +64,8 @@ protected:
     QCursor cursor;
 
     QImage *cubeTexture;
-    float *depthBuffer;
+//    float *depthBuffer;
+    std::vector<float> depthBuffer;
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.

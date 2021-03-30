@@ -47,7 +47,7 @@ protected:
 
     float clamp(float in, float lo, float hi);
 
-    Tools3D::Mesh meshCube;
+    Tools3D::MeshTexture meshCube;
     Tools3D::Mat4x4 matProj; // Projection matrix
 
     Tools3D::Vector3 camera; // Vector representing the camera

@@ -45,6 +45,11 @@ else()
     tools3d.cpp
     inputmap.h
     inputmap.cpp
+#    mesh3d.cpp
+#    mesh3d.h
+    meshcollision.cpp
+    meshcollision.h
+
   )
 endif()
 

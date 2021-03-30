@@ -4,15 +4,18 @@
 #include <QWidget>
 #include <QPainter>
 #include <QMouseEvent>
-#include <tools.h>
-#include <tools3d.h>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QCursor>
+
 #include <string>
-#include <inputmap.h>
 #include <chrono>
 #include <ctime>
-#include <QCursor>
+
+#include <tools.h>
+#include <tools3d.h>
+#include <inputmap.h>
+#include <actor.h>
 
 using string = std::string;
 
@@ -63,9 +66,10 @@ protected:
     Tools::Vector2 lastMousePos = {0, 0};
     QCursor cursor;
 
-    QImage *cubeTexture;
 //    float *depthBuffer;
     std::vector<float> depthBuffer;
+
+    std::vector<Actor> actorList;
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.

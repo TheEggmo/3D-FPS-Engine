@@ -47,9 +47,10 @@ else()
     inputmap.cpp
 #    mesh3d.cpp
 #    mesh3d.h
-    meshcollision.cpp
-    meshcollision.h
-
+#    meshcollision.cpp
+#    meshcollision.h
+    actor.cpp
+    actor.h
   )
 endif()
 

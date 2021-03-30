@@ -77,8 +77,7 @@ void Tools3D::Mesh3D::scale(float mod){
         }
     }
 }
-// Adds the specified vector to all vertices within this mesh
-void Tools3D::Mesh3D::moveVertices(Tools3D::Vector3 v){
+void Tools3D::Mesh3D::moveOrigin(Tools3D::Vector3 v){
     for(int i = 0; i < tris.size(); i++){
         tris[i].p[0] = tris[i].p[0] + v;
         tris[i].p[1] = tris[i].p[1] + v;

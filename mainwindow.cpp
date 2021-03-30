@@ -54,44 +54,60 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    meshCube.loadFromFile("Assets/watermelon.obj");
 //    meshCube.loadFromFile("Assets/watermelon2.obj");
 //    meshCube.loadFromFile("Assets/Hurricos.obj");
-    meshCube.loadFromFile("Assets/Artisans Hub.obj");
+//    meshCube.loadFromFile("Assets/Artisans Hub.obj");
+   T3::MeshTexture meshHub;
+   meshHub.loadFromFile("Assets/Artisans Hub.obj");
+   meshHub.texture = new QImage("Assets/Artisans Hub.png");
+   Actor hub;
+   hub.set_model(meshHub);
 //    meshCube.loadFromFile("Assets/capsule.obj");
-//    meshCube.tris = {
+    meshCube.tris = {
 
-//        // SOUTH
-//        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        // SOUTH
+        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-//        // EAST
-//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+        // EAST
+        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
 
-//        // NORTH
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        // NORTH
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-//        // WEST
-//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        // WEST
+        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-//        // TOP
-//        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        // TOP
+        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-//        // BOTTOM
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-//    };
+        // BOTTOM
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+    };
 //    meshCube.scale(10);
-//    meshCube.moveVertices({-0.5, -0.5, -0.5});
-    meshCube.flat = true;
+    for(int i = 0; i < meshCube.tris.size(); i++){
+//        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(-0.5f, -0.5f, -0.5f);
+        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(0, 50, 0);
+    }
+
+//    meshCube.flat = true;
 
 //    cubeTexture = new QImage("Assets/dolphin.jpg");
 //    cubeTexture = new QImage("Assets/railgunIcon.png");
 //    cubeTexture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
 //    cubeTexture = new QImage("Assets/Hurricos.png");
 //    cubeTexture = new QImage("Assets/Artisans Hub.png");
+    meshCube.texture = new QImage("Assets/Artisans Hub.png");
 //    cubeTexture = new QImage("Assets/capsule.jpg");
+
+    Actor cubeActor;
+    cubeActor.set_model(meshCube);
+
+    actorList.push_back(cubeActor);
+    actorList.push_back(hub);
 
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
@@ -136,35 +152,44 @@ void MainWindow::process(){
     update();
 
     // SPEEN
-//    fTheta = 0.0;
-//    T3::Mat4x4 rot = T3::newMatRotY(-fTheta);
-//    for(int i = 0; i < meshCube.tris.size(); i++){
-//        T3::Triangle copy = meshCube.tris[i];
-//        meshCube.tris[i] = copy * rot;
-//        meshCube.tris[i].t[0] = copy.t[0];
-//        meshCube.tris[i].t[1] = copy.t[1];
-//        meshCube.tris[i].t[2] = copy.t[2];
+    fTheta = 0.1;
+    T3::Mat4x4 rot = T3::newMatRotY(-fTheta);
+    for(int i = 0; i < meshCube.tris.size(); i++){
+        T3::Triangle copy = meshCube.tris[i];
+        meshCube.tris[i] = copy * rot;
+        meshCube.tris[i].t[0] = copy.t[0];
+        meshCube.tris[i].t[1] = copy.t[1];
+        meshCube.tris[i].t[2] = copy.t[2];
 
-//    }
+    }
 }
 
 // The main engine/game loop function, called every frame
 void MainWindow::screenUpdate(){
     T3::Mat4x4 matRotZ, matRotX, matTrans, matWorld;
+    std::vector<T3::Triangle> extTris; // Stores all triangles extracted from models for drawing
+
+    // Extract triangles from every actor that has visible set to true
+    for(Actor a : actorList){
+        T3::MeshTexture model = a.get_model();
+        for(T3::Triangle t : model.tris){
+            extTris.push_back(t);
+        }
+    }
 
 //    fTheta += 0.025f;
 
-    // Create matrices
-    // Rotation Z
-    matRotZ = T3::newMatRotZ(fTheta * 0.5f);
-    // Rotation X
-    matRotX = T3::newMatRotX(fTheta);
-    // Translation
-    matTrans = T3::newMatTrans(0.0f, 0.0f, 16.0f);
+//    // Create matrices
+//    // Rotation Z
+//    matRotZ = T3::newMatRotZ(fTheta * 0.5f);
+//    // Rotation X
+//    matRotX = T3::newMatRotX(fTheta);
+//    // Translation
+    matTrans = T3::newMatTrans(-0.5f, -0.5f, -0.5f);
 
-//    matWorld = T3::newMatIdentity();
-    matWorld = matRotZ * matRotX;
-    matWorld = matWorld * matTrans;
+    matWorld = T3::newMatIdentity();
+//    matWorld = matRotZ * matRotX;
+//    matWorld = matWorld * matTrans;
 
     T3::Vector3 up = {0, 1, 0};
     T3::Vector3 target = {0, 0, 1};
@@ -183,7 +208,7 @@ void MainWindow::screenUpdate(){
     std::vector<T3::Triangle> triangleQueue;
 
     // Transform triangles
-    for (auto tri : meshCube.tris) {
+    for (auto tri : extTris) {
         T3::Triangle triTransformed, triProjected, triViewed;
 
         triTransformed = tri * matWorld;
@@ -341,7 +366,7 @@ void MainWindow::screenUpdate(){
             if(meshCube.flat){
                 T3::fillTri(mainImage, tri, tri.color);
             }else{
-                T3::textureTri(mainImage, tri, cubeTexture, depthBuffer);
+                T3::textureTri(mainImage, tri, meshCube.texture, depthBuffer);
             }
 //            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
         }

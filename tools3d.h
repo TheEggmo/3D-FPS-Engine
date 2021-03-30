@@ -158,77 +158,34 @@ public:
         // Multiply all vertices by mod
         void scale(float mod);
         // Adds the specified vector to all vertices within this mesh
-        void moveVertices(Tools3D::Vector3 v);
+        // Shouldn't be used, it's better to use a matrix returned by newMatTrans() (I think)
+        void moveOrigin(Tools3D::Vector3 v);
         // Checks if tris is empty
         bool empty();
     };
 
     struct MeshTexture : public Mesh3D{
         bool flat = true;
+        QImage *texture;
 
         // Load the mesh from obj file
         // Unlike Mesh3D, this one also reads texture data
         bool loadFromFile(const QString& fileName);
-//            flat = false;
-//            tris.clear();
-//            QFile file(fileName);
-//            if(file.exists()){
-//                if(file.open(QFile::ReadOnly | QFile::Text)){
-//                    std::vector<Vector3> v;//, vn;
-//                    std::vector<UV> vt;
+    };
 
-//                    while(!file.atEnd()){
-//                        // Trim and split the next line.
-//                        // Splitting works based on a regex looking for whitespaces.
-//                        QString line = file.readLine().trimmed();
-//                        QStringList lineParts = line.split(QRegularExpression("\\s+"));
-//                        // Process the line based on its first part
-//                        if(lineParts.count() > 0){
-//                            if(lineParts.at(0).compare("#", Qt::CaseInsensitive) == 0){
-//                                //COMMENT
-//                            }else if(lineParts.at(0).compare("v", Qt::CaseInsensitive) == 0){
-//                                //VERTICES
-//                                v.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
-//                            }else if(lineParts.at(0).compare("vn", Qt::CaseInsensitive) == 0){
-//                                //NORMAL
-////                                vn.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
-//                            }else if(lineParts.at(0).compare("vt", Qt::CaseInsensitive) == 0){
-//                                //TEXTURE
-//                                vt.push_back({lineParts.at(1).toFloat(), lineParts.at(2).toFloat()});
-//                            }else if(lineParts.at(0).compare("f", Qt::CaseInsensitive) == 0){
-//                                //FACE DATA
-//                                // Faces must be triangles
-//                                Triangle tri;
-//                                // Vertices
-//                                tri.p[0] = v.at(lineParts.at(1).split("/").at(0).toInt() - 1);
-//                                tri.p[1] = v.at(lineParts.at(2).split("/").at(0).toInt() - 1);
-//                                tri.p[2] = v.at(lineParts.at(3).split("/").at(0).toInt() - 1);
-//                                // UV coords
-//                                if(!vt.empty()){
-//                                    tri.t[0] = vt.at(lineParts.at(1).split("/").at(1).toInt() - 1);
-//                                    tri.t[1] = vt.at(lineParts.at(2).split("/").at(1).toInt() - 1);
-//                                    tri.t[2] = vt.at(lineParts.at(3).split("/").at(1).toInt() - 1);
-//                                }else{
-//                                    flat = true;
-//                                }
-//                                // Normals
-//                                // Currently unused
-////                                x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
-////                                x = v.at(lineParts.at(2).split("/").at(2).toInt() - 1);
-////                                x = v.at(lineParts.at(3).split("/").at(2).toInt() - 1);
+    struct MeshCollision : public Tools3D::Mesh3D{
 
-//                                tris.push_back(tri);
-//                            }
-//                        }
-//                    }
-//                }else{
-//                    return false;
-//                }
-//            }else{
-//                return false;
-//            }
-//            return true;
-//        }
+        // Copy MeshTexture to MeshCollision without copying UV data
+        MeshCollision operator=(MeshTexture in){
+            tris.clear();
+            for(Triangle inTri : in.tris){
+                Triangle tri;
+                tri.p[0] = inTri.p[0];
+                tri.p[1] = inTri.p[1];
+                tri.p[2] = inTri.p[2];
+                tris.push_back(tri);
+            }
+        }
     };
 
     // Struct representing a 4x4 matrix

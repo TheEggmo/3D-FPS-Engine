@@ -11,6 +11,7 @@
 #include <string>
 #include <chrono>
 #include <ctime>
+#include <utility>
 
 #include <tools.h>
 #include <tools3d.h>
@@ -67,9 +68,20 @@ protected:
     QCursor cursor;
 
 //    float *depthBuffer;
+//    std::vector<std::pair<float, Tools::Color8>> depthBuffer;
     std::vector<float> depthBuffer;
 
     std::vector<Actor> actorList;
+
+    // Apply projection based on input parameters.
+    // tri is the triangle being projected.
+    // transformMatrix is a transformation that will be applied to the triangle.
+    // camera is the player camera
+    // viewMatrix is a transformation based on player camera
+    // All output triangles are put in outputQueue.
+    void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+                         Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                         std::vector<Tools3D::Triangle> *outputQueue);
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.

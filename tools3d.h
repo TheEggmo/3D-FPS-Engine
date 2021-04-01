@@ -159,7 +159,7 @@ public:
         void scale(float mod);
         // Adds the specified vector to all vertices within this mesh
         // Shouldn't be used, it's better to use a matrix returned by newMatTrans() (I think)
-        void moveOrigin(Tools3D::Vector3 v);
+        void move(Tools3D::Vector3 v);
         // Checks if tris is empty
         bool empty();
     };
@@ -218,8 +218,8 @@ public:
     // texture is a pointer to the texture QImage
     // dBuffer is a pointer to the depth buffer
     //
-    static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float>& dBuffer);
-//    static void textureTri(QImage *image, Triangle tri, QImage *texture, float *dBuffer);
+    static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float> &dBuffer);
+//    static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<std::pair<float, Tools::Color8>> &dBuffer);
 
 
 

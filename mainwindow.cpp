@@ -46,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     processTimer->setSingleShot(false);
     connect(processTimer, SIGNAL(timeout()), this, SLOT(process()));
     // Refresh every 16 msec, which is aprox 60fps
-    int targetFps = 60;
+    int targetFps = 120;
     processTimer->start(1000/targetFps);
 
     // Load debug/testing model
@@ -60,7 +60,27 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
    meshHub.texture = new QImage("Assets/Artisans Hub.png");
    Actor hub;
    hub.set_model(meshHub);
+   hub.visible = true;
 //    meshCube.loadFromFile("Assets/capsule.obj");
+
+
+   T3::MeshTexture meshCapsule;
+   meshCapsule.loadFromFile("Assets/capsule.obj");
+   meshCapsule.texture = new QImage("Assets/capsule.jpg");
+   Actor capsule;
+   capsule.set_model(meshCapsule);
+   capsule.visible = false;
+
+   T3::MeshTexture meshWatermelon;
+   meshWatermelon.loadFromFile("Assets/watermelon2.obj");
+   meshWatermelon.scale(10);
+   meshWatermelon.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
+   Actor watermelon;
+   watermelon.set_model(meshWatermelon);
+   watermelon.visible = false;
+
+
+
     meshCube.tris = {
 
         // SOUTH
@@ -88,10 +108,9 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
         { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
     };
 //    meshCube.scale(10);
-    for(int i = 0; i < meshCube.tris.size(); i++){
-//        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(-0.5f, -0.5f, -0.5f);
-        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(0, 50, 0);
-    }
+//    for(int i = 0; i < meshCube.tris.size(); i++){
+//        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(0, 50, 0);
+//    }
 
 //    meshCube.flat = true;
 
@@ -100,14 +119,22 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    cubeTexture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
 //    cubeTexture = new QImage("Assets/Hurricos.png");
 //    cubeTexture = new QImage("Assets/Artisans Hub.png");
+//    meshCube.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.jpg");
+//    meshCube.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
+//    meshCube.texture = new QImage("Assets/capsule.jpg");
     meshCube.texture = new QImage("Assets/Artisans Hub.png");
-//    cubeTexture = new QImage("Assets/capsule.jpg");
+//    QImage *cubeTexture = new QImage("Assets/capsule.jpg");
+
 
     Actor cubeActor;
     cubeActor.set_model(meshCube);
+    cubeActor.visible = false;
 
     actorList.push_back(cubeActor);
+    actorList.push_back(capsule);
     actorList.push_back(hub);
+    actorList.push_back(watermelon);
+
 
     // Initiate the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
@@ -127,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Create the depth buffer
 //    depthBuffer = new float[sWidth * sHeight];
     depthBuffer.resize(sWidth * sHeight, 0.0f);
+//    depthBuffer.resize(sWidth * sHeight, std::pair<float, T2::Color8> (0.0f, T2::Color8(-1, -1, -1)));
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
@@ -141,62 +169,46 @@ void MainWindow::process(){
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
     if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
-    if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
+    if(bool displayFPS = true) qDebug("FPS: %f", 1/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
-    for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = 0.0f; // Clear the depth buffer
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
     processPhysics(); // Calculate world physics
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
 
-    // SPEEN
-    fTheta = 0.1;
-    T3::Mat4x4 rot = T3::newMatRotY(-fTheta);
-    for(int i = 0; i < meshCube.tris.size(); i++){
-        T3::Triangle copy = meshCube.tris[i];
-        meshCube.tris[i] = copy * rot;
-        meshCube.tris[i].t[0] = copy.t[0];
-        meshCube.tris[i].t[1] = copy.t[1];
-        meshCube.tris[i].t[2] = copy.t[2];
+//    // SPEEN
+//    fTheta = 0.1;
+//    T3::Mat4x4 rot = T3::newMatRotY(-fTheta);
+//    for(int i = 0; i < meshCube.tris.size(); i++){
+//        T3::Triangle copy = meshCube.tris[i];
+//        meshCube.tris[i] = copy * rot;
+//        meshCube.tris[i].t[0] = copy.t[0];
+//        meshCube.tris[i].t[1] = copy.t[1];
+//        meshCube.tris[i].t[2] = copy.t[2];
 
-    }
+//    }
 }
 
 // The main engine/game loop function, called every frame
 void MainWindow::screenUpdate(){
     T3::Mat4x4 matRotZ, matRotX, matTrans, matWorld;
-    std::vector<T3::Triangle> extTris; // Stores all triangles extracted from models for drawing
+//    std::vector<T3::Triangle> extTris; // Stores all triangles extracted from models for drawing
+//    for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = std::pair<float, T2::Color8> (0.0f, T2::Color8(-1, -1, -1); // Clear the depth buffer
+    for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = 0.0f; // Clear the depth buffer
 
-    // Extract triangles from every actor that has visible set to true
-    for(Actor a : actorList){
-        T3::MeshTexture model = a.get_model();
-        for(T3::Triangle t : model.tris){
-            extTris.push_back(t);
-        }
-    }
+    // Store triangles for drawing later
+    std::vector<T3::Triangle> triangleQueue;
 
-//    fTheta += 0.025f;
-
-//    // Create matrices
-//    // Rotation Z
-//    matRotZ = T3::newMatRotZ(fTheta * 0.5f);
-//    // Rotation X
-//    matRotX = T3::newMatRotX(fTheta);
-//    // Translation
-    matTrans = T3::newMatTrans(-0.5f, -0.5f, -0.5f);
-
-    matWorld = T3::newMatIdentity();
-//    matWorld = matRotZ * matRotX;
-//    matWorld = matWorld * matTrans;
 
     T3::Vector3 up = {0, 1, 0};
     T3::Vector3 target = {0, 0, 1};
+
+    matWorld = T3::newMatIdentity();
+
     T3::Mat4x4 cameraRotationMatrixY = T3::newMatRotY(yaw);
     T3::Mat4x4 cameraRotationMatrixX = T3::newMatRotX(pitch);
-//    lookDir = target * cameraRotationMatrixY;
-//    lookDir = lookDir * cameraRotationMatrixX;
     lookDir = target * cameraRotationMatrixX;
     lookDir = lookDir * cameraRotationMatrixY;
     target = camera + lookDir;
@@ -204,119 +216,17 @@ void MainWindow::screenUpdate(){
     T3::Mat4x4 cameraMatrix = T3::matPointAt(camera, target, up);
     T3::Mat4x4 viewMatrix = T3::matQuickInverse(cameraMatrix);
 
-    // Store triangles for drawing later
-    std::vector<T3::Triangle> triangleQueue;
-
-    // Transform triangles
-    for (auto tri : extTris) {
-        T3::Triangle triTransformed, triProjected, triViewed;
-
-        triTransformed = tri * matWorld;
-        triTransformed.t[0] = tri.t[0];
-        triTransformed.t[1] = tri.t[1];
-        triTransformed.t[2] = tri.t[2];
-
-        // Use cross-product to get surface normal
-        T3::Vector3 normal, line1, line2;
-
-        // Get two lines of the triangle
-        line1 = triTransformed.p[1] - triTransformed.p[0];
-        line2 = triTransformed.p[2] - triTransformed.p[0];
-
-        // Get the normal of the triangle surface and normalise it
-        normal = T3::crossProduct(line1, line2);
-        normal = T3::normalise(normal);
-
-        // If the ray from triangle to camera is alighed with the normal, the triangle is visible
-        T3::Vector3 cameraRay = triTransformed.p[0] - camera;
-        if(T3::dotProduct(normal, cameraRay) < 0){
-            // Add a light
-//            T3::Vector3 lightDirection = { 0.0f, 0.0f, -1.0f};
-            T3::Vector3 lightDirection = { 0.0f, 1.0f, 0.0f};
-            lightDirection = T3::normalise(lightDirection);
-
-            // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
-            float dp = std::max(0.1f, T3::dotProduct(normal, lightDirection));
-            T2::Color8 shadedColor;
-            shadedColor = drawingColor * dp;
-
-
-            // Convert world space to view space
-            triViewed = triTransformed * viewMatrix;
-            triViewed.t[0] = triTransformed.t[0];
-            triViewed.t[1] = triTransformed.t[1];
-            triViewed.t[2] = triTransformed.t[2];
-
-
-            // Clip viewed triangle against the near plane
-            // This could form two additional triangles
-            int clippedTriangles = 0;
-            T3::Triangle clipped[2];
-            clippedTriangles = T3::clipTriangle({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f}, triViewed, clipped[0], clipped[1]); // TODO: REPLACE THE VECTOR CONSTRUCTOR WITH A VARIABLE
-
-            for(int i = 0; i < clippedTriangles; i++){
-
-                // Project from 3D to 2D
-                triProjected = clipped[i] * matProj;
-
-                // Copy texture data from old triangle to new one
-                triProjected.t[0] = clipped[i].t[0];
-                triProjected.t[1] = clipped[i].t[1];
-                triProjected.t[2] = clipped[i].t[2];
-
-                // Apply perspective to texture coordinates
-                triProjected.t[0].u = triProjected.t[0].u / triProjected.p[0].w;
-                triProjected.t[1].u = triProjected.t[1].u / triProjected.p[1].w;
-                triProjected.t[2].u = triProjected.t[2].u / triProjected.p[2].w;
-
-                triProjected.t[0].v = triProjected.t[0].v / triProjected.p[0].w;
-                triProjected.t[1].v = triProjected.t[1].v / triProjected.p[1].w;
-                triProjected.t[2].v = triProjected.t[2].v / triProjected.p[2].w;
-
-                triProjected.t[0].w = 1.0f / triProjected.p[0].w;
-                triProjected.t[1].w = 1.0f / triProjected.p[1].w;
-                triProjected.t[2].w = 1.0f / triProjected.p[2].w;
-
-                triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
-                triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
-                triProjected.p[2] = triProjected.p[2] / triProjected.p[2].w;
-
-                // Fix inverted x/y
-                triProjected.p[0].x *= -1.0f;
-                triProjected.p[1].x *= -1.0f;
-                triProjected.p[2].x *= -1.0f;
-                triProjected.p[0].y *= -1.0f;
-                triProjected.p[1].y *= -1.0f;
-                triProjected.p[2].y *= -1.0f;
-
-                // Scale into view
-                T3::Vector3 viewOffset = {1, 1, 0};
-                triProjected.p[0] = triProjected.p[0] + viewOffset;
-                triProjected.p[1] = triProjected.p[1] + viewOffset;
-                triProjected.p[2] = triProjected.p[2] + viewOffset;
-
-                triProjected.p[0].x *= 0.5f * (float)sWidth;
-                triProjected.p[0].y *= 0.5f * (float)sHeight;
-                triProjected.p[1].x *= 0.5f * (float)sWidth;
-                triProjected.p[1].y *= 0.5f * (float)sHeight;
-                triProjected.p[2].x *= 0.5f * (float)sWidth;
-                triProjected.p[2].y *= 0.5f * (float)sHeight;
-
-                triProjected.color = shadedColor;
-                triangleQueue.push_back(triProjected);
+    // Proces triangles of every visible actor and place them in the triangleQueue for drawing
+    for(Actor a : actorList){
+        if(a.visible){
+            T3::MeshTexture model = a.get_model();
+            model.flat = false;
+//            for(T3::Triangle t : model.tris){
+            for(int i = 0; i < model.tris.size(); i++){
+                projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue);
+//                projectTriangle(t, matWorld, camera, viewMatrix, &triangleQueue);
             }
-
         }
-    }
-
-    // Sort triangles for painter algorithm
-    // Only when there's no texture, textured objects use the depth buffer
-    if(meshCube.flat){
-        sort(triangleQueue.begin(), triangleQueue.end(), [](Tools3D::Triangle &t1, Tools3D::Triangle &t2){
-            float z1 = (t1.p[0].z + t1.p[1].z + t1.p[2].z) / 3.0f;
-            float z2 = (t2.p[0].z + t2.p[1].z + t2.p[2].z) / 3.0f;
-            return z1 > z2;
-        });
     }
 
     // Draw triangles
@@ -363,11 +273,12 @@ void MainWindow::screenUpdate(){
 
         // Finally, draw the modified triangles on the screen
         for(T3::Triangle &tri : cTriangleQueue){
-            if(meshCube.flat){
-                T3::fillTri(mainImage, tri, tri.color);
-            }else{
-                T3::textureTri(mainImage, tri, meshCube.texture, depthBuffer);
-            }
+//            if(meshCube.flat){
+//                T3::fillTri(mainImage, tri, tri.color);
+//            }else{
+//                T3::textureTri(mainImage, tri, meshCube.texture, depthBuffer);
+//            }
+            T3::textureTri(mainImage, tri, meshCube.texture, depthBuffer);
 //            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
         }
     }
@@ -451,3 +362,107 @@ float MainWindow::clamp(float in, float lo, float hi){
     if(in > hi) return hi;
     return in;
 }
+
+void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+                                 Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                                 std::vector<Tools3D::Triangle> *outputQueue){
+
+    T3::Triangle triTransformed, triViewed, triProjected;
+
+    triTransformed = tri * transformMatrix;
+    triTransformed.t[0] = tri.t[0];
+    triTransformed.t[1] = tri.t[1];
+    triTransformed.t[2] = tri.t[2];
+
+    // Use cross-product to get surface normal
+    T3::Vector3 normal, line1, line2;
+
+    // Get two lines of the triangle
+    line1 = triTransformed.p[1] - triTransformed.p[0];
+    line2 = triTransformed.p[2] - triTransformed.p[0];
+
+    // Get the normal of the triangle surface and normalise it
+    normal = T3::crossProduct(line1, line2);
+    normal = T3::normalise(normal);
+
+    // If the ray from triangle to camera is aligned with the normal, the triangle is visible
+    T3::Vector3 cameraRay = triTransformed.p[0] - camera;
+    if(T3::dotProduct(normal, cameraRay) < 0){
+        // Add a light
+//            T3::Vector3 lightDirection = { 0.0f, 0.0f, -1.0f};
+        T3::Vector3 lightDirection = { 0.0f, 1.0f, 0.0f};
+        lightDirection = T3::normalise(lightDirection);
+
+        // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
+        float dp = std::max(0.1f, T3::dotProduct(normal, lightDirection));
+        T2::Color8 shadedColor;
+        shadedColor = drawingColor * dp;
+
+
+        // Convert world space to view space
+        triViewed = triTransformed * viewMatrix;
+        triViewed.t[0] = triTransformed.t[0];
+        triViewed.t[1] = triTransformed.t[1];
+        triViewed.t[2] = triTransformed.t[2];
+
+
+        // Clip viewed triangle against the near plane
+        // This could form two additional triangles
+        int clippedTriangles = 0;
+        T3::Triangle clipped[2];
+        clippedTriangles = T3::clipTriangle({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f}, triViewed, clipped[0], clipped[1]); // TODO: REPLACE THE VECTOR CONSTRUCTOR WITH A VARIABLE
+
+        for(int i = 0; i < clippedTriangles; i++){
+
+            // Project from 3D to 2D
+            triProjected = clipped[i] * matProj;
+
+            // Copy texture data from old triangle to new one
+            triProjected.t[0] = clipped[i].t[0];
+            triProjected.t[1] = clipped[i].t[1];
+            triProjected.t[2] = clipped[i].t[2];
+
+            // Apply perspective to texture coordinates
+            triProjected.t[0].u = triProjected.t[0].u / triProjected.p[0].w;
+            triProjected.t[1].u = triProjected.t[1].u / triProjected.p[1].w;
+            triProjected.t[2].u = triProjected.t[2].u / triProjected.p[2].w;
+
+            triProjected.t[0].v = triProjected.t[0].v / triProjected.p[0].w;
+            triProjected.t[1].v = triProjected.t[1].v / triProjected.p[1].w;
+            triProjected.t[2].v = triProjected.t[2].v / triProjected.p[2].w;
+
+            triProjected.t[0].w = 1.0f / triProjected.p[0].w;
+            triProjected.t[1].w = 1.0f / triProjected.p[1].w;
+            triProjected.t[2].w = 1.0f / triProjected.p[2].w;
+
+            triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
+            triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
+            triProjected.p[2] = triProjected.p[2] / triProjected.p[2].w;
+
+            // Fix inverted x/y
+            triProjected.p[0].x *= -1.0f;
+            triProjected.p[1].x *= -1.0f;
+            triProjected.p[2].x *= -1.0f;
+            triProjected.p[0].y *= -1.0f;
+            triProjected.p[1].y *= -1.0f;
+            triProjected.p[2].y *= -1.0f;
+
+            // Scale into view
+            T3::Vector3 viewOffset = {1, 1, 0};
+            triProjected.p[0] = triProjected.p[0] + viewOffset;
+            triProjected.p[1] = triProjected.p[1] + viewOffset;
+            triProjected.p[2] = triProjected.p[2] + viewOffset;
+
+            triProjected.p[0].x *= 0.5f * (float)sWidth;
+            triProjected.p[0].y *= 0.5f * (float)sHeight;
+            triProjected.p[1].x *= 0.5f * (float)sWidth;
+            triProjected.p[1].y *= 0.5f * (float)sHeight;
+            triProjected.p[2].x *= 0.5f * (float)sWidth;
+            triProjected.p[2].y *= 0.5f * (float)sHeight;
+
+            triProjected.color = shadedColor;
+            outputQueue->push_back(triProjected);
+        }
+    }
+}
+

@@ -77,11 +77,13 @@ void Tools3D::Mesh3D::scale(float mod){
         }
     }
 }
-void Tools3D::Mesh3D::moveOrigin(Tools3D::Vector3 v){
+void Tools3D::Mesh3D::move(Tools3D::Vector3 v){
+    Mat4x4 mat = newMatTrans(v.x, v.y, v.z);
     for(int i = 0; i < tris.size(); i++){
-        tris[i].p[0] = tris[i].p[0] + v;
-        tris[i].p[1] = tris[i].p[1] + v;
-        tris[i].p[2] = tris[i].p[2] + v;
+        tris[i] = tris[i] * mat;
+//        tris[i].p[0] = tris[i].p[0] + v;
+//        tris[i].p[1] = tris[i].p[1] + v;
+//        tris[i].p[2] = tris[i].p[2] + v;
     }
 }
 bool Tools3D::Mesh3D::empty(){
@@ -328,7 +330,7 @@ void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color color){
     fillTri(image, tri, color.convert());
 }
 
-void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float>& dBuffer){
+void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float> &dBuffer){
     // Split triangle into values for easier access
     int x1 = tri.p[0].x;
     int x2 = tri.p[1].x;
@@ -440,22 +442,42 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                 texV *= (texture->height() - 1);
 
                 if(texW > dBuffer[i*image->width() + j]){
-                    T2::Color8 color = T2::getPixel(texture, texU, texV);
-                    if(color.valid()){
-                        T2::drawPixel(image, j, i, color);
-                    }else{
-                        // Draw cyan if the color is not a valid color
-                        // Failsafe in case of bad UV mapping or other issues
-                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
-                    }
+                    // Get the required pixel from the texture
+//                    T2::Color8 color = T2::getPixel(texture, texU, texV);
+                    T2::Color8 color;
+
+                    uchar *pixIn = texture->scanLine((int)texV);
+                    int adrIn = 4 * (int)texU;
+                    color.b = pixIn[adrIn];
+                    color.g = pixIn[adrIn+1];
+                    color.r = pixIn[adrIn+2];
+//                    if(/*color.valid()*/1){
+////                        T2::drawPixel(image, j, i, T2::Color(texU, texV, texW));
+////                        T2::drawPixel(image, j, i, color);
+//                        // Inlining the drawing function improves performance by approx. 3 times
+//                        uchar *pix = image->scanLine(i);
+//                        int adr = 4 * j;
+//                        pix[adr] = color.b;
+//                        pix[adr+1] = color.g;
+//                        pix[adr+2] = color.r;
+//                        pix[adr+3] = 255;
+//                    }else{
+//                        // Draw cyan if the color is not a valid color
+//                        // Failsafe in case of bad UV mapping or other issues
+//                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+//                    }
+                    // Inlining the drawing function improves performance by approx. 3 times
+                    uchar *pixOut = image->scanLine(i);
+                    int adrOut = 4 * j;
+                    pixOut[adrOut] = color.b;
+                    pixOut[adrOut+1] = color.g;
+                    pixOut[adrOut+2] = color.r;
+                    pixOut[adrOut+3] = 255;
                     dBuffer[i*image->width() + j] = texW;
                 }
-
-
                 t += tStep;
-                }
-
             }
+        }
     }
 
     dy1 = y3 - y2;
@@ -475,6 +497,7 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
     // Second loop goes from y2 to y3
     // Mostly the same as second loop
     if(dy1){
+        //ZMIENIĆ I NA FLOAT
         for(int i = y2; i <= y3; i++){
             int ax = x2 + (float)(i - y2) * daxStep;
             int bx = x1 + (float)(i - y1) * dbxStep;
@@ -515,20 +538,246 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                 texV *= (texture->height() - 1);
 
                 if(texW > dBuffer[i*image->width() + j]){
-                    T2::Color8 color = T2::getPixel(texture, texU, texV);
-                    if(color.valid()){
-                        T2::drawPixel(image, j, i, color);
-                    }else{
-                        // Draw cyan if the color is not a valid color
-                        // Failsafe in case of bad UV mapping or other issues
-                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
-                    }
+                    // Get the required pixel from the texture
+//                    T2::Color8 color = T2::getPixel(texture, texU, texV);
+                    T2::Color8 color;
+
+                    uchar *pixIn = texture->scanLine((int)texV);
+                    int adrIn = 4 * (int)texU;
+                    color.b = pixIn[adrIn];
+                    color.g = pixIn[adrIn+1];
+                    color.r = pixIn[adrIn+2];
+//                    if(/*color.valid()*/1){
+////                        T2::drawPixel(image, j, i, T2::Color(texU, texV, texW));
+////                        T2::drawPixel(image, j, i, color);
+//                        // Inlining the drawing function improves performance by approx. 3 times
+//                        uchar *pix = image->scanLine(i);
+//                        int adr = 4 * j;
+//                        pix[adr] = color.b;
+//                        pix[adr+1] = color.g;
+//                        pix[adr+2] = color.r;
+//                        pix[adr+3] = 255;
+//                    }else{
+//                        // Draw cyan if the color is not a valid color
+//                        // Failsafe in case of bad UV mapping or other issues
+//                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+//                    }
+                    // Inlining the drawing function improves performance by approx. 3 times
+                    uchar *pixOut = image->scanLine(i);
+                    int adrOut = 4 * j;
+                    pixOut[adrOut] = color.b;
+                    pixOut[adrOut+1] = color.g;
+                    pixOut[adrOut+2] = color.r;
+                    pixOut[adrOut+3] = 255;
                     dBuffer[i*image->width() + j] = texW;
                 }
+                t += tStep;
             }
         }
     }
 }
+
+//void Tools3D::textureTri(QImage *image, Tools3D::Triangle tri, QImage *texture, std::vector<std::pair<float, Tools::Color8> > &dBuffer){
+//// Split triangle into values for easier access
+//int x1 = tri.p[0].x;
+//int x2 = tri.p[1].x;
+//int x3 = tri.p[2].x;
+//int y1 = tri.p[0].y;
+//int y2 = tri.p[1].y;
+//int y3 = tri.p[2].y;
+//float u1 = tri.t[0].u;
+//float u2 = tri.t[1].u;
+//float u3 = tri.t[2].u;
+//float v1 = tri.t[0].v;
+//float v2 = tri.t[1].v;
+//float v3 = tri.t[2].v;
+//float w1 = tri.t[0].w;
+//float w2 = tri.t[1].w;
+//float w3 = tri.t[2].w;
+
+
+//// Sort points and their corresponding uv values
+//if(y2 < y1){
+//    std::swap(y1, y2);
+//    std::swap(x1, x2);
+//    std::swap(u1, u2);
+//    std::swap(v1, v2);
+//    std::swap(w1, w2);
+//}
+//if(y3 < y1){
+//    std::swap(y1, y3);
+//    std::swap(x1, x3);
+//    std::swap(u1, u3);
+//    std::swap(v1, v3);
+//    std::swap(w1, w3);
+//}
+//if(y3 < y2){
+//    std::swap(y2, y3);
+//    std::swap(x2, x3);
+//    std::swap(u2, u3);
+//    std::swap(v2, v3);
+//    std::swap(w2, w3);
+//}
+
+//// Calculate triangle sides
+//int dy1 = y2 - y1;
+//int dx1 = x2 - x1;
+//float dv1 = v2 - v1;
+//float du1 = u2 - u1;
+//float dw1 = w2 - w1;
+
+//int dy2 = y3 - y1;
+//int dx2 = x3 - x1;
+//float dv2 = v3 - v1;
+//float du2 = u3 - u1;
+//float dw2 = w3 - w1;
+
+//float texU, texV, texW;
+//float daxStep = 0, dbxStep = 0, du1Step = 0, dv1Step = 0, du2Step = 0, dv2Step = 0, dw1Step = 0, dw2Step = 0;
+
+//if (dy1) daxStep = dx1 / (float)abs(dy1);
+//if (dy2) dbxStep = dx2 / (float)abs(dy2);
+
+//if (dy1) du1Step = du1 / (float)abs(dy1);
+//if (dy1) dv1Step = dv1 / (float)abs(dy1);
+//if (dy1) dw1Step = dw1 / (float)abs(dy1);
+
+//if (dy2) du2Step = du2 / (float)abs(dy2);
+//if (dy2) dv2Step = dv2 / (float)abs(dy2);
+//if (dy2) dw2Step = dw2 / (float)abs(dy2);
+
+//// Calculate starting and ending x coords of each line inside the triangle
+//// First loop goes vertically from y1 to y2
+//if(dy1){
+//    for(int i = y1; i <= y2; i++){
+//        int ax = x1 + (float)(i - y1) * daxStep;
+//        int bx = x1 + (float)(i - y1) * dbxStep;
+
+//        float texSu = u1 + (float)(i - y1) * du1Step;
+//        float texSv = v1 + (float)(i - y1) * dv1Step;
+//        float texSw = w1 + (float)(i - y1) * dw1Step;
+
+//        float texEu = u1 + (float)(i - y1) * du2Step;
+//        float texEv = v1 + (float)(i - y1) * dv2Step;
+//        float texEw = w1 + (float)(i - y1) * dw2Step;
+
+//        if(ax > bx){
+//            std::swap(ax, bx);
+//            std::swap(texSu, texEu);
+//            std::swap(texSv, texEv);
+//            std::swap(texSw, texEw);
+//        }
+
+//        texU = texSu;
+//        texV = texSv;
+//        texW = texSw;
+
+//        float tStep = 1.0f / ((float)(bx - ax));
+//        float t = 0.0f;
+
+//        for(int j = ax; j < bx; j++){
+//            texU = (1.0f - t) * texSu + t * texEu;
+//            texV = (1.0f - t) * texSv + t * texEv;
+//            texW = (1.0f - t) * texSw + t * texEw;
+//            // Apply perspective to UV coords
+//            texU /= texW;
+//            texV /= texW;
+//            // Flip texV upside down
+//            texV = abs(1.0f - texV);
+//            // Scale UV coords to texture size
+//            texU *= (texture->width() - 1);
+//            texV *= (texture->height() - 1);
+
+//            if(texW > dBuffer[i*image->width() + j]){
+//                T2::Color8 color = T2::getPixel(texture, texU, texV);
+//                if(color.valid()){
+//                    T2::drawPixel(image, j, i, color);
+//                }else{
+//                    // Draw cyan if the color is not a valid color
+//                    // Failsafe in case of bad UV mapping or other issues
+//                    T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+//                }
+//                dBuffer[i*image->width() + j] = texW;
+//            }
+
+
+//            t += tStep;
+//            }
+
+//        }
+//}
+
+//dy1 = y3 - y2;
+//dx1 = x3 - x2;
+//dv1 = v3 - v2;
+//du1 = u3 - u2;
+//dw1 = w3 - w2;
+
+//if (dy1) daxStep = dx1 / (float)abs(dy1);
+//if (dy2) dbxStep = dx2 / (float)abs(dy2);
+
+//du1Step = 0, dv1Step = 0;
+//if (dy1) du1Step = du1 / (float)abs(dy1);
+//if (dy1) dv1Step = dv1 / (float)abs(dy1);
+//if (dy1) dw1Step = dw1 / (float)abs(dy1);
+
+//// Second loop goes from y2 to y3
+//// Mostly the same as second loop
+//if(dy1){
+//    for(int i = y2; i <= y3; i++){
+//        int ax = x2 + (float)(i - y2) * daxStep;
+//        int bx = x1 + (float)(i - y1) * dbxStep;
+
+//        float texSu = u2 + (float)(i - y2) * du1Step;
+//        float texSv = v2 + (float)(i - y2) * dv1Step;
+//        float texSw = w2 + (float)(i - y2) * dw1Step;
+
+//        float texEu = u1 + (float)(i - y1) * du2Step;
+//        float texEv = v1 + (float)(i - y1) * dv2Step;
+//        float texEw = w1 + (float)(i - y1) * dw2Step;
+
+//        if(ax > bx){
+//            std::swap(ax, bx);
+//            std::swap(texSu, texEu);
+//            std::swap(texSv, texEv);
+//            std::swap(texSw, texEw);
+//        }
+
+//        texU = texSu;
+//        texV = texSv;
+//        texW = texSw;
+
+//        float tStep = 1.0f / ((float)(bx - ax));
+//        float t = 0.0f;
+
+//        for(int j = ax; j < bx; j++){
+//            texU = (1.0f - t) * texSu + t * texEu;
+//            texV = (1.0f - t) * texSv + t * texEv;
+//            texW = (1.0f - t) * texSw + t * texEw;
+//            // Apply perspective to uv coords
+//            texU /= texW;
+//            texV /= texW;
+//            // Flip texV upside down
+//            texV = abs(1.0f - texV);
+//            // Scale UV coordinates to texture size
+//            texU *= (texture->width() - 1);
+//            texV *= (texture->height() - 1);
+
+//            if(texW > dBuffer[i*image->width() + j]){
+//                T2::Color8 color = T2::getPixel(texture, texU, texV);
+//                if(color.valid()){
+//                    T2::drawPixel(image, j, i, color);
+//                }else{
+//                    // Draw cyan if the color is not a valid color
+//                    // Failsafe in case of bad UV mapping or other issues
+//                    T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
+//                }
+//                dBuffer[i*image->width() + j] = texW;
+//            }
+//        }
+//    }
+//}
+//}
 
 
 /*------------------------------------------------------------*/

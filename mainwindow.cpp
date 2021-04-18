@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Actor player;
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
+    player.position = {1000, 100, 1000};
 //    actorList.push_back(&player);
     actorList.push_back(new Actor);
     *actorList[0] = player;
@@ -190,7 +191,7 @@ void MainWindow::process(){
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
     if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
-    if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
+    if(bool displayFPS = true) qDebug("FPS: %f", 1/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
@@ -252,7 +253,7 @@ void MainWindow::screenUpdate(){
             }
         }
         // Draw a wireframe of the actor's AABB
-        if(bool showColliders = true && a->collisionEnabled){
+        if(bool showColliders = true && a->collisionEnabled && i != 0){
             T3::Mesh collider = a->getCollider().toMesh();
             for(int i = 0; i < collider.tris.size(); i++){
                 projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
@@ -385,6 +386,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
     if(event->isAutoRepeat()) return;
     int keyCode = event->key();
     Input.pressKey(keyCode);
+
+    // Toggle mouse tracking
+    if(event->key() == Qt::Key_Escape) setMouseTracking(!hasMouseTracking());
 }
 void MainWindow::keyReleaseEvent(QKeyEvent *event){
     if(event->isAutoRepeat()) return;
@@ -396,7 +400,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event){
 // This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
 void MainWindow::movePlayer(){
     float jumpSpeed = 0.4;
-    float moveSpeed = 1;
+    float moveSpeed = 10;
 
     // Calculate directions for movement relative to camera rotation
     T3::Vector3 forward = lookDir * moveSpeed;
@@ -441,7 +445,7 @@ void MainWindow::processActors(){
             for(int j = 0; j < actorList.size(); j++){
 //                if(i == j) continue; // Don't check against self
 //                colliders.push_back(actorList[j].getCollider());
-                if(i != j){
+                if(i != j && actorList[j]->collisionEnabled){
                     colliders.push_back(actorList[j]->getCollider());
                 }
             }
@@ -478,10 +482,11 @@ void MainWindow::processActors(){
 }
 
 float MainWindow::clamp(float in, float lo, float hi){
-    if(lo > hi){
-        qDebug("CLAMP ERROR, LO > HI");
-        return 0;
-    }
+//    // Check if the args are passed properly
+//    if(lo > hi){
+//        qDebug("CLAMP ERROR, LO > HI");
+//        return 0;
+//    }
 
     if(in < lo) return lo;
     if(in > hi) return hi;

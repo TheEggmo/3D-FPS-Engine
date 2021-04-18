@@ -3,6 +3,7 @@
 
 #include "tools3d.h"
 #include <string>
+#include <QString>
 
 class Actor{
 protected:
@@ -11,7 +12,8 @@ protected:
 
 public:
     Tools3D::Vector3 position;
-    std::string name = "";
+//    std::string name = "";
+    QString name = "";
 
     bool visible = false; // If true, the model mesh will be drawn
     bool physicsEnabled = false; // If true, the body will have physics applied every frame (gravity etc.)

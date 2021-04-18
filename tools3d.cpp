@@ -165,10 +165,8 @@ bool Tools3D::MeshTexture::loadFromFile(const QString& fileName){
 
 void Tools3D::AABB::updatePosition(Tools3D::Vector3 vec)
 {
-//    this->position = this->positionLocal + vec;
-//    this->end = this->position + size;
-    this->position += vec;
-    this->end += size;
+    this->position = this->positionLocal + vec;
+    this->end = this->position + size;
 }
 
 bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
@@ -198,9 +196,10 @@ Tools3D::Mesh Tools3D::AABB::toMesh()
 {
     Tools3D::Mesh out;
     out.loadFromFile("Assets/cube.obj");
-    out.scaleX(size.x);
-    out.scaleY(size.y);
-    out.scaleZ(size.z);
+    out.scaleX(size.x/2.0f);
+    out.scaleY(size.y/2.0f);
+    out.scaleZ(size.z/2.0f);
+//    out.move(position);
 
     return out;
 }

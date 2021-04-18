@@ -18,7 +18,7 @@ void Actor::processCollision(std::vector<Tools3D::AABB> colliders){
     for(auto aabb : colliders){
         if(collision.intersects(aabb)){
 //            qDebug("COLLISION DETECTED");
-//            qDebug("%s COLLIDED", name);
+            qDebug("%s COLLIDED", this->name);
         }
     }
 }

@@ -1,8 +1,9 @@
-#ifndef TOOLS3D_H
+﻿#ifndef TOOLS3D_H
 #define TOOLS3D_H
 
 #include "tools.h"
-//#include "mesh3d.h"
+//#include "actor.h"
+//#include "Mesh.h"
 
 #include <QFile>
 #include <QRegularExpression>
@@ -59,8 +60,11 @@ public:
             out.x = this->x + v.x;
             out.y = this->y + v.y;
             out.z = this->z + v.z;
-//            out.w = this->w + v.w;
+            out.w = this->w + v.w;
             return out;
+        }
+        void operator+=(Vector3 v){
+            *this = *this + v;
         }
         Vector3 operator-(Vector3 v){
             Vector3 out;
@@ -70,6 +74,9 @@ public:
 //            out.w = this->w - v.w;
             return out;
         }
+        Vector3 operator-=(Vector3 v){
+            *this = *this - v;
+        }
         Vector3 operator*(float k){
             Vector3 out;
             out.x = this->x * k;
@@ -78,6 +85,9 @@ public:
 //            out.w = this->w * k;
             return out;
         }
+        Vector3 operator*=(float k){
+            *this = *this * k;
+        }
         Vector3 operator/(float k){
             Vector3 out;
             out.x = this->x / k;
@@ -85,6 +95,9 @@ public:
             out.z = this->z / k;
 //            out.w = this->w / k;
             return out;
+        }
+        Vector3 operator/=(float k){
+            *this = *this / k;
         }
 
         Vector3 operator*(Mat4x4 m){
@@ -98,10 +111,10 @@ public:
             return out;
         }
         Vector3 operator*=(Mat4x4 m){
-            Vector3 in = *this;
-            return in * m;
+            *this = *this * m;
         }
     };
+
     // Struct representing a triangle. Triangle points must be in clockwise order to properly calculate normals
     struct Triangle{
         Vector3 p[3]; // Triangle points' 3D coordinates
@@ -149,43 +162,124 @@ public:
     };
 
     // Struct representing a mesh of triangles
-    struct Mesh3D{
+    struct Mesh{
         std::vector<Tools3D::Triangle> tris;
 
         // Load the mesh from obj file
         // Read only the vertice data
-        bool loadFromFile(const QString& fileName);
+        virtual bool loadFromFile(const QString& fileName);
         // Multiply all vertices by mod
         void scale(float mod);
+        // Multiply all vertices by mod, in a single dimension
+        void scaleX(float mod);
+        void scaleY(float mod);
+        void scaleZ(float mod);
         // Adds the specified vector to all vertices within this mesh
         // Shouldn't be used, it's better to use a matrix returned by newMatTrans() (I think)
         void move(Tools3D::Vector3 v);
         // Checks if tris is empty
         bool empty();
+
     };
 
-    struct MeshTexture : public Mesh3D{
+    struct MeshTexture : public Mesh{
         bool flat = true;
         QImage *texture;
 
         // Load the mesh from obj file
-        // Unlike Mesh3D, this one also reads texture data
-        bool loadFromFile(const QString& fileName);
+        // Unlike Mesh, this one also reads texture data
+        bool loadFromFile(const QString& fileName) override;
     };
 
-    struct MeshCollision : public Tools3D::Mesh3D{
+//    struct MeshCollision : public Tools3D::Mesh{
 
-        // Copy MeshTexture to MeshCollision without copying UV data
-        MeshCollision operator=(MeshTexture in){
-            tris.clear();
-            for(Triangle inTri : in.tris){
-                Triangle tri;
-                tri.p[0] = inTri.p[0];
-                tri.p[1] = inTri.p[1];
-                tri.p[2] = inTri.p[2];
-                tris.push_back(tri);
-            }
+//        // Copy MeshTexture to MeshCollision without copying UV data
+//        MeshCollision operator=(MeshTexture in){
+//            tris.clear();
+//            for(Triangle inTri : in.tris){
+//                Triangle tri;
+//                tri.p[0] = inTri.p[0];
+//                tri.p[1] = inTri.p[1];
+//                tri.p[2] = inTri.p[2];
+//                tris.push_back(tri);
+//            }
+//        }
+
+////        bool loadFromFile(const QString &fileName) override;
+//        // Check for collision against another collision mesh
+//        // The meshes should be cuboids for this to work
+//        bool checkCollision(MeshCollision other);
+//    };
+
+    // Axis-Aligned Bounding Box
+    struct AABB{
+    private:
+        // The parent of this AABB
+//        Actor parent;
+
+        // Local space coordinates
+        // These are the original coordinates and are used to calculate
+        // global coordinates of the AABB during updatePosition().
+        // Beggining corner
+        Vector3 positionLocal;
+        // Ending corner (position + size)
+        Vector3 endLocal;
+
+        // Global space coordinates
+        // Used to determine collisions with other AABBs
+        // Beggining corner
+        Vector3 position;
+        // Ending corner (position + size)
+        Vector3 end;
+
+        // Size from position to end
+        Vector3 size;
+
+    public:
+        AABB(){
+            positionLocal = {0, 0, 0};
+            endLocal = {0, 0, 0};
+            size = {0, 0, 0};
         }
+        // Constructs an AABB from a position and size
+        AABB(Vector3 p, Vector3 s){
+            this->positionLocal = p;
+            this->endLocal = p + s;
+            this->size = s;
+        }
+        // Constructs an AABB that encloses the given mesh
+        AABB(Mesh m){
+            Vector3 p, e;
+            p = e = {0, 0, 0};
+            for(Triangle tri : m.tris){
+                for(Vector3 v : tri.p){
+                    p.x = std::min(p.x, v.x);
+                    p.y = std::min(p.y, v.y);
+                    p.z = std::min(p.z, v.z);
+
+                    e.x = std::max(e.x, v.x);
+                    e.y = std::max(e.y, v.y);
+                    e.z = std::max(e.z, v.z);
+                }
+            }
+
+            this->positionLocal = p;
+            this->endLocal = e;
+            this->size = e - p;
+        }
+
+        // Sets global coordinates to local + vec
+        void updatePosition(Vector3 vec);
+        // Returns true if this AABB intersects the specified AABB
+        // Uses global coordinates
+        bool intersects(const AABB &other);
+        // Returns a mesh in the shape of this AABB
+        // Useful for debugging
+        Mesh toMesh();
+//        // Returns an AABB with equalivent position and size,
+//        // modified so that the most-negative corner is the origin and the size is positive
+//        AABB abs();
+//        Actor getParent() { return parent; }
     };
 
     // Struct representing a 4x4 matrix
@@ -217,7 +311,6 @@ public:
     // Draw a textured triangle
     // texture is a pointer to the texture QImage
     // dBuffer is a pointer to the depth buffer
-    //
     static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float> &dBuffer);
 //    static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<std::pair<float, Tools::Color8>> &dBuffer);
 

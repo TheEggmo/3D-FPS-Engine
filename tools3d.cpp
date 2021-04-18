@@ -10,7 +10,7 @@ using T2 = Tools;
 /*--------------------------------------------------------------->*/
 /*--------------------------------------------------------------->*/
 
-bool Tools3D::Mesh3D::loadFromFile(const QString& fileName){
+bool Tools3D::Mesh::loadFromFile(const QString& fileName){
     tris.clear();
     QFile file(fileName);
     if(file.exists()){
@@ -32,10 +32,8 @@ bool Tools3D::Mesh3D::loadFromFile(const QString& fileName){
                         v.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
                     }else if(lineParts.at(0).compare("vn", Qt::CaseInsensitive) == 0){
                         //NORMAL
-//                            vn.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
                     }else if(lineParts.at(0).compare("vt", Qt::CaseInsensitive) == 0){
                         //TEXTURE
-//                            vt.push_back({lineParts.at(1).toFloat(), lineParts.at(2).toFloat()});
                     }else if(lineParts.at(0).compare("f", Qt::CaseInsensitive) == 0){
                         //FACE DATA
                         // Faces must be triangles
@@ -44,20 +42,6 @@ bool Tools3D::Mesh3D::loadFromFile(const QString& fileName){
                         tri.p[0] = v.at(lineParts.at(1).split("/").at(0).toInt() - 1);
                         tri.p[1] = v.at(lineParts.at(2).split("/").at(0).toInt() - 1);
                         tri.p[2] = v.at(lineParts.at(3).split("/").at(0).toInt() - 1);
-                        // UV coords
-//                            if(!vt.empty()){
-//                                tri.t[0] = vt.at(lineParts.at(1).split("/").at(1).toInt() - 1);
-//                                tri.t[1] = vt.at(lineParts.at(2).split("/").at(1).toInt() - 1);
-//                                tri.t[2] = vt.at(lineParts.at(3).split("/").at(1).toInt() - 1);
-//                            }else{
-//                                flat = true;
-//                            }
-                        // Normals
-                        // Currently unused
-//                                x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
-//                                x = v.at(lineParts.at(2).split("/").at(2).toInt() - 1);
-//                                x = v.at(lineParts.at(3).split("/").at(2).toInt() - 1);
-
                         tris.push_back(tri);
                     }
                 }
@@ -70,14 +54,39 @@ bool Tools3D::Mesh3D::loadFromFile(const QString& fileName){
     }
     return true;
 }
-void Tools3D::Mesh3D::scale(float mod){
+void Tools3D::Mesh::scale(float mod){
     for(int tIdx = 0; tIdx < tris.size(); tIdx++){
         for(int pIdx = 0; pIdx <= 2; pIdx++){
-            tris[tIdx].p[pIdx] = tris[tIdx].p[pIdx] * mod;
+//            tris[tIdx].p[pIdx] = tris[tIdx].p[pIdx] * mod;
+            tris[tIdx].p[pIdx] *= mod;
         }
     }
 }
-void Tools3D::Mesh3D::move(Tools3D::Vector3 v){
+void Tools3D::Mesh::scaleX(float mod){
+    for(int tIdx = 0; tIdx < tris.size(); tIdx++){
+        for(int pIdx = 0; pIdx <= 2; pIdx++){
+//            tris[tIdx].p[pIdx].x = tris[tIdx].p[pIdx].x * mod;
+            tris[tIdx].p[pIdx].x *= mod;
+        }
+    }
+}
+void Tools3D::Mesh::scaleY(float mod){
+    for(int tIdx = 0; tIdx < tris.size(); tIdx++){
+        for(int pIdx = 0; pIdx <= 2; pIdx++){
+//            tris[tIdx].p[pIdx].y = tris[tIdx].p[pIdx].y * mod;
+            tris[tIdx].p[pIdx].y *= mod;
+        }
+    }
+}
+void Tools3D::Mesh::scaleZ(float mod){
+    for(int tIdx = 0; tIdx < tris.size(); tIdx++){
+        for(int pIdx = 0; pIdx <= 2; pIdx++){
+//            tris[tIdx].p[pIdx].z = tris[tIdx].p[pIdx].z * mod;
+            tris[tIdx].p[pIdx].z *= mod;
+        }
+    }
+}
+void Tools3D::Mesh::move(Tools3D::Vector3 v){
     Mat4x4 mat = newMatTrans(v.x, v.y, v.z);
     for(int i = 0; i < tris.size(); i++){
         tris[i] = tris[i] * mat;
@@ -86,7 +95,7 @@ void Tools3D::Mesh3D::move(Tools3D::Vector3 v){
 //        tris[i].p[2] = tris[i].p[2] + v;
     }
 }
-bool Tools3D::Mesh3D::empty(){
+bool Tools3D::Mesh::empty(){
     return tris.empty();
 }
 
@@ -150,6 +159,50 @@ bool Tools3D::MeshTexture::loadFromFile(const QString& fileName){
         return false;
     }
     return true;
+}
+
+
+
+void Tools3D::AABB::updatePosition(Tools3D::Vector3 vec)
+{
+//    this->position = this->positionLocal + vec;
+//    this->end = this->position + size;
+    this->position += vec;
+    this->end += size;
+}
+
+bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
+    if (position.x >= (other.position.x + other.size.x)) {
+        return false;
+    }
+    if ((position.x + size.x) <= other.position.x) {
+        return false;
+    }
+    if (position.y >= (other.position.y + other.size.y)) {
+        return false;
+    }
+    if ((position.y + size.y) <= other.position.y) {
+        return false;
+    }
+    if (position.z >= (other.position.z + other.size.z)) {
+        return false;
+    }
+    if ((position.z + size.z) <= other.position.z) {
+        return false;
+    }
+
+    return true;
+}
+
+Tools3D::Mesh Tools3D::AABB::toMesh()
+{
+    Tools3D::Mesh out;
+    out.loadFromFile("Assets/cube.obj");
+    out.scaleX(size.x);
+    out.scaleY(size.y);
+    out.scaleZ(size.z);
+
+    return out;
 }
 
 /*--------------------------------------------------------------->*/
@@ -536,6 +589,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                 // Scale UV coordinates to texture size
                 texU *= (texture->width() - 1);
                 texV *= (texture->height() - 1);
+                // Bitwise operation hack
+                // Works only if the texture dimensions are a power of 2
+//                unsigned int u = (unsigned int)texU & 255;
 
                 if(texW > dBuffer[i*image->width() + j]){
                     // Get the required pixel from the texture

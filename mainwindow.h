@@ -47,7 +47,7 @@ protected:
     // They update the game state, i.e. visuals, positions, inputs
     void movePlayer(); // Updates player position based on input
     void screenUpdate(); // Updates the screen by transforming the 3D world
-    void processPhysics();
+    void processActors();
 
     float clamp(float in, float lo, float hi);
 
@@ -71,7 +71,10 @@ protected:
 //    std::vector<std::pair<float, Tools::Color8>> depthBuffer;
     std::vector<float> depthBuffer;
 
-    std::vector<Actor> actorList;
+    std::vector<Actor*> actorList;
+//    std::vector<Actor> actorList;
+
+//    Actor player;
 
     // Apply projection based on input parameters.
     // tri is the triangle being projected.

@@ -1,30 +1,41 @@
 #include "actor.h"
 
-void Actor::process(){
+void Actor::process(std::vector<Tools3D::AABB> colliders){
     // Order can be rearranged if necessary
-    if(logic_enabled) process_logic();
-    if(physics_enabled) process_physics();
-    if(collision_enabled) process_collision();
+    if(logicEnabled) processLogic();
+    if(physicsEnabled) processPhysics();
+    if(collisionEnabled) processCollision(colliders);
 }
 
-void Actor::process_physics(){
+void Actor::processPhysics(){
 
 }
-void Actor::process_logic(){
+void Actor::processLogic(){
 
 }
-void Actor::process_collision(){
-
+void Actor::processCollision(std::vector<Tools3D::AABB> colliders){
+    collision.updatePosition(this->position);
+    for(auto aabb : colliders){
+        if(collision.intersects(aabb)){
+//            qDebug("COLLISION DETECTED");
+//            qDebug("%s COLLIDED", name);
+        }
+    }
 }
 
-void Actor::set_model(Tools3D::MeshTexture in){
+void Actor::processCollision(Tools3D::AABB aabb){
+    collision.updatePosition(position);
+    if(collision.intersects(aabb)){
+        qDebug("COLLISION DETECTED");
+    }
+}
+
+void Actor::setCollision(Tools3D::AABB in){
+    collision = in;
+    collisionEnabled = true;
+}
+void Actor::setModel(Tools3D::MeshTexture in){
     model = in;
     visible = true;
 }
-void Actor::set_collision(Tools3D::MeshCollision in){
-    collision = in;
-}
 
-Tools3D::MeshTexture Actor::get_model(){
-    return model;
-}

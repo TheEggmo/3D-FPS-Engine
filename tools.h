@@ -79,6 +79,7 @@ public:
     class Vector2{
     public:
         int x, y;
+
         Vector2(int x, int y){
             this->x = x;
             this->y = y;
@@ -98,7 +99,41 @@ public:
         }
     };
 
+    // Class representing a 2D rectangle
+    class Rect{
+    public:
+        // The rectangle is defined by two points
+        Vector2 topLeft, botRight;
+        // Rotation in radians (UNUSED)
+        // The functions in this class can be remade to account for rotations,
+        // but I don't think it's necessary
+        float rotation = 0.0f;
 
+        Rect(){
+            topLeft = {0,0};
+            botRight = {0,0};
+        }
+        Rect(Vector2 a, Vector2 b){
+            topLeft = a;
+            botRight = b;
+        }
+
+        // Swaps the vectors if they are "wrong"
+        // I.e. topLeft isn't actually the top left point
+        void fix(){
+            if(topLeft.x > botRight.x || topLeft.y > botRight.y){
+                Vector2 t = topLeft;
+                this->topLeft = botRight;
+                this->botRight = t;
+            }
+        }
+        // Check if this rectangle is colliding with the specified rectangle
+        bool collides(Rect other){
+//            if(this->botRight.y < other.topLeft.y || this->topLeft.x < other.botRight.x) return false;
+//            return true;
+            return !(this->botRight.y < other.topLeft.y || this->topLeft.x < other.botRight.x);
+        }
+    };
 
     // Commonly used functions for drawing
 

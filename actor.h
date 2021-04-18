@@ -2,31 +2,34 @@
 #define ACTOR_H
 
 #include "tools3d.h"
-#include "meshcollision.h"
+#include <string>
 
 class Actor{
 protected:
-    Tools3D::MeshCollision collision;
+    Tools3D::AABB collision;
     Tools3D::MeshTexture model;
 
 public:
     Tools3D::Vector3 position;
+    std::string name = "";
 
     bool visible = false; // If true, the model mesh will be drawn
-    bool physics_enabled = false; // If true, the body will have physics applied every frame (gravity etc.)
-    bool logic_enabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
-    bool collision_enabled = false; // If true, the body will have collisions
+    bool physicsEnabled = false; // If true, the body will have physics applied every frame (gravity etc.)
+    bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
+    bool collisionEnabled = false; // If true, the body will have collisions
 
-    void process_physics();
-    void process_logic();
-    void process_collision();
+    void process(std::vector<Tools3D::AABB> colliders);
 
-    void process();
+    void processPhysics();
+    void processLogic();
+    void processCollision(std::vector<Tools3D::AABB> colliders);
+    void processCollision(Tools3D::AABB aabb);
 
-    void set_model(Tools3D::MeshTexture);
-    void set_collision(Tools3D::MeshCollision);
+    void setCollision(Tools3D::AABB);
+    void setModel(Tools3D::MeshTexture);
 
-    Tools3D::MeshTexture get_model();
+    Tools3D::AABB getCollider() { return collision; }
+    Tools3D::MeshTexture getModel() { return model; }
 
 };
 

@@ -46,8 +46,15 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     processTimer->setSingleShot(false);
     connect(processTimer, SIGNAL(timeout()), this, SLOT(process()));
     // Refresh every 16 msec, which is aprox 60fps
-    int targetFps = 120;
+    int targetFps = 60;
     processTimer->start(1000/targetFps);
+
+    Actor player;
+    player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
+    player.name = "Player";
+//    actorList.push_back(&player);
+    actorList.push_back(new Actor);
+    *actorList[0] = player;
 
     // Load debug/testing model
 //    meshCube.loadFromFile("Assets/axis.obj");
@@ -59,8 +66,10 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
    meshHub.loadFromFile("Assets/Artisans Hub.obj");
    meshHub.texture = new QImage("Assets/Artisans Hub.png");
    Actor hub;
-   hub.set_model(meshHub);
+   hub.setModel(meshHub);
    hub.visible = true;
+   hub.setCollision(T3::AABB(meshHub));
+   hub.name = "Hub";
 //    meshCube.loadFromFile("Assets/capsule.obj");
 
 
@@ -68,45 +77,47 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
    meshCapsule.loadFromFile("Assets/capsule.obj");
    meshCapsule.texture = new QImage("Assets/capsule.jpg");
    Actor capsule;
-   capsule.set_model(meshCapsule);
+   capsule.setModel(meshCapsule);
    capsule.visible = false;
+   capsule.name = "Capsule";
 
    T3::MeshTexture meshWatermelon;
    meshWatermelon.loadFromFile("Assets/watermelon2.obj");
    meshWatermelon.scale(10);
    meshWatermelon.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
    Actor watermelon;
-   watermelon.set_model(meshWatermelon);
+   watermelon.setModel(meshWatermelon);
    watermelon.visible = false;
+   watermelon.name = "Watermelon";
 
 
 
-    meshCube.tris = {
+//    meshCube.tris = {
 
-        // SOUTH
-        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // SOUTH
+//        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-        // EAST
-        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+//        // EAST
+//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
 
-        // NORTH
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // NORTH
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-        // WEST
-        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // WEST
+//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-        // TOP
-        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        // TOP
+//        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
-        // BOTTOM
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-    };
+//        // BOTTOM
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//    };
 //    meshCube.scale(10);
 //    for(int i = 0; i < meshCube.tris.size(); i++){
 //        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(0, 50, 0);
@@ -126,14 +137,24 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    QImage *cubeTexture = new QImage("Assets/capsule.jpg");
 
 
+    meshCube.loadFromFile("Assets/cube.obj");
     Actor cubeActor;
-    cubeActor.set_model(meshCube);
-    cubeActor.visible = false;
+    cubeActor.setModel(meshCube);
+    cubeActor.visible = true;
+    cubeActor.name = "Cube";
 
-    actorList.push_back(cubeActor);
-    actorList.push_back(capsule);
-    actorList.push_back(hub);
-    actorList.push_back(watermelon);
+//    actorList.push_back(&cubeActor);
+//    actorList.push_back(&capsule);
+//    actorList.push_back(&hub);
+//    actorList.push_back(&watermelon);
+    actorList.push_back(new Actor);
+    actorList.push_back(new Actor);
+    actorList.push_back(new Actor);
+    actorList.push_back(new Actor);
+    *actorList[1] = cubeActor;
+    *actorList[2] = capsule;
+    *actorList[3] = hub;
+    *actorList[4] = watermelon;
 
 
     // Initiate the projection Matrix
@@ -169,12 +190,12 @@ void MainWindow::process(){
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
     if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
-    if(bool displayFPS = true) qDebug("FPS: %f", 1/frameTime.count());
+    if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
-    processPhysics(); // Calculate world physics
+    processActors(); // Calculate world physics
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
 
@@ -200,7 +221,10 @@ void MainWindow::screenUpdate(){
 
     // Store triangles for drawing later
     std::vector<T3::Triangle> triangleQueue;
-
+    triangleQueue.clear();
+    // Wireframe triangles, for debugging purposes
+    std::vector<T3::Triangle> wireframeQueue;
+    wireframeQueue.clear();
 
     T3::Vector3 up = {0, 1, 0};
     T3::Vector3 target = {0, 0, 1};
@@ -216,15 +240,22 @@ void MainWindow::screenUpdate(){
     T3::Mat4x4 cameraMatrix = T3::matPointAt(camera, target, up);
     T3::Mat4x4 viewMatrix = T3::matQuickInverse(cameraMatrix);
 
-    // Proces triangles of every visible actor and place them in the triangleQueue for drawing
-    for(Actor a : actorList){
-        if(a.visible){
-            T3::MeshTexture model = a.get_model();
+    // Proces triangles of every visible actor and place them in the triangleQueue for drawin
+    for(int i = 0; i < actorList.size(); i++){
+        Actor * a = actorList[i];
+        // Draw the actor's textured mesh
+        if(a->visible){
+            T3::MeshTexture model = a->getModel();
             model.flat = false;
-//            for(T3::Triangle t : model.tris){
             for(int i = 0; i < model.tris.size(); i++){
                 projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue);
-//                projectTriangle(t, matWorld, camera, viewMatrix, &triangleQueue);
+            }
+        }
+        // Draw a wireframe of the actor's AABB
+        if(bool showColliders = true && a->collisionEnabled){
+            T3::Mesh collider = a->getCollider().toMesh();
+            for(int i = 0; i < collider.tris.size(); i++){
+                projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
             }
         }
     }
@@ -282,6 +313,54 @@ void MainWindow::screenUpdate(){
 //            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
         }
     }
+
+    // Draw wireframe
+    for(auto &tri : wireframeQueue){
+        // Clip triangles against screen edges(walls of the view frustrum)
+        T3::Triangle clipped[2];
+        std::list<T3::Triangle> cTriangleQueue; // Queue of triangles for clipping
+        cTriangleQueue.push_back(tri);
+        int newTriangles = 1;
+
+        for(int p = 0; p < 4; p++){
+            int trianglesToAdd = 0;
+            while(newTriangles > 0){
+                T3::Triangle test = cTriangleQueue.front();
+                cTriangleQueue.pop_front();
+                newTriangles--;
+
+                switch(p){
+                case 0:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 1:
+                    trianglesToAdd = T3::clipTriangle({0.0f, (float)sHeight - 1, 0.0f}, {0.0f, -1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 2:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 3:
+                    trianglesToAdd = T3::clipTriangle({(float)sWidth - 1, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                }
+
+                // Add newly created triangles to the queue for clipping against next planes
+                for(int w = 0; w < trianglesToAdd; w++){
+                    cTriangleQueue.push_back(clipped[w]);
+                }
+            }
+            newTriangles = cTriangleQueue.size();
+        }
+
+        // Finally, draw the modified triangles on the screen
+        for(T3::Triangle &tri : cTriangleQueue){
+            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
+        }
+    }
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event){
@@ -297,9 +376,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event){
     yaw += mouseDiff.x * sensMod;
 //    yaw = // Add wrapping?
     pitch += mouseDiff.y * sensMod;
-//    pitch = std::clamp(pitch, -3.14/2, 3.14/2); bruh
-    pitch = clamp(pitch, -3.14/2.0, 3.14/2.0);
-    cursor.setPos(sCenter.x, sCenter.y);
+    pitch = clamp(pitch, -3.14/2.0, 3.14/2.0); // Needs to be clamped so that the camera won't go upside down
+    cursor.setPos(sCenter.x, sCenter.y); // Center the cursor
 }
 
 // Capture keyboard inputs and store them in the InputMap
@@ -325,31 +403,78 @@ void MainWindow::movePlayer(){
     forward.y = 0;
     T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
 
+    T3::Vector3 playerPosition = actorList[0]->position;
+
     if(Input.isActionPressed("UP")){
-        camera = camera + forward;
+        playerPosition += forward;
     }
     if(Input.isActionPressed("DOWN")){
-        camera = camera - forward;
+        playerPosition -= forward;
     }
     if(Input.isActionPressed("LEFT")){
-        camera = camera - right;
+        playerPosition -= right;
     }
     if(Input.isActionPressed("RIGHT")){
-        camera = camera + right;
+        playerPosition += right;
     }
     if(Input.isActionPressed("JUMP")){
-        camera.y += jumpSpeed;
+        playerPosition.y += jumpSpeed;
     }
     if(Input.isActionPressed("CROUCH")){
-        camera.y -= jumpSpeed;
+        playerPosition.y -= jumpSpeed;
     }
+
+    camera = playerPosition;
+    actorList[0]->position = playerPosition;
 }
 
-void MainWindow::processPhysics(){
+void MainWindow::processActors(){
     float gravity = 0.1f;
 
-//    camera.y -= gravity;
-//    camera.y = std::max(0.0f, camera.y);
+
+    // Process collisions
+    for(int i = 0; i < actorList.size(); i++){
+        if(actorList[i]->collisionEnabled){
+            std::vector<T3::AABB> colliders;
+            colliders.clear();
+            // Get colliders from all other actors
+            for(int j = 0; j < actorList.size(); j++){
+//                if(i == j) continue; // Don't check against self
+//                colliders.push_back(actorList[j].getCollider());
+                if(i != j){
+                    colliders.push_back(actorList[j]->getCollider());
+                }
+            }
+            actorList[i]->processCollision(colliders);
+        }
+    }
+
+//    for(Actor a : actorList){
+//        if(a.collisionEnabled){
+//            std::vector<T3::AABB> colliders;
+//            // Get colliders from all other actors
+//            for(Actor a2 : actorList){
+//                colliders.push_back(a.getCollider());
+//            }
+//            a.processCollision(colliders);
+//        }
+//    }
+
+    // Process collisions (old)
+    // First, make a list of all AABBs from Actors
+    //    std::vector<T3::AABB> colliders;
+    //    colliders.clear();
+    //    for(Actor a : actorList){
+    //        if(a.collisionEnabled){
+    //            colliders.push_back(a.getCollider());
+    //        }
+    //    }
+
+
+    //    for(Actor a : actorList){
+    //        a.process(colliders);
+    //    }
+
 }
 
 float MainWindow::clamp(float in, float lo, float hi){

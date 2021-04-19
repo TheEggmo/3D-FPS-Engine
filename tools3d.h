@@ -121,6 +121,7 @@ public:
         UV t[3]; // Texture coordinates
 
         Tools::Color8 color;
+        QImage *texture; // Whenever a triangle is clipped it retains a pointer to it's texture
 
         Triangle(){
             this->p[0] = {0,0,0};
@@ -183,7 +184,7 @@ public:
     };
 
     struct MeshTexture : public Mesh{
-        bool flat = true;
+//        bool flat = true;
         QImage *texture;
 
         // Load the mesh from obj file

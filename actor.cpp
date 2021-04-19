@@ -1,18 +1,18 @@
 #include "actor.h"
 
-void Actor::process(std::vector<Tools3D::AABB> colliders){
-    // Order can be rearranged if necessary
-    if(logicEnabled) processLogic();
-    if(physicsEnabled) processPhysics();
-    if(collisionEnabled) processCollision(colliders);
-}
+//void Actor::process(std::vector<Tools3D::AABB> colliders){
+//    // Order can be rearranged if necessary
+//    if(logicEnabled) processLogic();
+//    if(physicsEnabled) processPhysics();
+//    if(collisionEnabled) processCollision(colliders);
+//}
 
-void Actor::processPhysics(){
+//void Actor::processPhysics(){
 
-}
-void Actor::processLogic(){
+//}
+//void Actor::processLogic(){
 
-}
+//}
 void Actor::processCollision(std::vector<Tools3D::AABB> colliders){
     collision.updatePosition(this->position);
     for(auto aabb : colliders){
@@ -39,3 +39,16 @@ void Actor::setModel(Tools3D::MeshTexture in){
     visible = true;
 }
 
+
+void ActorDynamic::processLogic(){
+
+}
+
+void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
+    collision.updatePosition(this->position);
+    for(auto aabb : colliders){
+        if(collision.intersects(aabb)){
+            qDebug("%s COLLIDED (DYNAMIC)", this->name);
+        }
+    }
+}

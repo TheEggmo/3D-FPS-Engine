@@ -49,13 +49,14 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     int targetFps = 60;
     processTimer->start(1000/targetFps);
 
-    Actor player;
+    ActorDynamic player;
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
-    player.position = {1000, 100, 1000};
+    player.position = {100, 50, 0};
+    addActor(player);
 //    actorList.push_back(&player);
-    actorList.push_back(new Actor);
-    *actorList[0] = player;
+//    actorList.push_back(new Actor);
+//    *actorList[0] = player;
 
     // Load debug/testing model
 //    meshCube.loadFromFile("Assets/axis.obj");
@@ -71,25 +72,26 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
    hub.visible = true;
    hub.setCollision(T3::AABB(meshHub));
    hub.name = "Hub";
+    addActor(hub);
 //    meshCube.loadFromFile("Assets/capsule.obj");
 
 
-   T3::MeshTexture meshCapsule;
-   meshCapsule.loadFromFile("Assets/capsule.obj");
-   meshCapsule.texture = new QImage("Assets/capsule.jpg");
-   Actor capsule;
-   capsule.setModel(meshCapsule);
-   capsule.visible = false;
-   capsule.name = "Capsule";
+//   T3::MeshTexture meshCapsule;
+//   meshCapsule.loadFromFile("Assets/capsule.obj");
+//   meshCapsule.texture = new QImage("Assets/capsule.jpg");
+//   Actor capsule;
+//   capsule.setModel(meshCapsule);
+//   capsule.visible = false;
+//   capsule.name = "Capsule";
 
-   T3::MeshTexture meshWatermelon;
-   meshWatermelon.loadFromFile("Assets/watermelon2.obj");
-   meshWatermelon.scale(10);
-   meshWatermelon.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
-   Actor watermelon;
-   watermelon.setModel(meshWatermelon);
-   watermelon.visible = false;
-   watermelon.name = "Watermelon";
+//   T3::MeshTexture meshWatermelon;
+//   meshWatermelon.loadFromFile("Assets/watermelon2.obj");
+//   meshWatermelon.scale(10);
+//   meshWatermelon.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
+//   Actor watermelon;
+//   watermelon.setModel(meshWatermelon);
+//   watermelon.visible = false;
+//   watermelon.name = "Watermelon";
 
 
 
@@ -134,28 +136,31 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    meshCube.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.jpg");
 //    meshCube.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
 //    meshCube.texture = new QImage("Assets/capsule.jpg");
-    meshCube.texture = new QImage("Assets/Artisans Hub.png");
+//    meshCube.texture = new QImage("Assets/Artisans Hub.png");
 //    QImage *cubeTexture = new QImage("Assets/capsule.jpg");
 
 
-    meshCube.loadFromFile("Assets/cube.obj");
-    Actor cubeActor;
-    cubeActor.setModel(meshCube);
-    cubeActor.visible = true;
-    cubeActor.name = "Cube";
+//    meshCube.loadFromFile("Assets/cube.obj");
+//    Actor cubeActor;
+//    cubeActor.setModel(meshCube);
+//    cubeActor.visible = true;
+//    cubeActor.name = "Cube";
 
 //    actorList.push_back(&cubeActor);
 //    actorList.push_back(&capsule);
 //    actorList.push_back(&hub);
 //    actorList.push_back(&watermelon);
-    actorList.push_back(new Actor);
-    actorList.push_back(new Actor);
-    actorList.push_back(new Actor);
-    actorList.push_back(new Actor);
-    *actorList[1] = cubeActor;
-    *actorList[2] = capsule;
-    *actorList[3] = hub;
-    *actorList[4] = watermelon;
+//    actorList.push_back(new Actor);
+//    actorList.push_back(new Actor);
+//    actorList.push_back(new ActorStatic);
+//    actorList.push_back(new Actor);
+//    *actorList[1] = cubeActor;
+//    *actorList[2] = capsule;
+//    *actorList[3] = hub;
+//    *actorList[4] = watermelon;
+//    addActor(cubeActor);
+//    addActor(capsule);
+//    addActor(watermelon);
 
 
     // Initiate the projection Matrix
@@ -216,8 +221,7 @@ void MainWindow::process(){
 // The main engine/game loop function, called every frame
 void MainWindow::screenUpdate(){
     T3::Mat4x4 matRotZ, matRotX, matTrans, matWorld;
-//    std::vector<T3::Triangle> extTris; // Stores all triangles extracted from models for drawing
-//    for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = std::pair<float, T2::Color8> (0.0f, T2::Color8(-1, -1, -1); // Clear the depth buffer
+
     for(int i = 0; i < sWidth * sHeight; i++) depthBuffer[i] = 0.0f; // Clear the depth buffer
 
     // Store triangles for drawing later
@@ -244,15 +248,15 @@ void MainWindow::screenUpdate(){
     // Proces triangles of every visible actor and place them in the triangleQueue for drawin
     for(int i = 0; i < actorList.size(); i++){
         Actor * a = actorList[i];
-        // Draw the actor's textured mesh
+        // Project triangles for drawing the Actor's model and texture
         if(a->visible){
             T3::MeshTexture model = a->getModel();
-            model.flat = false;
+//            model.flat = false;
             for(int i = 0; i < model.tris.size(); i++){
-                projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue);
+                projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue, model.texture);
             }
         }
-        // Draw a wireframe of the actor's AABB
+        // Project triangles for wireframe drawing
         if(bool showColliders = true && a->collisionEnabled && i != 0){
             T3::Mesh collider = a->getCollider().toMesh();
             for(int i = 0; i < collider.tris.size(); i++){
@@ -305,13 +309,7 @@ void MainWindow::screenUpdate(){
 
         // Finally, draw the modified triangles on the screen
         for(T3::Triangle &tri : cTriangleQueue){
-//            if(meshCube.flat){
-//                T3::fillTri(mainImage, tri, tri.color);
-//            }else{
-//                T3::textureTri(mainImage, tri, meshCube.texture, depthBuffer);
-//            }
-            T3::textureTri(mainImage, tri, meshCube.texture, depthBuffer);
-//            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
+            T3::textureTri(mainImage, tri, tri.texture, depthBuffer);
         }
     }
 
@@ -357,9 +355,9 @@ void MainWindow::screenUpdate(){
             newTriangles = cTriangleQueue.size();
         }
 
-        // Finally, draw the modified triangles on the screen
+        // Draw triangles
         for(T3::Triangle &tri : cTriangleQueue){
-            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255)); // Draw outline on edges (wireframe)
+            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255));
         }
     }
 }
@@ -452,33 +450,6 @@ void MainWindow::processActors(){
             actorList[i]->processCollision(colliders);
         }
     }
-
-//    for(Actor a : actorList){
-//        if(a.collisionEnabled){
-//            std::vector<T3::AABB> colliders;
-//            // Get colliders from all other actors
-//            for(Actor a2 : actorList){
-//                colliders.push_back(a.getCollider());
-//            }
-//            a.processCollision(colliders);
-//        }
-//    }
-
-    // Process collisions (old)
-    // First, make a list of all AABBs from Actors
-    //    std::vector<T3::AABB> colliders;
-    //    colliders.clear();
-    //    for(Actor a : actorList){
-    //        if(a.collisionEnabled){
-    //            colliders.push_back(a.getCollider());
-    //        }
-    //    }
-
-
-    //    for(Actor a : actorList){
-    //        a.process(colliders);
-    //    }
-
 }
 
 float MainWindow::clamp(float in, float lo, float hi){
@@ -493,9 +464,19 @@ float MainWindow::clamp(float in, float lo, float hi){
     return in;
 }
 
+void MainWindow::addActor(Actor a){
+    actorList.push_back(new Actor);
+    *actorList.back() = a;
+}
+
+void MainWindow::addActor(ActorDynamic a){
+    actorList.push_back(new ActorDynamic);
+    *actorList.back() = a;
+}
+
 void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                                  Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
-                                 std::vector<Tools3D::Triangle> *outputQueue){
+                                 std::vector<Tools3D::Triangle> *outputQueue, QImage *texture){
 
     T3::Triangle triTransformed, triViewed, triProjected;
 
@@ -547,7 +528,7 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             // Project from 3D to 2D
             triProjected = clipped[i] * matProj;
 
-            // Copy texture data from old triangle to new one
+            // Copy uv data from old triangle to new one
             triProjected.t[0] = clipped[i].t[0];
             triProjected.t[1] = clipped[i].t[1];
             triProjected.t[2] = clipped[i].t[2];
@@ -590,7 +571,79 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             triProjected.p[2].x *= 0.5f * (float)sWidth;
             triProjected.p[2].y *= 0.5f * (float)sHeight;
 
-            triProjected.color = shadedColor;
+            // Copy texture data to new triangle
+//            triProjected.color = shadedColor;
+            triProjected.texture = texture;
+
+            outputQueue->push_back(triProjected);
+        }
+    }
+}
+
+void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+                                 Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                                 std::vector<Tools3D::Triangle> *outputQueue){
+    T3::Triangle triTransformed, triViewed, triProjected;
+
+    triTransformed = tri * transformMatrix;
+    triTransformed.t[0] = tri.t[0];
+    triTransformed.t[1] = tri.t[1];
+    triTransformed.t[2] = tri.t[2];
+
+    // Use cross-product to get surface normal
+    T3::Vector3 normal, line1, line2;
+
+    // Get two lines of the triangle
+    line1 = triTransformed.p[1] - triTransformed.p[0];
+    line2 = triTransformed.p[2] - triTransformed.p[0];
+
+    // Get the normal of the triangle surface and normalise it
+    normal = T3::crossProduct(line1, line2);
+    normal = T3::normalise(normal);
+
+    // If the ray from triangle to camera is aligned with the normal, the triangle is visible
+    T3::Vector3 cameraRay = triTransformed.p[0] - camera;
+    if(T3::dotProduct(normal, cameraRay) < 0){
+
+        // Convert world space to view space
+        triViewed = triTransformed * viewMatrix;
+
+        // Clip viewed triangle against the near plane
+        // This could form two additional triangles
+        int clippedTriangles = 0;
+        T3::Triangle clipped[2];
+        clippedTriangles = T3::clipTriangle({0.0f, 0.0f, 0.1f}, {0.0f, 0.0f, 1.0f}, triViewed, clipped[0], clipped[1]); // TODO: REPLACE THE VECTOR CONSTRUCTOR WITH A VARIABLE
+
+        for(int i = 0; i < clippedTriangles; i++){
+
+            // Project from 3D to 2D
+            triProjected = clipped[i] * matProj;
+
+            triProjected.p[0] = triProjected.p[0] / triProjected.p[0].w;
+            triProjected.p[1] = triProjected.p[1] / triProjected.p[1].w;
+            triProjected.p[2] = triProjected.p[2] / triProjected.p[2].w;
+
+            // Fix inverted x/y
+            triProjected.p[0].x *= -1.0f;
+            triProjected.p[1].x *= -1.0f;
+            triProjected.p[2].x *= -1.0f;
+            triProjected.p[0].y *= -1.0f;
+            triProjected.p[1].y *= -1.0f;
+            triProjected.p[2].y *= -1.0f;
+
+            // Scale into view
+            T3::Vector3 viewOffset = {1, 1, 0};
+            triProjected.p[0] = triProjected.p[0] + viewOffset;
+            triProjected.p[1] = triProjected.p[1] + viewOffset;
+            triProjected.p[2] = triProjected.p[2] + viewOffset;
+
+            triProjected.p[0].x *= 0.5f * (float)sWidth;
+            triProjected.p[0].y *= 0.5f * (float)sHeight;
+            triProjected.p[1].x *= 0.5f * (float)sWidth;
+            triProjected.p[1].y *= 0.5f * (float)sHeight;
+            triProjected.p[2].x *= 0.5f * (float)sWidth;
+            triProjected.p[2].y *= 0.5f * (float)sHeight;
+
             outputQueue->push_back(triProjected);
         }
     }

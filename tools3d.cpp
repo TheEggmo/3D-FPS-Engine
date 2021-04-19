@@ -100,7 +100,7 @@ bool Tools3D::Mesh::empty(){
 }
 
 bool Tools3D::MeshTexture::loadFromFile(const QString& fileName){
-    flat = false;
+//    flat = false;
     tris.clear();
     QFile file(fileName);
     if(file.exists()){
@@ -139,9 +139,10 @@ bool Tools3D::MeshTexture::loadFromFile(const QString& fileName){
                             tri.t[0] = vt.at(lineParts.at(1).split("/").at(1).toInt() - 1);
                             tri.t[1] = vt.at(lineParts.at(2).split("/").at(1).toInt() - 1);
                             tri.t[2] = vt.at(lineParts.at(3).split("/").at(1).toInt() - 1);
-                        }else{
-                            flat = true;
                         }
+//                        }else{
+//                            flat = true;
+//                        }
                         // Normals
                         // Currently unused
 //                                x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
@@ -1017,6 +1018,7 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     if(insidePointCount == 1 && outsidePointCount == 2){
         // Copy triangle color/texture data into the new triangle
         outTri1.color = inTri.color;
+        outTri1.texture = inTri.texture;
 
         // Contruct the output triangle
         // One point is valid, so it doesn't need to be calculated
@@ -1040,7 +1042,9 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     if(insidePointCount == 2 && outsidePointCount == 1){
         // Copy triangle color/texture data into the new triangles
         outTri1.color = inTri.color;
+        outTri1.texture = inTri.texture;
         outTri2.color = inTri.color;
+        outTri2.texture = inTri.texture;
 
         // Contruct the first output triangle
         // It consists of the two inside points,

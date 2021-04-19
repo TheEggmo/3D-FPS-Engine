@@ -51,7 +51,7 @@ protected:
 
     float clamp(float in, float lo, float hi);
 
-    Tools3D::MeshTexture meshCube;
+    Tools3D::MeshTexture meshCube; // DELETE LATER, ONLY FOR DEBBUGING
     Tools3D::Mat4x4 matProj; // Projection matrix
 
     Tools3D::Vector3 camera; // Vector representing the camera
@@ -72,9 +72,9 @@ protected:
     std::vector<float> depthBuffer;
 
     std::vector<Actor*> actorList;
-//    std::vector<Actor> actorList;
+    void addActor(Actor a);
+    void addActor(ActorDynamic a);
 
-//    Actor player;
 
     // Apply projection based on input parameters.
     // tri is the triangle being projected.
@@ -82,6 +82,10 @@ protected:
     // camera is the player camera
     // viewMatrix is a transformation based on player camera
     // All output triangles are put in outputQueue.
+    void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+                         Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                         std::vector<Tools3D::Triangle> *outputQueue, QImage *texture);
+    // Same as above, but ignore texture and UV data
     void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                          std::vector<Tools3D::Triangle> *outputQueue);

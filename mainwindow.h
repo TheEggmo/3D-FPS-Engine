@@ -50,6 +50,7 @@ protected:
     void processActors();
 
     float clamp(float in, float lo, float hi);
+    float lerp(float from, float to, float mod);
 
     Tools3D::MeshTexture meshCube; // DELETE LATER, ONLY FOR DEBBUGING
     Tools3D::Mat4x4 matProj; // Projection matrix

@@ -274,6 +274,9 @@ public:
         // Returns true if this AABB intersects the specified AABB
         // Uses global coordinates
         bool intersects(const AABB &other);
+//        bool intersectsX(const AABB &other);
+//        bool intersectsY(const AABB &other);
+//        bool intersectsZ(const AABB &other);
         // Returns a mesh in the shape of this AABB
         // Useful for debugging
         Mesh toMesh();

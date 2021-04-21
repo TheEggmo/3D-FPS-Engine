@@ -78,9 +78,13 @@ public:
     // Class repsresenting a 2d vector
     class Vector2{
     public:
-        int x, y;
+        float x, y;
 
         Vector2(int x, int y){
+            this->x = (float)x;
+            this->y = (float)y;
+        }
+        Vector2(float x, float y){
             this->x = x;
             this->y = y;
         }
@@ -88,14 +92,27 @@ public:
             this->x = 0;
             this->y = 0;
         }
-        float distanceToPoint(Vector2 p){
-            return sqrt(pow(this->x - p.x, 2) + pow(this->y - p.y, 2));
-        }
         Vector2 operator+(Vector2 v){
             return Vector2(this->x + v.x, this->y + v.y);
         }
         Vector2 operator-(Vector2 v){
             return Vector2(this->x - v.x, this->y - v.y);
+        }
+        Vector2 operator*(float k){
+            return Vector2(this->x * k, this->y * k);
+        }
+        Vector2 operator/(float k){
+            return Vector2(this->x / k, this->y / k);
+        }
+
+        float length(){
+            return sqrt(x*x + y*y);
+        }
+        float distanceToPoint(Vector2 p){
+            return sqrt(pow(this->x - p.x, 2) + pow(this->y - p.y, 2));
+        }
+        Vector2 normalized(){
+            return *this/this->length();
         }
     };
 

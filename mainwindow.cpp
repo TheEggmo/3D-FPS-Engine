@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 //#include <Tools.h>
+
 #include <vector>
-#include <QDebug>
 #include <algorithm>
 #include <list>
+#include <typeinfo>
 
+#include <QDebug>
 
 using T2 = Tools;
 using T3 = Tools3D;
@@ -52,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     ActorDynamic player;
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
-    player.position = {100, 50, 0};
+    player.position = {0, 100, 0};
     addActor(player);
 //    actorList.push_back(&player);
 //    actorList.push_back(new Actor);
@@ -196,7 +198,7 @@ void MainWindow::process(){
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
     if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
-    if(bool displayFPS = true) qDebug("FPS: %f", 1/frameTime.count());
+    if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
 
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
@@ -387,6 +389,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
 
     // Toggle mouse tracking
     if(event->key() == Qt::Key_Escape) setMouseTracking(!hasMouseTracking());
+    // Toggle player noclip
+    if(event->key() == Qt::Key_Q)
+        actorList[0]->collisionEnabled = !actorList[0]->collisionEnabled;
 }
 void MainWindow::keyReleaseEvent(QKeyEvent *event){
     if(event->isAutoRepeat()) return;
@@ -397,58 +402,99 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event){
 // Change player position based on inputs
 // This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
 void MainWindow::movePlayer(){
-    float jumpSpeed = 0.4;
-    float moveSpeed = 10;
+    float jumpSpeed = 3;
+    float maxJumpSpeed = 4;
+    float moveSpeed = 1;
+    float maxMoveSpeed = 10;
+
+    bool moving = false; // If no walk input is applied, slow down
 
     // Calculate directions for movement relative to camera rotation
-    T3::Vector3 forward = lookDir * moveSpeed;
+    T3::Vector3 forward = lookDir;// * moveSpeed;
     forward.y = 0;
     T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
 
-    T3::Vector3 playerPosition = actorList[0]->position;
+//    T3::Vector3 playerPosition = actorList[0]->position;
+    ActorDynamic *player = (ActorDynamic *)actorList[0];
 
     if(Input.isActionPressed("UP")){
-        playerPosition += forward;
+        player->velocity += forward;
+        moving = true;
+//        playerPosition += forward;
     }
     if(Input.isActionPressed("DOWN")){
-        playerPosition -= forward;
+        player->velocity -= forward;
+        moving = true;
+//        playerPosition -= forward;
     }
     if(Input.isActionPressed("LEFT")){
-        playerPosition -= right;
+        player->velocity -= right;
+        moving = true;
+//        playerPosition -= right;
     }
     if(Input.isActionPressed("RIGHT")){
-        playerPosition += right;
+        player->velocity += right;
+        moving = true;
+//        playerPosition += right;
     }
     if(Input.isActionPressed("JUMP")){
-        playerPosition.y += jumpSpeed;
+        player->velocity.y = jumpSpeed;
+//        playerPosition.y += jumpSpeed;
     }
     if(Input.isActionPressed("CROUCH")){
-        playerPosition.y -= jumpSpeed;
+        player->velocity.y -= jumpSpeed;
+//        playerPosition.y -= jumpSpeed;
     }
 
-    camera = playerPosition;
-    actorList[0]->position = playerPosition;
+    // Cap player horizontal speed
+    player->velocity.x = clamp(player->velocity.x, -maxMoveSpeed, maxMoveSpeed);
+    player->velocity.z = clamp(player->velocity.z, -maxMoveSpeed, maxMoveSpeed);
+
+
+    if(moving){
+        // Normalize horizontal speed
+//        T3::Vector3 hor = player->velocity;
+//        hor.y = 0;
+//        hor = T3::normalise(hor);
+//        player->velocity.x += hor.x * moveSpeed;
+//        player->velocity.z += hor.z * moveSpeed;
+//        T2::Vector2 hor = {player->velocity.x, player->velocity.z};
+//        hor = hor.normalized();
+//        player->velocity.x = hor.x;
+//        player->velocity.z = hor.y;
+    }else{
+        // Apply friction if not moving
+        player->velocity.x = lerp(player->velocity.x, 0, 0.1);
+        player->velocity.z = lerp(player->velocity.z, 0, 0.1);
+    }
+//    qDebug("SPEED: %f %f", player->velocity.x, player->velocity.z);
+
+    // Cap player air speed
+    player->velocity.y = clamp(player->velocity.y, -maxJumpSpeed, maxJumpSpeed);
+
+    player->position.y = std::max(0.0f, player->position.y); // TEMP, DELETE LATER
+
+    camera = player->position;
 }
 
 void MainWindow::processActors(){
     float gravity = 0.1f;
 
-
     // Process collisions
     for(int i = 0; i < actorList.size(); i++){
-        if(actorList[i]->collisionEnabled){
-            std::vector<T3::AABB> colliders;
-            colliders.clear();
-            // Get colliders from all other actors
-            for(int j = 0; j < actorList.size(); j++){
-//                if(i == j) continue; // Don't check against self
-//                colliders.push_back(actorList[j].getCollider());
-                if(i != j && actorList[j]->collisionEnabled){
-                    colliders.push_back(actorList[j]->getCollider());
-                }
+        // For every actor with enabled collisions gather other actors with enabled collisions,
+        // put them on a queue, and call the actor processCollision()
+        // Actors at the beggining will have their collisions resolved first
+        // Since player is at index 0, they will always have priority
+        std::vector<T3::AABB> colliders;
+        colliders.clear();
+        // Get colliders from all other actors
+        for(int j = 0; j < actorList.size(); j++){
+            if(i != j && actorList[j]->collisionEnabled){
+                colliders.push_back(actorList[j]->getCollider());
             }
-            actorList[i]->processCollision(colliders);
         }
+        actorList[i]->processCollision(colliders);
     }
 }
 
@@ -462,6 +508,10 @@ float MainWindow::clamp(float in, float lo, float hi){
     if(in < lo) return lo;
     if(in > hi) return hi;
     return in;
+}
+
+float MainWindow::lerp(float from, float to, float mod){
+    return from + (to - from) * mod;
 }
 
 void MainWindow::addActor(Actor a){

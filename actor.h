@@ -47,6 +47,7 @@ public:
     bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
 
     void processLogic();
+    void processPhysics();
     void processCollision(std::vector<Tools3D::AABB> colliders) override;
 };
 

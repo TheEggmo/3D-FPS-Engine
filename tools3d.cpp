@@ -192,6 +192,72 @@ bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
 
     return true;
 }
+//bool Tools3D::AABB::intersectsX(const Tools3D::AABB &other){
+//    if (position.x >= (other.position.x + other.size.x)) {
+//        return false;
+//    }
+//    if ((position.x + size.x) <= other.position.x) {
+//        return false;
+//    }
+////    if (position.y >= (other.position.y + other.size.y)) {
+////        return false;
+////    }
+////    if ((position.y + size.y) <= other.position.y) {
+////        return false;
+////    }
+////    if (position.z >= (other.position.z + other.size.z)) {
+////        return false;
+////    }
+////    if ((position.z + size.z) <= other.position.z) {
+////        return false;
+////    }
+
+//    return true;
+//}
+//bool Tools3D::AABB::intersectsY(const Tools3D::AABB &other){
+////    if (position.x >= (other.position.x + other.size.x)) {
+////        return false;
+////    }
+////    if ((position.x + size.x) <= other.position.x) {
+////        return false;
+////    }
+//    if (position.y >= (other.position.y + other.size.y)) {
+//        return false;
+//    }
+//    if ((position.y + size.y) <= other.position.y) {
+//        return false;
+//    }
+////    if (position.z >= (other.position.z + other.size.z)) {
+////        return false;
+////    }
+////    if ((position.z + size.z) <= other.position.z) {
+////        return false;
+////    }
+
+//    return true;
+//}
+//bool Tools3D::AABB::intersectsZ(const Tools3D::AABB &other){
+////    if (position.x >= (other.position.x + other.size.x)) {
+////        return false;
+////    }
+////    if ((position.x + size.x) <= other.position.x) {
+////        return false;
+////    }
+////    if (position.y >= (other.position.y + other.size.y)) {
+////        return false;
+////    }
+////    if ((position.y + size.y) <= other.position.y) {
+////        return false;
+////    }
+//    if (position.z >= (other.position.z + other.size.z)) {
+//        return false;
+//    }
+//    if ((position.z + size.z) <= other.position.z) {
+//        return false;
+//    }
+
+//    return true;
+//}
 
 Tools3D::Mesh Tools3D::AABB::toMesh()
 {

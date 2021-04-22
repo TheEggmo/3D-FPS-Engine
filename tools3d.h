@@ -113,6 +113,25 @@ public:
         Vector3 operator*=(Mat4x4 m){
             *this = *this * m;
         }
+
+        // Math functions
+
+        float dotProduct(Vector3 v){
+            return x * v.x + y * v.y + z * v.z;
+        }
+        float length(){
+            return sqrtf(this->dotProduct(*this));
+        }
+        Vector3 normalize(){
+            float l = this->length(); // Length of the input vector
+            return {x/l, y/l, z/l};
+        }
+        Vector3 crossProduct(Vector3 v){
+            float Nx = y * v.z - z * v.y;
+            float Ny = z * v.x - x * v.z;
+            float Nz = x * v.y - y * v.x;
+            return {Nx, Ny, Nz};
+        }
     };
 
     // Struct representing a triangle. Triangle points must be in clockwise order to properly calculate normals
@@ -192,26 +211,6 @@ public:
         bool loadFromFile(const QString& fileName) override;
     };
 
-//    struct MeshCollision : public Tools3D::Mesh{
-
-//        // Copy MeshTexture to MeshCollision without copying UV data
-//        MeshCollision operator=(MeshTexture in){
-//            tris.clear();
-//            for(Triangle inTri : in.tris){
-//                Triangle tri;
-//                tri.p[0] = inTri.p[0];
-//                tri.p[1] = inTri.p[1];
-//                tri.p[2] = inTri.p[2];
-//                tris.push_back(tri);
-//            }
-//        }
-
-////        bool loadFromFile(const QString &fileName) override;
-//        // Check for collision against another collision mesh
-//        // The meshes should be cuboids for this to work
-//        bool checkCollision(MeshCollision other);
-//    };
-
     // Axis-Aligned Bounding Box
     struct AABB{
     private:
@@ -284,12 +283,9 @@ public:
         // Returns true if this AABB intersects the specified AABB
         // Uses global coordinates
         bool intersects(const AABB &other);
-//        bool intersectsX(const AABB &other);
-//        bool intersectsY(const AABB &other);
-//        bool intersectsZ(const AABB &other);
         // Returns a mesh in the shape of this AABB
         // Useful for debugging
-        Mesh toMesh();
+        Mesh toMesh(Vector3 offset = {0, 0, 0});
 //        // Returns an AABB with equalivent position and size,
 //        // modified so that the most-negative corner is the origin and the size is positive
 //        AABB abs();
@@ -327,24 +323,6 @@ public:
     // texture is a pointer to the texture QImage
     // dBuffer is a pointer to the depth buffer
     static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<float> &dBuffer);
-//    static void textureTri(QImage *image, Triangle tri, QImage *texture, std::vector<std::pair<float, Tools::Color8>> &dBuffer);
-
-
-
-    // Math functions
-
-    // Vector functions
-    // Multiply a vector by a matrix
-    static Vector3 multiplyMatrix(Vector3 &in, Mat4x4 &m);
-    // Calculate dot product
-    static float dotProduct(Vector3 v1, Vector3 v2);
-    // Calculate the length of a vector
-    static float length(Vector3 v);
-    // Normalize a vector
-    static Vector3 normalise(Vector3 v);
-    // Calculate the normal vector(cross product) of two vectors/lines
-    static Vector3 crossProduct(Vector3 v1, Vector3 v2);
-
 
     // Matrix creation functions
     // Identity matrix

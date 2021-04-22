@@ -30,11 +30,14 @@ public:
 
     int sWidth, sHeight;
 
-    QTimer *processTimer; // Used to call the process() function every frame
-
     InputMap Input;
 
+    // Returns a copy of the actorList
+    std::vector<Actor*> getActorList();
+
 protected:
+    QTimer *processTimer; // Used to call the process() function every frame
+
 //    void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
 //    void mouseReleaseEvent(QMouseEvent *event) override;

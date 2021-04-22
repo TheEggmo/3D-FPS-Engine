@@ -192,81 +192,17 @@ bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
 
     return true;
 }
-//bool Tools3D::AABB::intersectsX(const Tools3D::AABB &other){
-//    if (position.x >= (other.position.x + other.size.x)) {
-//        return false;
-//    }
-//    if ((position.x + size.x) <= other.position.x) {
-//        return false;
-//    }
-////    if (position.y >= (other.position.y + other.size.y)) {
-////        return false;
-////    }
-////    if ((position.y + size.y) <= other.position.y) {
-////        return false;
-////    }
-////    if (position.z >= (other.position.z + other.size.z)) {
-////        return false;
-////    }
-////    if ((position.z + size.z) <= other.position.z) {
-////        return false;
-////    }
 
-//    return true;
-//}
-//bool Tools3D::AABB::intersectsY(const Tools3D::AABB &other){
-////    if (position.x >= (other.position.x + other.size.x)) {
-////        return false;
-////    }
-////    if ((position.x + size.x) <= other.position.x) {
-////        return false;
-////    }
-//    if (position.y >= (other.position.y + other.size.y)) {
-//        return false;
-//    }
-//    if ((position.y + size.y) <= other.position.y) {
-//        return false;
-//    }
-////    if (position.z >= (other.position.z + other.size.z)) {
-////        return false;
-////    }
-////    if ((position.z + size.z) <= other.position.z) {
-////        return false;
-////    }
-
-//    return true;
-//}
-//bool Tools3D::AABB::intersectsZ(const Tools3D::AABB &other){
-////    if (position.x >= (other.position.x + other.size.x)) {
-////        return false;
-////    }
-////    if ((position.x + size.x) <= other.position.x) {
-////        return false;
-////    }
-////    if (position.y >= (other.position.y + other.size.y)) {
-////        return false;
-////    }
-////    if ((position.y + size.y) <= other.position.y) {
-////        return false;
-////    }
-//    if (position.z >= (other.position.z + other.size.z)) {
-//        return false;
-//    }
-//    if ((position.z + size.z) <= other.position.z) {
-//        return false;
-//    }
-
-//    return true;
-//}
-
-Tools3D::Mesh Tools3D::AABB::toMesh()
-{
+Tools3D::Mesh Tools3D::AABB::toMesh(Vector3 offset){
     Tools3D::Mesh out;
     out.loadFromFile("Assets/cube.obj");
+//    out.scaleX(size.x);
+//    out.scaleY(size.y);
+//    out.scaleZ(size.z);
     out.scaleX(size.x/2.0f);
     out.scaleY(size.y/2.0f);
     out.scaleZ(size.z/2.0f);
-    out.move(position);
+    out.move(offset);
 
     return out;
 }
@@ -699,231 +635,12 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
     }
 }
 
-//void Tools3D::textureTri(QImage *image, Tools3D::Triangle tri, QImage *texture, std::vector<std::pair<float, Tools::Color8> > &dBuffer){
-//// Split triangle into values for easier access
-//int x1 = tri.p[0].x;
-//int x2 = tri.p[1].x;
-//int x3 = tri.p[2].x;
-//int y1 = tri.p[0].y;
-//int y2 = tri.p[1].y;
-//int y3 = tri.p[2].y;
-//float u1 = tri.t[0].u;
-//float u2 = tri.t[1].u;
-//float u3 = tri.t[2].u;
-//float v1 = tri.t[0].v;
-//float v2 = tri.t[1].v;
-//float v3 = tri.t[2].v;
-//float w1 = tri.t[0].w;
-//float w2 = tri.t[1].w;
-//float w3 = tri.t[2].w;
-
-
-//// Sort points and their corresponding uv values
-//if(y2 < y1){
-//    std::swap(y1, y2);
-//    std::swap(x1, x2);
-//    std::swap(u1, u2);
-//    std::swap(v1, v2);
-//    std::swap(w1, w2);
-//}
-//if(y3 < y1){
-//    std::swap(y1, y3);
-//    std::swap(x1, x3);
-//    std::swap(u1, u3);
-//    std::swap(v1, v3);
-//    std::swap(w1, w3);
-//}
-//if(y3 < y2){
-//    std::swap(y2, y3);
-//    std::swap(x2, x3);
-//    std::swap(u2, u3);
-//    std::swap(v2, v3);
-//    std::swap(w2, w3);
-//}
-
-//// Calculate triangle sides
-//int dy1 = y2 - y1;
-//int dx1 = x2 - x1;
-//float dv1 = v2 - v1;
-//float du1 = u2 - u1;
-//float dw1 = w2 - w1;
-
-//int dy2 = y3 - y1;
-//int dx2 = x3 - x1;
-//float dv2 = v3 - v1;
-//float du2 = u3 - u1;
-//float dw2 = w3 - w1;
-
-//float texU, texV, texW;
-//float daxStep = 0, dbxStep = 0, du1Step = 0, dv1Step = 0, du2Step = 0, dv2Step = 0, dw1Step = 0, dw2Step = 0;
-
-//if (dy1) daxStep = dx1 / (float)abs(dy1);
-//if (dy2) dbxStep = dx2 / (float)abs(dy2);
-
-//if (dy1) du1Step = du1 / (float)abs(dy1);
-//if (dy1) dv1Step = dv1 / (float)abs(dy1);
-//if (dy1) dw1Step = dw1 / (float)abs(dy1);
-
-//if (dy2) du2Step = du2 / (float)abs(dy2);
-//if (dy2) dv2Step = dv2 / (float)abs(dy2);
-//if (dy2) dw2Step = dw2 / (float)abs(dy2);
-
-//// Calculate starting and ending x coords of each line inside the triangle
-//// First loop goes vertically from y1 to y2
-//if(dy1){
-//    for(int i = y1; i <= y2; i++){
-//        int ax = x1 + (float)(i - y1) * daxStep;
-//        int bx = x1 + (float)(i - y1) * dbxStep;
-
-//        float texSu = u1 + (float)(i - y1) * du1Step;
-//        float texSv = v1 + (float)(i - y1) * dv1Step;
-//        float texSw = w1 + (float)(i - y1) * dw1Step;
-
-//        float texEu = u1 + (float)(i - y1) * du2Step;
-//        float texEv = v1 + (float)(i - y1) * dv2Step;
-//        float texEw = w1 + (float)(i - y1) * dw2Step;
-
-//        if(ax > bx){
-//            std::swap(ax, bx);
-//            std::swap(texSu, texEu);
-//            std::swap(texSv, texEv);
-//            std::swap(texSw, texEw);
-//        }
-
-//        texU = texSu;
-//        texV = texSv;
-//        texW = texSw;
-
-//        float tStep = 1.0f / ((float)(bx - ax));
-//        float t = 0.0f;
-
-//        for(int j = ax; j < bx; j++){
-//            texU = (1.0f - t) * texSu + t * texEu;
-//            texV = (1.0f - t) * texSv + t * texEv;
-//            texW = (1.0f - t) * texSw + t * texEw;
-//            // Apply perspective to UV coords
-//            texU /= texW;
-//            texV /= texW;
-//            // Flip texV upside down
-//            texV = abs(1.0f - texV);
-//            // Scale UV coords to texture size
-//            texU *= (texture->width() - 1);
-//            texV *= (texture->height() - 1);
-
-//            if(texW > dBuffer[i*image->width() + j]){
-//                T2::Color8 color = T2::getPixel(texture, texU, texV);
-//                if(color.valid()){
-//                    T2::drawPixel(image, j, i, color);
-//                }else{
-//                    // Draw cyan if the color is not a valid color
-//                    // Failsafe in case of bad UV mapping or other issues
-//                    T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
-//                }
-//                dBuffer[i*image->width() + j] = texW;
-//            }
-
-
-//            t += tStep;
-//            }
-
-//        }
-//}
-
-//dy1 = y3 - y2;
-//dx1 = x3 - x2;
-//dv1 = v3 - v2;
-//du1 = u3 - u2;
-//dw1 = w3 - w2;
-
-//if (dy1) daxStep = dx1 / (float)abs(dy1);
-//if (dy2) dbxStep = dx2 / (float)abs(dy2);
-
-//du1Step = 0, dv1Step = 0;
-//if (dy1) du1Step = du1 / (float)abs(dy1);
-//if (dy1) dv1Step = dv1 / (float)abs(dy1);
-//if (dy1) dw1Step = dw1 / (float)abs(dy1);
-
-//// Second loop goes from y2 to y3
-//// Mostly the same as second loop
-//if(dy1){
-//    for(int i = y2; i <= y3; i++){
-//        int ax = x2 + (float)(i - y2) * daxStep;
-//        int bx = x1 + (float)(i - y1) * dbxStep;
-
-//        float texSu = u2 + (float)(i - y2) * du1Step;
-//        float texSv = v2 + (float)(i - y2) * dv1Step;
-//        float texSw = w2 + (float)(i - y2) * dw1Step;
-
-//        float texEu = u1 + (float)(i - y1) * du2Step;
-//        float texEv = v1 + (float)(i - y1) * dv2Step;
-//        float texEw = w1 + (float)(i - y1) * dw2Step;
-
-//        if(ax > bx){
-//            std::swap(ax, bx);
-//            std::swap(texSu, texEu);
-//            std::swap(texSv, texEv);
-//            std::swap(texSw, texEw);
-//        }
-
-//        texU = texSu;
-//        texV = texSv;
-//        texW = texSw;
-
-//        float tStep = 1.0f / ((float)(bx - ax));
-//        float t = 0.0f;
-
-//        for(int j = ax; j < bx; j++){
-//            texU = (1.0f - t) * texSu + t * texEu;
-//            texV = (1.0f - t) * texSv + t * texEv;
-//            texW = (1.0f - t) * texSw + t * texEw;
-//            // Apply perspective to uv coords
-//            texU /= texW;
-//            texV /= texW;
-//            // Flip texV upside down
-//            texV = abs(1.0f - texV);
-//            // Scale UV coordinates to texture size
-//            texU *= (texture->width() - 1);
-//            texV *= (texture->height() - 1);
-
-//            if(texW > dBuffer[i*image->width() + j]){
-//                T2::Color8 color = T2::getPixel(texture, texU, texV);
-//                if(color.valid()){
-//                    T2::drawPixel(image, j, i, color);
-//                }else{
-//                    // Draw cyan if the color is not a valid color
-//                    // Failsafe in case of bad UV mapping or other issues
-//                    T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
-//                }
-//                dBuffer[i*image->width() + j] = texW;
-//            }
-//        }
-//    }
-//}
-//}
-
-
 /*------------------------------------------------------------*/
 /*------------------------------------------------------------*/
 /*---------------------- Math functions ----------------------*/
 /*------------------------------------------------------------*/
 /*------------------------------------------------------------*/
 
-float Tools3D::dotProduct(Vector3 v1, Vector3 v2){
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-}
-float Tools3D::length(Vector3 v){
-    return sqrtf(dotProduct(v, v));
-}
-Tools3D::Vector3 Tools3D::normalise(Vector3 v){
-    float l = length(v); // Length of the input vector
-    return {v.x/l, v.y/l, v.z/l};
-}
-Tools3D::Vector3 Tools3D::crossProduct(Vector3 v1, Vector3 v2){
-    float Nx = v1.y * v2.z - v1.z * v2.y;
-    float Ny = v1.z * v2.x - v1.x * v2.z;
-    float Nz = v1.x * v2.y - v1.y * v2.x;
-    return {Nx, Ny, Nz};
-}
 
 Tools3D::Mat4x4 Tools3D::newMatIdentity(){
     Mat4x4 out;
@@ -995,15 +712,16 @@ Tools3D::Mat4x4 Tools3D::matPointAt(Vector3 pos, Vector3 target, Vector3 up){
     // Calculate the new directions
     // Forward
     Vector3 newForward = target - pos;
-    newForward = normalise(newForward);
+    newForward = newForward.normalize();
 
     // Up
-    Vector3 a = newForward * dotProduct(up, newForward);
+    Vector3 a = newForward * up.dotProduct(newForward);
+//    Vector3 a = newForward * dotProduct(up, newForward);
     Vector3 newUp = up - a;
-    newUp = normalise(newUp);
+    newUp = newUp.normalize();
 
     // Right
-    Vector3 newRight = crossProduct(newUp, newForward);
+    Vector3 newRight = newUp.crossProduct(newForward);
 
     // Dimensioning and translation matrix
     Mat4x4 mat;
@@ -1029,10 +747,10 @@ Tools3D::Mat4x4 Tools3D::matQuickInverse(Mat4x4 in){
 
 // Returns the point at which a line interescts with a plane
 Tools3D::Vector3 Tools3D::intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd, float &t){
-    planeNormal = normalise(planeNormal);
-    float planeDotP = -dotProduct(planeNormal, planePoint);
-    float startDotP = dotProduct(lineStart, planeNormal);
-    float endDotP = dotProduct(lineEnd, planeNormal);
+    planeNormal = planeNormal.normalize();
+    float planeDotP = -planeNormal.dotProduct(planePoint);
+    float startDotP = lineStart.dotProduct(planeNormal);
+    float endDotP = lineEnd.dotProduct(planeNormal);
     t = (-planeDotP - startDotP) / (endDotP - startDotP);
     Vector3 lineStartToEnd = lineEnd - lineStart;
     Vector3 lineToIntersect = lineStartToEnd * t;
@@ -1041,13 +759,12 @@ Tools3D::Vector3 Tools3D::intersectPlane(Vector3 planePoint, Vector3 planeNormal
 
 int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTri, Triangle &outTri1, Triangle &outTri2){
     // Make sure the plane normal is normal
-    planeNormal = normalise(planeNormal);
+    planeNormal = planeNormal.normalize();
 
     // Return signed shortest distance from point to plane
     auto dist = [&](Vector3 &p){
 //        Vector3 n = normalise(p);
-//        return (planeNormal.x * n.x + planeNormal.y * n.y + planeNormal.z * n.z - dotProduct(planeNormal, planePoint));
-        return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - dotProduct(planeNormal, planePoint));
+        return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - planeNormal.dotProduct(planePoint));
     };
 
     // Create two temporary storage arrays to classify points either side of the plane

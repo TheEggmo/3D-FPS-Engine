@@ -90,9 +90,11 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
                 if(z1 < iPoint.z && iPoint.z < z2 && y1 < iPoint.y && iPoint.y < y2){
 //                    qDebug("X AXIS COLLISION");
                     if(position.x > oEnd.x){
+//                        velocity.x = position.x - oEnd.x;
                         velocity.x = std::max(velocity.x, 0.0f);
                     }
                     if(position.x < oPosition.x){
+//                        velocity.x = position.x - oPosition.x;
                         velocity.x = std::min(velocity.x, 0.0f);
                     }
 //                    velocity.x = 0;
@@ -119,9 +121,13 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
                 if(x1 < iPoint.x && iPoint.x < x2 && z1 < iPoint.z && iPoint.z < z2){
 //                    qDebug("Y AXIS COLLISION");
                     if(position.y > oEnd.y){
+//                        velocity.y = std::min(velocity.y, position.y - oEnd.y);
+//                        velocity.y = std::max(velocity.y, position.y - oEnd.y);
                         velocity.y = std::max(velocity.y, 0.0f);
                     }
                     if(position.y < oPosition.y){
+//                        velocity.y = position.y - oPosition.y;
+//                        velocity.y = std::min(velocity.y, position.y - oPosition.y);
                         velocity.y = std::min(velocity.y, 0.0f);
                     }
 //                    velocity.y = 0;
@@ -148,9 +154,11 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
                 if(x1 < iPoint.x && iPoint.x < x2 && y1 < iPoint.y && iPoint.y < y2){
 //                    qDebug("Z AXIS COLLISION");
                     if(position.z > oEnd.z){
+//                        velocity.z = position.z - oEnd.z;
                         velocity.z = std::max(velocity.z, 0.0f);
                     }
                     if(position.z < oPosition.z){
+//                        velocity.z = position.z - oPosition.z;
                         velocity.z = std::min(velocity.z, 0.0f);
                     }
 //                    velocity.z = 0;

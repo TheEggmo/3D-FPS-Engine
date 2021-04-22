@@ -189,14 +189,17 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addAction("CAMRIGHT", Qt::Key_Right);
 
     // Create the depth buffer
-//    depthBuffer = new float[sWidth * sHeight];
     depthBuffer.resize(sWidth * sHeight, 0.0f);
-//    depthBuffer.resize(sWidth * sHeight, std::pair<float, T2::Color8> (0.0f, T2::Color8(-1, -1, -1)));
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
     QPainter p(this);
     p.drawImage(offset, offset, *mainImage);
+}
+
+std::vector<Actor*> MainWindow::getActorList(){
+    std::vector<Actor*> out = actorList;
+    return out;
 }
 
 void MainWindow::process(){
@@ -267,8 +270,9 @@ void MainWindow::screenUpdate(){
             }
         }
         // Project triangles for wireframe drawing
-        if(bool showColliders = false && a->collisionEnabled /*&& i != 0*/){
-            T3::Mesh collider = a->getCollider().toMesh();
+        if(bool showColliders = true && a->collisionEnabled){
+            if(camFollow && i == 0) continue;
+            T3::Mesh collider = a->getCollider().toMesh(a->position);
             for(int i = 0; i < collider.tris.size(); i++){
                 projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
             }
@@ -491,22 +495,22 @@ void MainWindow::movePlayer(){
         camera = player->position;
     }else{
         if(Input.isActionPressed("CAMUP")){
-            camera += forward;
+            camera += forward * maxMoveSpeed;
         }
         if(Input.isActionPressed("CAMDOWN")){
-            camera -= forward;
+            camera -= forward * maxMoveSpeed;
         }
         if(Input.isActionPressed("CAMLEFT")){
-            camera -= right;
+            camera -= right * maxMoveSpeed;
         }
         if(Input.isActionPressed("CAMRIGHT")){
-            camera += right;
+            camera += right * maxMoveSpeed;
         }
         if(Input.isActionPressed("CAMJUMP")){
-            camera.y += jumpSpeed;
+            camera.y += jumpSpeed * maxJumpSpeed;
         }
         if(Input.isActionPressed("CAMCROUCH")){
-            camera.y -= jumpSpeed;
+            camera.y -= jumpSpeed * maxJumpSpeed;
         }
     }
 }
@@ -577,19 +581,19 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     line2 = triTransformed.p[2] - triTransformed.p[0];
 
     // Get the normal of the triangle surface and normalise it
-    normal = T3::crossProduct(line1, line2);
-    normal = T3::normalise(normal);
+    normal = line1.crossProduct(line2);
+    normal = normal.normalize();
 
     // If the ray from triangle to camera is aligned with the normal, the triangle is visible
     T3::Vector3 cameraRay = triTransformed.p[0] - camera;
-    if(T3::dotProduct(normal, cameraRay) < 0){
+    if(normal.dotProduct(cameraRay) < 0){
         // Add a light
 //            T3::Vector3 lightDirection = { 0.0f, 0.0f, -1.0f};
         T3::Vector3 lightDirection = { 0.0f, 1.0f, 0.0f};
-        lightDirection = T3::normalise(lightDirection);
+        lightDirection = lightDirection.normalize();
 
         // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
-        float dp = std::max(0.1f, T3::dotProduct(normal, lightDirection));
+        float dp = std::max(0.1f, normal.dotProduct(lightDirection));
         T2::Color8 shadedColor;
         shadedColor = drawingColor * dp;
 
@@ -682,12 +686,12 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     line2 = triTransformed.p[2] - triTransformed.p[0];
 
     // Get the normal of the triangle surface and normalise it
-    normal = T3::crossProduct(line1, line2);
-    normal = T3::normalise(normal);
+    normal = line1.crossProduct(line2);
+    normal = normal.normalize();
 
     // If the ray from triangle to camera is aligned with the normal, the triangle is visible
     T3::Vector3 cameraRay = triTransformed.p[0] - camera;
-    if(T3::dotProduct(normal, cameraRay) < 0){
+    if(normal.dotProduct(cameraRay) < 0){
 
         // Convert world space to view space
         triViewed = triTransformed * viewMatrix;

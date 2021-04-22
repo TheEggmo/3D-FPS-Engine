@@ -266,7 +266,7 @@ Tools3D::Mesh Tools3D::AABB::toMesh()
     out.scaleX(size.x/2.0f);
     out.scaleY(size.y/2.0f);
     out.scaleZ(size.z/2.0f);
-//    out.move(position);
+    out.move(position);
 
     return out;
 }
@@ -1045,7 +1045,7 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
 
     // Return signed shortest distance from point to plane
     auto dist = [&](Vector3 &p){
-        Vector3 n = normalise(p);
+//        Vector3 n = normalise(p);
 //        return (planeNormal.x * n.x + planeNormal.y * n.y + planeNormal.z * n.z - dotProduct(planeNormal, planePoint));
         return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - dotProduct(planeNormal, planePoint));
     };

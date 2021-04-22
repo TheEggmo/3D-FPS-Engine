@@ -15,8 +15,8 @@ protected:
 
 public:
     T3::Vector3 position;
-//    std::string name = "";
-    QString name = "";
+    std::string name = "";
+//    QString name = "";
 
     bool visible = false; // If true, the model mesh will be drawn
 //    bool physicsEnabled = false; // If true, the body will have physics applied every frame (gravity etc.)

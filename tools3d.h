@@ -269,6 +269,16 @@ public:
             this->size = e - p;
         }
 
+        Vector3 getPosition(){
+            return position;
+        }
+        Vector3 getEnd(){
+            return end;
+        }
+        Vector3 getSize(){
+            return size;
+        }
+
         // Sets global coordinates to local + vec
         void updatePosition(Vector3 vec);
         // Returns true if this AABB intersects the specified AABB
@@ -284,6 +294,7 @@ public:
 //        // modified so that the most-negative corner is the origin and the size is positive
 //        AABB abs();
 //        Actor getParent() { return parent; }
+
     };
 
     // Struct representing a 4x4 matrix
@@ -350,7 +361,7 @@ public:
     static Mat4x4 matPointAt(Vector3 pos, Vector3 target, Vector3 up);
     static Mat4x4 matQuickInverse(Mat4x4 mat);
 
-    //
+    // Returns the point at which a line interescts with a plane
     static Vector3 intersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd, float &t);
     // Clips a triangle against a plane. Returns the amount of triangles produced by clipping (0-2).
     // New triangles created by clipping are placed in outTri1 and outTri2.

@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
    hub.visible = true;
    hub.setCollision(T3::AABB(meshHub));
    hub.name = "Hub";
-    addActor(hub);
+   addActor(hub);
 //    meshCube.loadFromFile("Assets/capsule.obj");
 
 
@@ -172,13 +172,21 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addAction("JUMP", Qt::Key_Space);
     Input.addAction("CROUCH", Qt::Key_Control);
     Input.addAction("LEFT", Qt::Key_A);
-    Input.addKey("LEFT", Qt::Key_Left);
+//    Input.addKey("LEFT", Qt::Key_Left);
     Input.addAction("RIGHT", Qt::Key_D);
-    Input.addKey("RIGHT", Qt::Key_Right);
+//    Input.addKey("RIGHT", Qt::Key_Right);
     Input.addAction("UP", Qt::Key_W);
-    Input.addKey("UP", Qt::Key_Up);
+//    Input.addKey("UP", Qt::Key_Up);
     Input.addAction("DOWN", Qt::Key_S);
-    Input.addKey("DOWN", Qt::Key_Down);
+//    Input.addKey("DOWN", Qt::Key_Down);
+
+    Input.addAction("TOGGLECAMFOLLOW", Qt::Key_Shift);
+    Input.addAction("CAMJUMP", Qt::Key_PageUp);
+    Input.addAction("CAMCROUCH", Qt::Key_PageDown);
+    Input.addAction("CAMUP", Qt::Key_Up);
+    Input.addAction("CAMDOWN", Qt::Key_Down);
+    Input.addAction("CAMLEFT", Qt::Key_Left);
+    Input.addAction("CAMRIGHT", Qt::Key_Right);
 
     // Create the depth buffer
 //    depthBuffer = new float[sWidth * sHeight];
@@ -259,7 +267,7 @@ void MainWindow::screenUpdate(){
             }
         }
         // Project triangles for wireframe drawing
-        if(bool showColliders = true && a->collisionEnabled && i != 0){
+        if(bool showColliders = false && a->collisionEnabled /*&& i != 0*/){
             T3::Mesh collider = a->getCollider().toMesh();
             for(int i = 0; i < collider.tris.size(); i++){
                 projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
@@ -404,13 +412,13 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event){
 void MainWindow::movePlayer(){
     float jumpSpeed = 3;
     float maxJumpSpeed = 4;
-    float moveSpeed = 1;
-    float maxMoveSpeed = 10;
+    float moveSpeed = 0.5;
+    float maxMoveSpeed = 5;
 
     bool moving = false; // If no walk input is applied, slow down
 
     // Calculate directions for movement relative to camera rotation
-    T3::Vector3 forward = lookDir;// * moveSpeed;
+    T3::Vector3 forward = lookDir * moveSpeed;
     forward.y = 0;
     T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
 
@@ -437,7 +445,7 @@ void MainWindow::movePlayer(){
         moving = true;
 //        playerPosition += right;
     }
-    if(Input.isActionPressed("JUMP")){
+    if(Input.isActionJustPressed("JUMP")){
         player->velocity.y = jumpSpeed;
 //        playerPosition.y += jumpSpeed;
     }
@@ -462,11 +470,11 @@ void MainWindow::movePlayer(){
 //        hor = hor.normalized();
 //        player->velocity.x = hor.x;
 //        player->velocity.z = hor.y;
-    }else{
+    }//else{
         // Apply friction if not moving
         player->velocity.x = lerp(player->velocity.x, 0, 0.1);
         player->velocity.z = lerp(player->velocity.z, 0, 0.1);
-    }
+    //}
 //    qDebug("SPEED: %f %f", player->velocity.x, player->velocity.z);
 
     // Cap player air speed
@@ -474,7 +482,33 @@ void MainWindow::movePlayer(){
 
     player->position.y = std::max(0.0f, player->position.y); // TEMP, DELETE LATER
 
-    camera = player->position;
+
+    // Camera stuff
+    if(Input.isActionJustPressed("TOGGLECAMFOLLOW"))
+        camFollow = !camFollow;
+
+    if(camFollow){
+        camera = player->position;
+    }else{
+        if(Input.isActionPressed("CAMUP")){
+            camera += forward;
+        }
+        if(Input.isActionPressed("CAMDOWN")){
+            camera -= forward;
+        }
+        if(Input.isActionPressed("CAMLEFT")){
+            camera -= right;
+        }
+        if(Input.isActionPressed("CAMRIGHT")){
+            camera += right;
+        }
+        if(Input.isActionPressed("CAMJUMP")){
+            camera.y += jumpSpeed;
+        }
+        if(Input.isActionPressed("CAMCROUCH")){
+            camera.y -= jumpSpeed;
+        }
+    }
 }
 
 void MainWindow::processActors(){

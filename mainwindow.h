@@ -58,6 +58,7 @@ protected:
     Tools3D::Vector3 camera; // Vector representing the camera
     Tools3D::Vector3 lookDir;
     float yaw, pitch;
+    bool camFollow = true;
 
     float fTheta = 0;
 

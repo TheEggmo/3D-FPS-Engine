@@ -20,6 +20,8 @@ MButton heldButton; // Stores which button was pressed when mousePressEvent was 
 int startX, startY; // Stores the x and y coordinates of the mouse when mousePressEvent is called
 int offset = 0; // Shifts the drawn image and mouse events by this offset
 
+const int targetFps = 60;
+
 T2::Color8 drawingColor;
 Qt::GlobalColor defaultBg = Qt::black;
 
@@ -48,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     processTimer->setSingleShot(false);
     connect(processTimer, SIGNAL(timeout()), this, SLOT(process()));
     // Refresh every 16 msec, which is aprox 60fps
-    int targetFps = 60;
     processTimer->start(1000/targetFps);
 
     ActorDynamic player;
@@ -180,13 +181,15 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addAction("DOWN", Qt::Key_S);
 //    Input.addKey("DOWN", Qt::Key_Down);
 
-    Input.addAction("TOGGLECAMFOLLOW", Qt::Key_Shift);
+    Input.addAction("TOGGLE_CAMFOLLOW", Qt::Key_Shift);
     Input.addAction("CAMJUMP", Qt::Key_PageUp);
     Input.addAction("CAMCROUCH", Qt::Key_PageDown);
     Input.addAction("CAMUP", Qt::Key_Up);
     Input.addAction("CAMDOWN", Qt::Key_Down);
     Input.addAction("CAMLEFT", Qt::Key_Left);
     Input.addAction("CAMRIGHT", Qt::Key_Right);
+
+    Input.addAction("START_REMOTE", Qt::Key_F1);
 
     // Create the depth buffer
     depthBuffer.resize(sWidth * sHeight, 0.0f);
@@ -202,15 +205,13 @@ std::vector<Actor*> MainWindow::getActorList(){
     return out;
 }
 
-void MainWindow::process(){
-    // Track how long each frame takes(for physics and debugging)
-    auto newFrameTime = std::chrono::system_clock::now();
-    std::chrono::duration<double> frameTime = newFrameTime - lastFrameTime;
-    delta = frameTime.count();
-    lastFrameTime = newFrameTime;
-    if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
-    if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
+void MainWindow::closeEvent(QCloseEvent *event){
+    // When MainWindow is closed the remote might break due to pointers
+    remote.close();
+    event->accept();
+}
 
+void MainWindow::process(){
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
     movePlayer(); // Move the player
@@ -218,17 +219,28 @@ void MainWindow::process(){
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
 
-//    // SPEEN
-//    fTheta = 0.1;
-//    T3::Mat4x4 rot = T3::newMatRotY(-fTheta);
-//    for(int i = 0; i < meshCube.tris.size(); i++){
-//        T3::Triangle copy = meshCube.tris[i];
-//        meshCube.tris[i] = copy * rot;
-//        meshCube.tris[i].t[0] = copy.t[0];
-//        meshCube.tris[i].t[1] = copy.t[1];
-//        meshCube.tris[i].t[2] = copy.t[2];
+    // Track how long each frame takes(for physics and debugging)
+    auto newFrameTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> frameTime = newFrameTime - lastFrameTime;
+    delta = frameTime.count();
+    lastFrameTime = newFrameTime;
+    if(Input.isActionJustPressed("START_REMOTE")){
+        if(!remote){
+            // If remote is not started, start it
+            qDebug("Starting remote");
+            remote.start();
+        }else{
+            remote.raise();
+            remote.activateWindow();
+        }
+    }
 
-//    }
+    if(remote){
+//        if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
+//        if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
+        remote.trackDeltas(delta);
+
+    }
 }
 
 // The main engine/game loop function, called every frame
@@ -270,7 +282,8 @@ void MainWindow::screenUpdate(){
             }
         }
         // Project triangles for wireframe drawing
-        if(bool showColliders = true && a->collisionEnabled){
+//        if(bool showColliders = true && a->collisionEnabled){
+        if(remote.wireframeEnabled() && a->collisionEnabled){
             if(camFollow && i == 0) continue;
             T3::Mesh collider = a->getCollider().toMesh(a->position);
             for(int i = 0; i < collider.tris.size(); i++){
@@ -377,6 +390,8 @@ void MainWindow::screenUpdate(){
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event){
+    if(!isActiveWindow()) return;
+
 //    qDebug("%d %d", event->x(), event->y());
 //    printf("%d %d", event->x(), event->y());
     T2::Vector2 sCenter = T2::Vector2(sWidth/2, sHeight/2);
@@ -488,7 +503,7 @@ void MainWindow::movePlayer(){
 
 
     // Camera stuff
-    if(Input.isActionJustPressed("TOGGLECAMFOLLOW"))
+    if(Input.isActionJustPressed("TOGGLE_CAMFOLLOW"))
         camFollow = !camFollow;
 
     if(camFollow){
@@ -735,5 +750,9 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             outputQueue->push_back(triProjected);
         }
     }
+}
+
+void MainWindow::startRemote(){
+
 }
 

@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include <QCursor>
+#include <QCloseEvent>
 
 #include <string>
 #include <chrono>
@@ -17,6 +18,7 @@
 #include <tools3d.h>
 #include <inputmap.h>
 #include <actor.h>
+#include <remote.h>
 
 using string = std::string;
 
@@ -32,12 +34,15 @@ public:
 
     InputMap Input;
 
+    Remote remote;
+
     // Returns a copy of the actorList
     std::vector<Actor*> getActorList();
 
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
 
+    void closeEvent(QCloseEvent *event) override;
 //    void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
 //    void mouseReleaseEvent(QMouseEvent *event) override;
@@ -80,6 +85,7 @@ protected:
     void addActor(Actor a);
     void addActor(ActorDynamic a);
 
+    bool showColliders = false;
 
     // Apply projection based on input parameters.
     // tri is the triangle being projected.
@@ -94,6 +100,8 @@ protected:
     void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                          std::vector<Tools3D::Triangle> *outputQueue);
+
+    void startRemote();
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.

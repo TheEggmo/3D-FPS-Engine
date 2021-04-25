@@ -101,9 +101,10 @@ protected:
                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                          std::vector<Tools3D::Triangle> *outputQueue);
 
-    void startRemote();
+    int remoteActorIdx = 0;
 
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
+    void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote
 };
 #endif // MAINWINDOW_H

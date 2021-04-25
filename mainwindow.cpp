@@ -229,6 +229,7 @@ void MainWindow::process(){
             // If remote is not started, start it
             qDebug("Starting remote");
             remote.start();
+            connect(&remote, SIGNAL(updateRemoteActor(int)), this, SLOT(setRemoteActorIdx(int)));
         }else{
             remote.raise();
             remote.activateWindow();
@@ -236,11 +237,16 @@ void MainWindow::process(){
     }
 
     if(remote){
-//        if(bool displayFrameTime = false) qDebug("Frame Time: %f", frameTime.count());
-//        if(bool displayFPS = false) qDebug("FPS: %f", 1/frameTime.count());
         remote.trackDeltas(delta);
 
+        // Send actor information
+//        qDebug("%d", remoteActorIdx);
+        remote.updateActorInfo(actorList[remoteActorIdx]);
     }
+}
+
+void MainWindow::setRemoteActorIdx(int index){
+    remoteActorIdx = index;
 }
 
 // The main engine/game loop function, called every frame
@@ -283,7 +289,7 @@ void MainWindow::screenUpdate(){
         }
         // Project triangles for wireframe drawing
 //        if(bool showColliders = true && a->collisionEnabled){
-        if(remote.wireframeEnabled() && a->collisionEnabled){
+        if(remote.colWireEnabled() && a->collisionEnabled){
             if(camFollow && i == 0) continue;
             T3::Mesh collider = a->getCollider().toMesh(a->position);
             for(int i = 0; i < collider.tris.size(); i++){
@@ -292,7 +298,7 @@ void MainWindow::screenUpdate(){
         }
     }
 
-    // Draw triangles
+    // Draw models
     for(auto &tri : triangleQueue){
         // Clip triangles against screen edges(walls of the view frustrum
         T3::Triangle clipped[2];
@@ -335,12 +341,18 @@ void MainWindow::screenUpdate(){
         }
 
         // Finally, draw the modified triangles on the screen
-        for(T3::Triangle &tri : cTriangleQueue){
-            T3::textureTri(mainImage, tri, tri.texture, depthBuffer);
+        if(remote.modelWireEnabled()){
+            for(T3::Triangle &tri : cTriangleQueue){
+                T3::drawTri(mainImage, tri, drawingColor);
+            }
+        }else{
+            for(T3::Triangle &tri : cTriangleQueue){
+                T3::textureTri(mainImage, tri, tri.texture, depthBuffer);
+            }
         }
     }
 
-    // Draw wireframe
+    // Draw collision wireframes
     for(auto &tri : wireframeQueue){
         // Clip triangles against screen edges(walls of the view frustrum)
         T3::Triangle clipped[2];
@@ -570,11 +582,23 @@ float MainWindow::lerp(float from, float to, float mod){
 void MainWindow::addActor(Actor a){
     actorList.push_back(new Actor);
     *actorList.back() = a;
+
+    std::vector<std::string> names;
+    for(Actor *a : actorList){
+        names.push_back(a->name);
+    }
+    remote.updateActorSelect(names);
 }
 
 void MainWindow::addActor(ActorDynamic a){
     actorList.push_back(new ActorDynamic);
     *actorList.back() = a;
+
+    std::vector<std::string> names;
+    for(Actor *a : actorList){
+        names.push_back(a->name);
+    }
+    remote.updateActorSelect(names);
 }
 
 void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
@@ -750,9 +774,5 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             outputQueue->push_back(triProjected);
         }
     }
-}
-
-void MainWindow::startRemote(){
-
 }
 

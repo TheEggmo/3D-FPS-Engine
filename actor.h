@@ -13,6 +13,7 @@ protected:
     T3::AABB collision;
     T3::MeshTexture model;
 
+    bool DYNAMIC = false;
 public:
     T3::Vector3 position;
     std::string name = "";
@@ -35,6 +36,7 @@ public:
 
     T3::AABB getCollider() { return collision; }
     T3::MeshTexture getModel() { return model; }
+    bool isDynamic() { return DYNAMIC; }
 //    QImage* getTexture() { return model.texture; }
 
 };
@@ -42,6 +44,9 @@ public:
 // Used for actors that move, like the player or enemies
 class ActorDynamic : public Actor{
 public:
+    ActorDynamic(){
+        DYNAMIC = true;
+    }
     T3::Vector3 velocity = {0, 0, 0};
 
     bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)

@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     cursor = QCursor(Qt::BlankCursor);
 //    cursor = QCursor(Qt::CrossCursor);
     setCursor(cursor);
-    yaw = pitch = 0;
+    yaw = pitch = 0.1f;
 
     // Create a timer that will call process() every frame
     processTimer = new QTimer(this);
@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Refresh every 16 msec, which is aprox 60fps
     processTimer->start(1000/targetFps);
 
-    ActorDynamic player;
+    ActorPlayer player;
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
     player.position = {0, 100, 0};
@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
    T3::MeshTexture meshHub;
    meshHub.loadFromFile("Assets/Artisans Hub.obj");
    meshHub.texture = new QImage("Assets/Artisans Hub.png");
-   Actor hub;
+   ActorStatic hub;
    hub.setModel(meshHub);
    hub.visible = true;
    hub.setCollision(T3::AABB(meshHub));
@@ -239,9 +239,12 @@ void MainWindow::process(){
     if(remote){
         remote.trackDeltas(delta);
 
-        // Send actor information
-//        qDebug("%d", remoteActorIdx);
-        remote.updateActorInfo(actorList[remoteActorIdx]);
+        // Send actor information to the remote
+        // If MainWindow loses focus, stop sending data
+        // This creates a snapshot for easier editing/saving of actor data
+        if(isActiveWindow()){
+            remote.updateActorInfo(actorList[remoteActorIdx]);
+        }
     }
 }
 
@@ -454,7 +457,7 @@ void MainWindow::movePlayer(){
     T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
 
 //    T3::Vector3 playerPosition = actorList[0]->position;
-    ActorDynamic *player = (ActorDynamic *)actorList[0];
+    ActorPlayer *player = (ActorPlayer *)actorList[0];
 
     if(Input.isActionPressed("UP")){
         player->velocity += forward;
@@ -543,8 +546,6 @@ void MainWindow::movePlayer(){
 }
 
 void MainWindow::processActors(){
-    float gravity = 0.1f;
-
     // Process collisions
     for(int i = 0; i < actorList.size(); i++){
         // For every actor with enabled collisions gather other actors with enabled collisions,
@@ -564,12 +565,6 @@ void MainWindow::processActors(){
 }
 
 float MainWindow::clamp(float in, float lo, float hi){
-//    // Check if the args are passed properly
-//    if(lo > hi){
-//        qDebug("CLAMP ERROR, LO > HI");
-//        return 0;
-//    }
-
     if(in < lo) return lo;
     if(in > hi) return hi;
     return in;
@@ -579,22 +574,22 @@ float MainWindow::lerp(float from, float to, float mod){
     return from + (to - from) * mod;
 }
 
-void MainWindow::addActor(Actor a){
-    actorList.push_back(new Actor);
+void MainWindow::addActor(ActorStatic a){
+    actorList.push_back(new ActorStatic);
     *actorList.back() = a;
 
-    std::vector<std::string> names;
+    std::vector<string> names;
     for(Actor *a : actorList){
         names.push_back(a->name);
     }
     remote.updateActorSelect(names);
 }
 
-void MainWindow::addActor(ActorDynamic a){
-    actorList.push_back(new ActorDynamic);
+void MainWindow::addActor(ActorPlayer a){
+    actorList.push_back(new ActorPlayer);
     *actorList.back() = a;
 
-    std::vector<std::string> names;
+    std::vector<string> names;
     for(Actor *a : actorList){
         names.push_back(a->name);
     }

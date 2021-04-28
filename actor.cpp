@@ -1,67 +1,39 @@
 #include "actor.h"
 
-//void Actor::process(std::vector<Tools3D::AABB> colliders){
-//    // Order can be rearranged if necessary
-//    if(logicEnabled) processLogic();
-//    if(physicsEnabled) processPhysics();
-//    if(collisionEnabled) processCollision(colliders);
-//}
-
-
-void Actor::processCollision(std::vector<Tools3D::AABB> colliders){
-    collision.updatePosition(this->position);
-    for(auto aabb : colliders){
-        if(collision.intersects(aabb)){
-//            qDebug("COLLISION DETECTED");
-//            qDebug("%s COLLIDED", this->name.c_str());
-        }
-    }
-}
-
-void Actor::processCollision(Tools3D::AABB aabb){
-    collision.updatePosition(position);
-    if(collision.intersects(aabb)){
-        qDebug("COLLISION DETECTED");
-    }
-}
-
 void Actor::setCollision(Tools3D::AABB in){
     collision = in;
     collisionEnabled = true;
+    collision.updatePosition(position);
 }
 void Actor::setModel(Tools3D::MeshTexture in){
     model = in;
     visible = true;
 }
 
+//void ActorStatic::processCollision(std::vector<Tools3D::AABB> colliders){
+//    collision.updatePosition(position);
+////    if(collision.intersects(aabb)){
+////        qDebug("COLLISION DETECTED");
+////    }
+//}
 
-void ActorDynamic::processLogic(){
+void ActorPlayer::processLogic(){
 
 }
 
-void ActorDynamic::processPhysics()
-{
-
-}
-
-void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
-    float t;
-    float gravity = 0.1f;
+void ActorPlayer::processCollision(std::vector<Tools3D::AABB> colliders){
+    float t; // Used only for intersectPlane(), otherwise it wont work FIX THIS
     velocity.y -= gravity;
-//    qDebug("%s", name.c_str());
 
     // Create a temporary AABB offset by velocity to check if two AABBs will collide on the next frame
     T3::AABB nextCollision ;//= {collision.getPosition() + velocity, collision.getSize()};
     nextCollision.updatePosition(position + velocity);
 
     for(auto aabb : colliders){
-//        if(collision.intersects(aabb) && collisionEnabled){
         if(nextCollision.intersects(aabb) && collisionEnabled){
             T3::Vector3 oPosition = aabb.getPosition();
             T3::Vector3 oEnd = aabb.getEnd();
-            T3::Vector3 oSize = aabb.getSize();
 
-//            velocity = {0,0,0};
             // Check for collisions on the x plane
             if(velocity.x != 0){
                 // Coordinates of the rectange we're checking against
@@ -88,7 +60,6 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
                 // Check if the intersection point is inside the rectangle
                 // If yes, then modify velocity to prevent entering the other AABB
                 if(z1 < iPoint.z && iPoint.z < z2 && y1 < iPoint.y && iPoint.y < y2){
-//                    qDebug("X AXIS COLLISION");
                     if(position.x > oEnd.x){
 //                        velocity.x = position.x - oEnd.x;
                         velocity.x = std::max(velocity.x, 0.0f);
@@ -97,7 +68,6 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
 //                        velocity.x = position.x - oPosition.x;
                         velocity.x = std::min(velocity.x, 0.0f);
                     }
-//                    velocity.x = 0;
                 }
             }
             // Check for collisions on the y plane
@@ -119,7 +89,6 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
                 }
 
                 if(x1 < iPoint.x && iPoint.x < x2 && z1 < iPoint.z && iPoint.z < z2){
-//                    qDebug("Y AXIS COLLISION");
                     if(position.y > oEnd.y){
 //                        velocity.y = std::min(velocity.y, position.y - oEnd.y);
 //                        velocity.y = std::max(velocity.y, position.y - oEnd.y);
@@ -130,7 +99,6 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
 //                        velocity.y = std::min(velocity.y, position.y - oPosition.y);
                         velocity.y = std::min(velocity.y, 0.0f);
                     }
-//                    velocity.y = 0;
                 }
             }
             // Check for collisions on the z plane
@@ -152,7 +120,6 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
                 }
 
                 if(x1 < iPoint.x && iPoint.x < x2 && y1 < iPoint.y && iPoint.y < y2){
-//                    qDebug("Z AXIS COLLISION");
                     if(position.z > oEnd.z){
 //                        velocity.z = position.z - oEnd.z;
                         velocity.z = std::max(velocity.z, 0.0f);
@@ -161,13 +128,15 @@ void ActorDynamic::processCollision(std::vector<Tools3D::AABB> colliders){
 //                        velocity.z = position.z - oPosition.z;
                         velocity.z = std::min(velocity.z, 0.0f);
                     }
-//                    velocity.z = 0;
                 }
             }
         }
     }
 
-//    qDebug("PLAYER VELOCITY: X:%f Y:%f Z:%f", velocity.x, velocity.y, velocity.z);
     position += velocity;
     collision.updatePosition(this->position);
+}
+
+void ActorEnemy::processCollision(std::vector<Tools3D::AABB> colliders){
+
 }

@@ -39,6 +39,9 @@ public:
     // Returns a copy of the actorList
     std::vector<Actor*> getActorList();
 
+    void addActor(ActorStatic a);
+    void addActor(ActorPlayer a);
+
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
 
@@ -82,8 +85,6 @@ protected:
     std::vector<float> depthBuffer;
 
     std::vector<Actor*> actorList;
-    void addActor(Actor a);
-    void addActor(ActorDynamic a);
 
     bool showColliders = false;
 

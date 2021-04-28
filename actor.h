@@ -2,6 +2,8 @@
 #define ACTOR_H
 
 #include "tools3d.h"
+#include <inputmap.h>
+
 #include <string>
 #include <QString>
 
@@ -13,46 +15,63 @@ protected:
     T3::AABB collision;
     T3::MeshTexture model;
 
-    bool DYNAMIC = false;
 public:
-    T3::Vector3 position;
+    virtual ~Actor() {}
+
     std::string name = "";
-//    QString name = "";
+    T3::Vector3 position;
+    T3::Vector3 velocity;
+    float gravity = 0.1f;
+
 
     bool visible = false; // If true, the model mesh will be drawn
-//    bool physicsEnabled = false; // If true, the body will have physics applied every frame (gravity etc.)
-//    bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
+    bool physicsEnabled = false; // If true, the body will have physics applied every frame (gravity etc.)
+    bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
     bool collisionEnabled = false; // If true, the body will have collisions
 
-//    void process(std::vector<Tools3D::AABB> colliders);
 
-//    void processPhysics();
-//    void processLogic();
-    virtual void processCollision(std::vector<Tools3D::AABB> colliders);
-    virtual void processCollision(Tools3D::AABB aabb);
+
+//    virtual void processPhysics();
+    virtual void processLogic() {}
+    virtual void processCollision(std::vector<Tools3D::AABB> colliders) {}
 
     void setCollision(Tools3D::AABB);
     void setModel(Tools3D::MeshTexture);
 
     T3::AABB getCollider() { return collision; }
     T3::MeshTexture getModel() { return model; }
-    bool isDynamic() { return DYNAMIC; }
-//    QImage* getTexture() { return model.texture; }
-
 };
 
-// Used for actors that move, like the player or enemies
-class ActorDynamic : public Actor{
+class ActorStatic : public Actor{
 public:
-    ActorDynamic(){
-        DYNAMIC = true;
+    ActorStatic(){
+        gravity = 0;
     }
-    T3::Vector3 velocity = {0, 0, 0};
 
-    bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
+//    void processLogic() override {}
+//    void processCollision(std::vector<Tools3D::AABB> colliders) override;
+};
 
-    void processLogic();
-    void processPhysics();
+class ActorPlayer : public Actor{
+private:
+    InputMap *Input; // Access MainWindow's inputmap for movement inputs
+public:
+//    ActorPlayer(InputMap *iMap){
+//        Input = iMap;
+//        logicEnabled = true;
+//    }
+
+    void processLogic() override;
+    void processCollision(std::vector<Tools3D::AABB> colliders) override;
+};
+
+class ActorEnemy : public Actor{
+public:
+    ActorEnemy(){
+        logicEnabled = true;
+    }
+
+    void processLogic() override;
     void processCollision(std::vector<Tools3D::AABB> colliders) override;
 };
 

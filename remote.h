@@ -43,7 +43,7 @@ public:
     }
     void updateActorSelect(std::vector<std::string> names);
     void updateActorInfo(Actor *actor);
-    void updateActorInfo(ActorDynamic *actor);
+//    void updateActorInfo(ActorDynamic *actor);
 private:
     bool active = false; // If true, the remote was started and can be used
 
@@ -68,11 +68,14 @@ private:
     QHBoxLayout *actorPositionLayout;
     QDoubleSpinBox *posX, *posY, *posZ;
 
+    QDoubleSpinBox *actorGravity;
+
     void closeEvent(QCloseEvent *event) override;
 
-    void updateActorDynamicInfo(ActorDynamic *actor);
+//    void updateActorDynamicInfo(ActorDynamic *actor);
 public slots:
     void remoteActorSelected(int index);
+    void updateActorValues();
 signals:
     void updateRemoteActor(int index);
 };

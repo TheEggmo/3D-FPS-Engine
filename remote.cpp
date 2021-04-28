@@ -37,6 +37,15 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     actorName = new QLineEdit();
     actorInfoLayout->addRow("Name", actorName);
 
+    // Actor visibility, collision, and logic (dynamic only) toggle
+    actorModelToggle = new QCheckBox();
+    actorCollisionToggle = new QCheckBox();
+    actorLogicToggle = new QCheckBox();
+    actorLogicToggle->setDisabled(true);
+    actorInfoLayout->addRow("Toggle model", actorModelToggle);
+    actorInfoLayout->addRow("Toggle collision", actorCollisionToggle);
+    actorInfoLayout->addRow("Toggle logic", actorLogicToggle);
+
     // Actor position
     actorPositionLayout = new QHBoxLayout();
     posX = new QDoubleSpinBox();
@@ -52,19 +61,18 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
 
     // Actor velocity (only for dynamic actors)
 
-    // Actor visibility, collision, and logic (dynamic only) toggle
-    actorModelToggle = new QCheckBox();
-    actorCollisionToggle = new QCheckBox();
-    actorLogicToggle = new QCheckBox();
-    actorLogicToggle->setDisabled(true);
-    actorInfoLayout->addRow("Toggle model", actorModelToggle);
-    actorInfoLayout->addRow("Toggle collision", actorCollisionToggle);
-    actorInfoLayout->addRow("Toggle logic", actorLogicToggle);
+    // Actor gravity (only for dynamic actors)
+    actorGravity = new QDoubleSpinBox();
+    actorInfoLayout->addRow("Gravity", actorGravity);
 
     // Buttons that summon a file select for model and texture
 
     // Button that opens a widget for setting a new AABB
     // You can enter it's size manually or pass an .obj that will be converted to an AABB
+
+    // Button that creates a new, empty Actor or ActorDynamic and changes the ComboBox to this new actor
+    // It's texture, model etc. can be set using the remote
+    // HERE PUT: NEW ACTOR, NEW DYNAMIC ACTOR, EXPORT ACTOR, LOAD ACTOR(from file)
 }
 
 void Remote::start(){
@@ -121,19 +129,25 @@ void Remote::updateActorInfo(Actor *actor){
 
     actorLogicToggle->setDisabled(true);
     actorLogicToggle->setChecked(false);
-}
-void Remote::updateActorDynamicInfo(ActorDynamic *actor){
-    actorName->setText(actor->name.c_str());
 
-    posX->setValue(actor->position.x);
-    posY->setValue(actor->position.y);
-    posZ->setValue(actor->position.z);
-
-    actorModelToggle->setChecked(actor->visible);
-    actorCollisionToggle->setChecked(actor->collisionEnabled);
-    actorLogicToggle->setEnabled(true);
-    actorLogicToggle->setChecked(actor->logicEnabled);
+    actorGravity->setDisabled(true);
+    actorGravity->setValue(0.1f);
 }
+//void Remote::updateActorDynamicInfo(ActorDynamic *actor){
+//    actorName->setText(actor->name.c_str());
+
+//    posX->setValue(actor->position.x);
+//    posY->setValue(actor->position.y);
+//    posZ->setValue(actor->position.z);
+
+//    actorModelToggle->setChecked(actor->visible);
+//    actorCollisionToggle->setChecked(actor->collisionEnabled);
+//    actorLogicToggle->setEnabled(true);
+//    actorLogicToggle->setChecked(actor->logicEnabled);
+
+//    actorGravity->setEnabled(true);
+//    actorGravity->setValue(actor->gravity);
+//}
 
 void Remote::closeEvent(QCloseEvent *event){
     active = false;

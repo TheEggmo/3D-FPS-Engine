@@ -8,6 +8,7 @@ int InputMap::has(string targetName, int key, int start){
     start = std::max(0, start); // No negative indexes
 
     if(key != -1){
+        // If key is given, search for the key index inside an action
         int idx = has(targetName);
         for(int i = start; i < InputMap::actionMap[idx].keys.size(); i++){
             if(InputMap::actionMap[idx].keys[i] == key){
@@ -15,6 +16,7 @@ int InputMap::has(string targetName, int key, int start){
             }
         }
     }else{
+        // If key is NOT given (key = -1), search for the index of the specified action
         for(int i = start; i < InputMap::actionMap.size(); i++){
             if (InputMap::actionMap[i].name.compare(targetName) == 0){
                 return i;

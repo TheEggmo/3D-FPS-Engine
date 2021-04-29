@@ -169,7 +169,16 @@ public:
     // Distance between two points in 2d space
     static float distanceToPoint(int x0, int y0, int x1, int y1);
 
-
+    // Return value 'in' clamped between 'lo' and 'hi'
+    static float clamp(float in, float lo, float hi){
+        if(in < lo) return lo;
+        if(in > hi) return hi;
+        return in;
+    }
+    // Linearly interpolate value 'from' to 'to' by 'mod'
+    static float lerp(float from, float to, float mod){
+        return from + (to - from) * mod;
+    }
 
 };
 #endif // TOOLS_H

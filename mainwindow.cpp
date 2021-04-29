@@ -52,11 +52,13 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Refresh every 16 msec, which is aprox 60fps
     processTimer->start(1000/targetFps);
 
-    ActorPlayer player;
+    ActorPlayer player = ActorPlayer(&Input, &lookDir);
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
     player.position = {0, 100, 0};
     addActor(player);
+//    qDebug(player.Input);
+//    qDebug(&Input);
 //    actorList.push_back(&player);
 //    actorList.push_back(new Actor);
 //    *actorList[0] = player;
@@ -173,13 +175,16 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addAction("JUMP", Qt::Key_Space);
     Input.addAction("CROUCH", Qt::Key_Control);
     Input.addAction("LEFT", Qt::Key_A);
-//    Input.addKey("LEFT", Qt::Key_Left);
     Input.addAction("RIGHT", Qt::Key_D);
-//    Input.addKey("RIGHT", Qt::Key_Right);
     Input.addAction("UP", Qt::Key_W);
-//    Input.addKey("UP", Qt::Key_Up);
     Input.addAction("DOWN", Qt::Key_S);
-//    Input.addKey("DOWN", Qt::Key_Down);
+//    Input = new InputMap;
+//    Input->addAction("JUMP", Qt::Key_Space);
+//    Input->addAction("CROUCH", Qt::Key_Control);
+//    Input->addAction("LEFT", Qt::Key_A);
+//    Input->addAction("RIGHT", Qt::Key_D);
+//    Input->addAction("UP", Qt::Key_W);
+//    Input->addAction("DOWN", Qt::Key_S);
 
     Input.addAction("TOGGLE_CAMFOLLOW", Qt::Key_Shift);
     Input.addAction("CAMJUMP", Qt::Key_PageUp);
@@ -214,8 +219,8 @@ void MainWindow::closeEvent(QCloseEvent *event){
 void MainWindow::process(){
     mainImage->fill(defaultBg); // Clear the screen
     Input.processInput(); // Update inputs
-    movePlayer(); // Move the player
-    processActors(); // Calculate world physics
+    cameraUpdate(); // Move the player
+    processActors(); // Process actor logic and collisions
     screenUpdate(); // Transform the 3D space into a 2D image
     update();
 
@@ -419,7 +424,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event){
     yaw += mouseDiff.x * sensMod;
 //    yaw = // Add wrapping?
     pitch += mouseDiff.y * sensMod;
-    pitch = clamp(pitch, -3.14/2.0, 3.14/2.0); // Needs to be clamped so that the camera won't go upside down
+    pitch = T2::clamp(pitch, -3.14/2.0, 3.14/2.0); // Needs to be clamped so that the camera won't go upside down
     cursor.setPos(sCenter.x, sCenter.y); // Center the cursor
 }
 
@@ -441,111 +446,54 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event){
     Input.releaseKey(keyCode);
 }
 
-// Change player position based on inputs
-// This is basically tank controls, w/d to move forward/backward, a/d to rotate, space/ctrl to move higher/lower
-void MainWindow::movePlayer(){
-    float jumpSpeed = 3;
-    float maxJumpSpeed = 4;
-    float moveSpeed = 0.5;
-    float maxMoveSpeed = 5;
+void MainWindow::cameraUpdate(){
+    // Camera can be attached to an Actor or controlled directly
+    // If camFollow is true, the camera will follow the player
 
-    bool moving = false; // If no walk input is applied, slow down
-
-    // Calculate directions for movement relative to camera rotation
-    T3::Vector3 forward = lookDir * moveSpeed;
-    forward.y = 0;
-    T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
-
-//    T3::Vector3 playerPosition = actorList[0]->position;
-    ActorPlayer *player = (ActorPlayer *)actorList[0];
-
-    if(Input.isActionPressed("UP")){
-        player->velocity += forward;
-        moving = true;
-//        playerPosition += forward;
-    }
-    if(Input.isActionPressed("DOWN")){
-        player->velocity -= forward;
-        moving = true;
-//        playerPosition -= forward;
-    }
-    if(Input.isActionPressed("LEFT")){
-        player->velocity -= right;
-        moving = true;
-//        playerPosition -= right;
-    }
-    if(Input.isActionPressed("RIGHT")){
-        player->velocity += right;
-        moving = true;
-//        playerPosition += right;
-    }
-    if(Input.isActionJustPressed("JUMP")){
-        player->velocity.y = jumpSpeed;
-//        playerPosition.y += jumpSpeed;
-    }
-    if(Input.isActionPressed("CROUCH")){
-        player->velocity.y -= jumpSpeed;
-//        playerPosition.y -= jumpSpeed;
-    }
-
-    // Cap player horizontal speed
-    player->velocity.x = clamp(player->velocity.x, -maxMoveSpeed, maxMoveSpeed);
-    player->velocity.z = clamp(player->velocity.z, -maxMoveSpeed, maxMoveSpeed);
-
-
-    if(moving){
-        // Normalize horizontal speed
-//        T3::Vector3 hor = player->velocity;
-//        hor.y = 0;
-//        hor = T3::normalise(hor);
-//        player->velocity.x += hor.x * moveSpeed;
-//        player->velocity.z += hor.z * moveSpeed;
-//        T2::Vector2 hor = {player->velocity.x, player->velocity.z};
-//        hor = hor.normalized();
-//        player->velocity.x = hor.x;
-//        player->velocity.z = hor.y;
-    }//else{
-        // Apply friction if not moving
-        player->velocity.x = lerp(player->velocity.x, 0, 0.1);
-        player->velocity.z = lerp(player->velocity.z, 0, 0.1);
-    //}
-//    qDebug("SPEED: %f %f", player->velocity.x, player->velocity.z);
-
-    // Cap player air speed
-    player->velocity.y = clamp(player->velocity.y, -maxJumpSpeed, maxJumpSpeed);
-
-    player->position.y = std::max(0.0f, player->position.y); // TEMP, DELETE LATER
-
-
-    // Camera stuff
     if(Input.isActionJustPressed("TOGGLE_CAMFOLLOW"))
         camFollow = !camFollow;
 
     if(camFollow){
+        ActorPlayer *player = (ActorPlayer *)actorList[0];
         camera = player->position;
     }else{
+        // Calculate directions for movement relative to camera rotation
+        float speed = 1;
+
+        T3::Vector3 forward = lookDir * speed;
+        forward.y = 0;
+        T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
+
+
         if(Input.isActionPressed("CAMUP")){
-            camera += forward * maxMoveSpeed;
+            camera += forward * speed;
         }
         if(Input.isActionPressed("CAMDOWN")){
-            camera -= forward * maxMoveSpeed;
+            camera -= forward * speed;
         }
         if(Input.isActionPressed("CAMLEFT")){
-            camera -= right * maxMoveSpeed;
+            camera -= right * speed;
         }
         if(Input.isActionPressed("CAMRIGHT")){
-            camera += right * maxMoveSpeed;
+            camera += right * speed;
         }
         if(Input.isActionPressed("CAMJUMP")){
-            camera.y += jumpSpeed * maxJumpSpeed;
+            camera.y += speed;
         }
         if(Input.isActionPressed("CAMCROUCH")){
-            camera.y -= jumpSpeed * maxJumpSpeed;
+            camera.y -= speed;
         }
     }
 }
 
 void MainWindow::processActors(){
+    // Process logic
+    for(int i = 0; i < actorList.size(); i++){
+        if(actorList[i]->logicEnabled){
+            actorList[i]->processLogic();
+        }
+    }
+
     // Process collisions
     for(int i = 0; i < actorList.size(); i++){
         // For every actor with enabled collisions gather other actors with enabled collisions,
@@ -564,15 +512,15 @@ void MainWindow::processActors(){
     }
 }
 
-float MainWindow::clamp(float in, float lo, float hi){
-    if(in < lo) return lo;
-    if(in > hi) return hi;
-    return in;
-}
+//float MainWindow::clamp(float in, float lo, float hi){
+//    if(in < lo) return lo;
+//    if(in > hi) return hi;
+//    return in;
+//}
 
-float MainWindow::lerp(float from, float to, float mod){
-    return from + (to - from) * mod;
-}
+//float MainWindow::lerp(float from, float to, float mod){
+//    return from + (to - from) * mod;
+//}
 
 void MainWindow::addActor(ActorStatic a){
     actorList.push_back(new ActorStatic);
@@ -587,7 +535,8 @@ void MainWindow::addActor(ActorStatic a){
 
 void MainWindow::addActor(ActorPlayer a){
     actorList.push_back(new ActorPlayer);
-    *actorList.back() = a;
+    *(ActorPlayer*)actorList.back() = a;
+//    *actorList.back()->Input
 
     std::vector<string> names;
     for(Actor *a : actorList){

@@ -18,7 +18,54 @@ void Actor::setModel(Tools3D::MeshTexture in){
 //}
 
 void ActorPlayer::processLogic(){
+//    if(!logicEnabled) return;
+    float jumpSpeed = 3;
+    float maxJumpSpeed = 4;
+    float moveSpeed = 0.5;
+    float maxMoveSpeed = 5;
 
+//    bool moving = false; // If no walk input is applied, slow down
+
+    // Calculate directions for movement relative to camera rotation
+    T3::Vector3 forward = *lookDir * moveSpeed;
+    forward.y = 0;
+    T3::Vector3 right = forward * T3::newMatRotY(3.14/2);
+
+    if(Input->isActionPressed("UP")){
+        velocity += forward;
+//        moving = true;
+    }
+    if(Input->isActionPressed("DOWN")){
+        velocity -= forward;
+//        moving = true;
+    }
+    if(Input->isActionPressed("LEFT")){
+        velocity -= right;
+//        moving = true;
+    }
+    if(Input->isActionPressed("RIGHT")){
+        velocity += right;
+//        moving = true;
+    }
+    if(Input->isActionJustPressed("JUMP")){
+        velocity.y = jumpSpeed;
+    }
+    if(Input->isActionPressed("CROUCH")){
+        velocity.y -= jumpSpeed;
+    }
+
+    // Friction
+    velocity.x = T2::lerp(velocity.x, 0, 0.1);
+    velocity.z = T2::lerp(velocity.z, 0, 0.1);
+
+    // Cap player horizontal speed
+    velocity.x = T2::clamp(velocity.x, -maxMoveSpeed, maxMoveSpeed);
+    velocity.z = T2::clamp(velocity.z, -maxMoveSpeed, maxMoveSpeed);
+
+    // Cap player air speed
+    velocity.y = T2::clamp(velocity.y, -maxJumpSpeed, maxJumpSpeed);
+
+    position.y = std::max(0.0f, position.y); // TEMP, DELETE LATER
 }
 
 void ActorPlayer::processCollision(std::vector<Tools3D::AABB> colliders){

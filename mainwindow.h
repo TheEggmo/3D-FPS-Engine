@@ -56,12 +56,12 @@ protected:
 
     // Functions called every frame by process()
     // They update the game state, i.e. visuals, positions, inputs
-    void movePlayer(); // Updates player position based on input
+    void cameraUpdate(); // Updates the camera position
     void screenUpdate(); // Updates the screen by transforming the 3D world
     void processActors();
 
-    float clamp(float in, float lo, float hi);
-    float lerp(float from, float to, float mod);
+//    float clamp(float in, float lo, float hi);
+//    float lerp(float from, float to, float mod);
 
     Tools3D::MeshTexture meshCube; // DELETE LATER, ONLY FOR DEBBUGING
     Tools3D::Mat4x4 matProj; // Projection matrix

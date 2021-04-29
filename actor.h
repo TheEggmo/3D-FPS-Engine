@@ -32,8 +32,8 @@ public:
 
 
 //    virtual void processPhysics();
-    virtual void processLogic() {}
-    virtual void processCollision(std::vector<Tools3D::AABB> colliders) {}
+    virtual void processLogic() =0;
+    virtual void processCollision(std::vector<Tools3D::AABB> colliders) =0;
 
     void setCollision(Tools3D::AABB);
     void setModel(Tools3D::MeshTexture);
@@ -48,18 +48,21 @@ public:
         gravity = 0;
     }
 
-//    void processLogic() override {}
-//    void processCollision(std::vector<Tools3D::AABB> colliders) override;
+    void processLogic() override {}
+    void processCollision(std::vector<Tools3D::AABB> colliders) override {}
 };
 
 class ActorPlayer : public Actor{
 private:
     InputMap *Input; // Access MainWindow's inputmap for movement inputs
+    T3::Vector3 *lookDir; // Access MainWIndow's camera direction
 public:
-//    ActorPlayer(InputMap *iMap){
-//        Input = iMap;
-//        logicEnabled = true;
-//    }
+    ActorPlayer() {}
+    ActorPlayer(InputMap *iMap, T3::Vector3 *vLook){ // vLook is the camera direction
+        Input = iMap;
+        lookDir = vLook;
+        logicEnabled = true;
+    }
 
     void processLogic() override;
     void processCollision(std::vector<Tools3D::AABB> colliders) override;

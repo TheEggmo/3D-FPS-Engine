@@ -11,7 +11,7 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
 
     fpsDisplay = new QLabel("X FPS", this);
 //    fpsDisplay->move(10, 10);
-//    fpsDisplay->resize(100, 10);
+//    fpsDisplay->resize(100, 10)
     mainLayout->addWidget(fpsDisplay);
 
     colWireToggle = new QCheckBox("Enable collision wireframes", this);
@@ -30,7 +30,7 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     mainLayout->addWidget(actorSelect);
 
     // FormLayout to hold field labels and editable fields
-    actorInfoLayout = new QFormLayout();
+    actorInfoLayout = new QFormLayout(this);
     mainLayout->addLayout(actorInfoLayout);
 
     // Actor name
@@ -63,9 +63,24 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
 
     // Actor gravity (only for dynamic actors)
     actorGravity = new QDoubleSpinBox();
+    actorGravity->setRange(-10.0, 10.0);
     actorInfoLayout->addRow("Gravity", actorGravity);
 
     // Buttons that summon a file select for model and texture
+    fileSelectContainer = new QHBoxLayout();
+//    actorModelSelect = new QFileDialog();
+//    actorTextureSelect = new QFileDialog();
+//    actorModelSelect = QFileDialog::getOpenFileName(this, tr("Open"), "/", tr("OBJ files (*.obj)"));
+    fileSelectContainer->addWidget(actorModelSelect);
+    fileSelectContainer->addWidget(actorTextureSelect);
+    mainLayout->addLayout(fileSelectContainer);
+
+    // Button that applies all current values in the remote to the selected actor
+    // If this is not pressed and MainWindow regains focus, most changes will be lost
+    applyButton = new QPushButton("Apply changes (returning to MainWindow will discard unapplied changes)");
+    connect(applyButton, SIGNAL(clicked(bool)), this, SLOT(updateStoredActor()));
+    mainLayout->addWidget(applyButton);
+
 
     // Button that opens a widget for setting a new AABB
     // You can enter it's size manually or pass an .obj that will be converted to an AABB
@@ -117,6 +132,7 @@ void Remote::updateActorInfo(Actor *actor){
 //        updateActorDynamicInfo(actor);
 //        return;
 //    }
+    storedActor = actor;
 
     actorName->setText(actor->name.c_str());
 
@@ -130,8 +146,11 @@ void Remote::updateActorInfo(Actor *actor){
     actorLogicToggle->setDisabled(true);
     actorLogicToggle->setChecked(false);
 
-    actorGravity->setDisabled(true);
-    actorGravity->setValue(0.1f);
+//    actorGravity->setDisabled(true);
+//    actorGravity->setValue(0.1f);
+    actorGravity->setValue(actor->gravity);
+
+//    actorName->update();
 }
 //void Remote::updateActorDynamicInfo(ActorDynamic *actor){
 //    actorName->setText(actor->name.c_str());
@@ -154,11 +173,29 @@ void Remote::closeEvent(QCloseEvent *event){
     event->accept();
 }
 
+void Remote::updateStoredActor(){
+    storedActor->visible = actorModelToggle->isChecked();
+    storedActor->collisionEnabled = actorCollisionToggle->isChecked();
+//    storedActor->logicEnabled = actorLogicToggle->isChecked();
+    storedActor->position.x = posX->value();
+    storedActor->position.y = posY->value();
+    storedActor->position.z = posZ->value();
+    storedActor->gravity = actorGravity->value();
+}
+
+//void Remote::updateStoredName(){
+
+//}
+
+//void Remote::updateStoredToggleModel(){
+
+//}
+
 void Remote::remoteActorSelected(int index){
     emit updateRemoteActor(index);
 }
 
-void Remote::updateActorValues(){
+//void Remote::updateActorValues(){
 
-}
+//}
 

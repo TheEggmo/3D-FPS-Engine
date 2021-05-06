@@ -249,12 +249,14 @@ void MainWindow::process(){
         // This creates a snapshot for easier editing/saving of actor data
         if(isActiveWindow()){
             remote.updateActorInfo(actorList[remoteActorIdx]);
+            remote.update();
         }
     }
 }
 
 void MainWindow::setRemoteActorIdx(int index){
     remoteActorIdx = index;
+    remote.updateActorInfo(actorList[remoteActorIdx]);
 }
 
 // The main engine/game loop function, called every frame
@@ -286,7 +288,7 @@ void MainWindow::screenUpdate(){
 
     // Proces triangles of every visible actor and place them in the triangleQueue for drawin
     for(int i = 0; i < actorList.size(); i++){
-        Actor * a = actorList[i];
+        Actor *a = actorList[i];
         // Project triangles for drawing the Actor's model and texture
         if(a->visible){
             T3::MeshTexture model = a->getModel();
@@ -524,7 +526,7 @@ void MainWindow::processActors(){
 
 void MainWindow::addActor(ActorStatic a){
     actorList.push_back(new ActorStatic);
-    *actorList.back() = a;
+    *(ActorStatic*)actorList.back() = a;
 
     std::vector<string> names;
     for(Actor *a : actorList){
@@ -536,7 +538,6 @@ void MainWindow::addActor(ActorStatic a){
 void MainWindow::addActor(ActorPlayer a){
     actorList.push_back(new ActorPlayer);
     *(ActorPlayer*)actorList.back() = a;
-//    *actorList.back()->Input
 
     std::vector<string> names;
     for(Actor *a : actorList){

@@ -16,6 +16,8 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
+#include <QPushButton>
+#include <QFileDialog>
 
 #include <actor.h>
 #include <tools3d.h>
@@ -70,14 +72,31 @@ private:
 
     QDoubleSpinBox *actorGravity;
 
+    QHBoxLayout *fileSelectContainer;
+    QFileDialog *actorModelSelect;
+    QFileDialog *actorTextureSelect;
+
+    QPushButton *applyButton;
+
+    Actor *storedActor; // Pointer used to access the selected actor
+
     void closeEvent(QCloseEvent *event) override;
+
+
+//    void updateStoredName();
+//    void updateStoredToggleModel();
+//    void updateStoredToggleCollision();
+//    void updateStoredToggleLogic();
+//    void updateStoredPosition();
+//    void updateStoredGravity();
 
 //    void updateActorDynamicInfo(ActorDynamic *actor);
 public slots:
-    void remoteActorSelected(int index);
-    void updateActorValues();
+    void remoteActorSelected(int index); // Calls updateRemoteActor(index)
+//    void updateActorValues(); //
+    void updateStoredActor(); // Applies all info currently in the remote to storedActor
 signals:
-    void updateRemoteActor(int index);
+    void updateRemoteActor(int index); // Tells MainWindow to send data from actorList[index]
 };
 
 #endif // REMOTE_H

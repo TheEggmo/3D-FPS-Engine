@@ -37,6 +37,7 @@ public:
 
     void setCollision(Tools3D::AABB);
     void setModel(Tools3D::MeshTexture);
+    void setTexture(const QString &filepath);
 
     T3::AABB getCollider() { return collision; }
     T3::MeshTexture getModel() { return model; }

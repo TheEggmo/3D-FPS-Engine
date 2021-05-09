@@ -10,6 +10,10 @@ void Actor::setModel(Tools3D::MeshTexture in){
     visible = true;
 }
 
+void Actor::setTexture(const QString &filepath){
+    model.texture = new QImage(filepath);
+}
+
 //void ActorStatic::processCollision(std::vector<Tools3D::AABB> colliders){
 //    collision.updatePosition(position);
 ////    if(collision.intersects(aabb)){

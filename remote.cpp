@@ -68,12 +68,22 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
 
     // Buttons that summon a file select for model and texture
     fileSelectContainer = new QHBoxLayout();
+    mainLayout->addLayout(fileSelectContainer);
 //    actorModelSelect = new QFileDialog();
 //    actorTextureSelect = new QFileDialog();
 //    actorModelSelect = QFileDialog::getOpenFileName(this, tr("Open"), "/", tr("OBJ files (*.obj)"));
-    fileSelectContainer->addWidget(actorModelSelect);
-    fileSelectContainer->addWidget(actorTextureSelect);
-    mainLayout->addLayout(fileSelectContainer);
+//    fileSelectContainer->addWidget(actorModelSelect);
+//    fileSelectContainer->addWidget(actorTextureSelect);
+    modelSelectLine = new QLineEdit();
+    modelSelectConfirm = new QPushButton("Load model");
+    connect(modelSelectConfirm, SIGNAL(clicked(bool)), this, SLOT(updateStoredModel()));
+    textureSelectLine = new QLineEdit();
+    textureSelectConfirm = new QPushButton("Load texture");
+    connect(textureSelectConfirm, SIGNAL(clicked(bool)), this, SLOT(updateStoredTexture()));
+    fileSelectContainer->addWidget(modelSelectLine);
+    fileSelectContainer->addWidget(modelSelectConfirm);
+    fileSelectContainer->addWidget(textureSelectLine);
+    fileSelectContainer->addWidget(textureSelectConfirm);
 
     // Button that applies all current values in the remote to the selected actor
     // If this is not pressed and MainWindow regains focus, most changes will be lost
@@ -171,6 +181,27 @@ void Remote::updateActorInfo(Actor *actor){
 void Remote::closeEvent(QCloseEvent *event){
     active = false;
     event->accept();
+}
+
+void Remote::updateStoredModel(){
+    QString filepath = modelSelectLine->text();
+    T3::MeshTexture newMesh;
+    newMesh.texture = storedActor->getModel().texture;
+    if(newMesh.loadFromFile(filepath)){
+//      if(newMesh.loadFromFile(modelSelectLine->text()))
+        qDebug("Model changed");
+    }else{
+        qDebug("Failed to change model");
+        qDebug("%s", filepath);
+    }
+
+    storedActor->setModel(newMesh);
+}
+
+void Remote::updateStoredTexture(){
+    QString filepath = textureSelectLine->text();
+
+    storedActor->setTexture(filepath);
 }
 
 void Remote::updateStoredActor(){

@@ -73,15 +73,18 @@ private:
     QDoubleSpinBox *actorGravity;
 
     QHBoxLayout *fileSelectContainer;
-    QFileDialog *actorModelSelect;
-    QFileDialog *actorTextureSelect;
+    QLineEdit *modelSelectLine;
+    QPushButton *modelSelectConfirm;
+    QLineEdit *textureSelectLine;
+    QPushButton *textureSelectConfirm;
+//    QFileDialog *modelSelectDialog;
+//    QFileDialog *textureSelectDialog;
 
     QPushButton *applyButton;
 
     Actor *storedActor; // Pointer used to access the selected actor
 
     void closeEvent(QCloseEvent *event) override;
-
 
 //    void updateStoredName();
 //    void updateStoredToggleModel();
@@ -95,6 +98,9 @@ public slots:
     void remoteActorSelected(int index); // Calls updateRemoteActor(index)
 //    void updateActorValues(); //
     void updateStoredActor(); // Applies all info currently in the remote to storedActor
+
+    void updateStoredModel();
+    void updateStoredTexture();
 signals:
     void updateRemoteActor(int index); // Tells MainWindow to send data from actorList[index]
 };

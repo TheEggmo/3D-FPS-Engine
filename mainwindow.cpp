@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    meshCube.loadFromFile("Assets/Hurricos.obj");
 //    meshCube.loadFromFile("Assets/Artisans Hub.obj");
    T3::MeshTexture meshHub;
+//   meshHub.loadFromFile("D:/Projects/Qt/NEW/build-Engine-Desktop_Qt_5_14_2_MinGW_64_bit-Release/Assets/capsule.obj");
    meshHub.loadFromFile("Assets/Artisans Hub.obj");
    meshHub.texture = new QImage("Assets/Artisans Hub.png");
    ActorStatic hub;

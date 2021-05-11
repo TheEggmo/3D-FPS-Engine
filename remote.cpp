@@ -37,7 +37,32 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     actorName = new QLineEdit();
     actorInfoLayout->addRow("Name", actorName);
 
-    // Actor visibility, collision, and logic (dynamic only) toggle
+    // Model and texture change section
+    // Unlike other fields, these fields are changed separately (instead of using "Apply all")
+    // Model select
+    modelSelectContainer = new QHBoxLayout();
+    modelSelectLine = new QLineEdit();
+    modelSelectBrowse = new QPushButton("Browse");
+    modelSelectApply = new QPushButton("Apply");
+    connect(modelSelectBrowse, SIGNAL(clicked(bool)), this, SLOT(browseModel()));
+    connect(modelSelectApply, SIGNAL(clicked(bool)), this, SLOT(updateStoredModel()));
+    modelSelectContainer->addWidget(modelSelectLine);
+    modelSelectContainer->addWidget(modelSelectBrowse);
+    modelSelectContainer->addWidget(modelSelectApply);
+    actorInfoLayout->addRow("Change model", modelSelectContainer);
+    // Texture select
+    textureSelectContainer = new QHBoxLayout();
+    textureSelectLine = new QLineEdit();
+    textureSelectBrowse = new QPushButton("Browse");
+    textureSelectApply = new QPushButton("Apply");
+    connect(textureSelectBrowse, SIGNAL(clicked(bool)), this, SLOT(browseTexture()));
+    textureSelectContainer->addWidget(textureSelectLine);
+    textureSelectContainer->addWidget(textureSelectBrowse);
+    textureSelectContainer->addWidget(textureSelectApply);
+    actorInfoLayout->addRow("Change texture", textureSelectContainer);
+    connect(textureSelectApply, SIGNAL(clicked(bool)), this, SLOT(updateStoredTexture()));
+
+    // Actor visibility, collision, and logic toggle
     actorModelToggle = new QCheckBox();
     actorCollisionToggle = new QCheckBox();
     actorLogicToggle = new QCheckBox();
@@ -59,38 +84,18 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     actorPositionLayout->addWidget(posZ);
     actorInfoLayout->addRow("Position", actorPositionLayout);
 
-    // Actor velocity (only for dynamic actors)
+    // Actor velocity
 
-    // Actor gravity (only for dynamic actors)
+    // Actor gravity
     actorGravity = new QDoubleSpinBox();
     actorGravity->setRange(-10.0, 10.0);
     actorInfoLayout->addRow("Gravity", actorGravity);
-
-    // Buttons that summon a file select for model and texture
-    fileSelectContainer = new QHBoxLayout();
-    mainLayout->addLayout(fileSelectContainer);
-//    actorModelSelect = new QFileDialog();
-//    actorTextureSelect = new QFileDialog();
-//    actorModelSelect = QFileDialog::getOpenFileName(this, tr("Open"), "/", tr("OBJ files (*.obj)"));
-//    fileSelectContainer->addWidget(actorModelSelect);
-//    fileSelectContainer->addWidget(actorTextureSelect);
-    modelSelectLine = new QLineEdit();
-    modelSelectConfirm = new QPushButton("Load model");
-    connect(modelSelectConfirm, SIGNAL(clicked(bool)), this, SLOT(updateStoredModel()));
-    textureSelectLine = new QLineEdit();
-    textureSelectConfirm = new QPushButton("Load texture");
-    connect(textureSelectConfirm, SIGNAL(clicked(bool)), this, SLOT(updateStoredTexture()));
-    fileSelectContainer->addWidget(modelSelectLine);
-    fileSelectContainer->addWidget(modelSelectConfirm);
-    fileSelectContainer->addWidget(textureSelectLine);
-    fileSelectContainer->addWidget(textureSelectConfirm);
 
     // Button that applies all current values in the remote to the selected actor
     // If this is not pressed and MainWindow regains focus, most changes will be lost
     applyButton = new QPushButton("Apply changes (returning to MainWindow will discard unapplied changes)");
     connect(applyButton, SIGNAL(clicked(bool)), this, SLOT(updateStoredActor()));
     mainLayout->addWidget(applyButton);
-
 
     // Button that opens a widget for setting a new AABB
     // You can enter it's size manually or pass an .obj that will be converted to an AABB
@@ -138,10 +143,6 @@ void Remote::updateActorSelect(std::vector<std::string> names){
 }
 
 void Remote::updateActorInfo(Actor *actor){
-//    if(actor->isDynamic()){
-//        updateActorDynamicInfo(actor);
-//        return;
-//    }
     storedActor = actor;
 
     actorName->setText(actor->name.c_str());
@@ -159,28 +160,32 @@ void Remote::updateActorInfo(Actor *actor){
 //    actorGravity->setDisabled(true);
 //    actorGravity->setValue(0.1f);
     actorGravity->setValue(actor->gravity);
-
-//    actorName->update();
 }
-//void Remote::updateActorDynamicInfo(ActorDynamic *actor){
-//    actorName->setText(actor->name.c_str());
-
-//    posX->setValue(actor->position.x);
-//    posY->setValue(actor->position.y);
-//    posZ->setValue(actor->position.z);
-
-//    actorModelToggle->setChecked(actor->visible);
-//    actorCollisionToggle->setChecked(actor->collisionEnabled);
-//    actorLogicToggle->setEnabled(true);
-//    actorLogicToggle->setChecked(actor->logicEnabled);
-
-//    actorGravity->setEnabled(true);
-//    actorGravity->setValue(actor->gravity);
-//}
 
 void Remote::closeEvent(QCloseEvent *event){
     active = false;
     event->accept();
+}
+
+void Remote::browseModel(){
+    QString filepath = QFileDialog::getOpenFileName(this,
+                            tr("Select file"), QDir::currentPath(),
+                            tr("Object files (*.obj)"));
+
+    if(!filepath.isNull()){
+        modelSelectLine->setText(filepath);
+    }
+
+}
+
+void Remote::browseTexture(){
+    QString filepath = QFileDialog::getOpenFileName(this,
+                            tr("Select file"), QDir::currentPath(),
+                            tr("Images (*.png *.jpg)"));
+
+    if(!filepath.isNull()){
+        textureSelectLine->setText(filepath);
+    }
 }
 
 void Remote::updateStoredModel(){
@@ -193,6 +198,20 @@ void Remote::updateStoredModel(){
     }else{
         qDebug("Failed to change model");
         qDebug("%s", filepath);
+    }
+
+    if(!newMesh.empty()){
+        storedActor->setModel(newMesh);
+    }
+}
+
+void Remote::updateStoredModel(QString filepath){
+    T3::MeshTexture newMesh;
+    newMesh.texture = storedActor->getModel().texture;
+    if(newMesh.loadFromFile(filepath)){
+        qDebug("Model changed");
+    }else{
+        qDebug("Failed to change model");
     }
 
     storedActor->setModel(newMesh);

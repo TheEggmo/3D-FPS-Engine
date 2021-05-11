@@ -11,7 +11,11 @@ void Actor::setModel(Tools3D::MeshTexture in){
 }
 
 void Actor::setTexture(const QString &filepath){
-    model.texture = new QImage(filepath);
+    QImage *newTexture = new QImage(filepath);
+    if(!newTexture->isNull()){
+        model.texture = new QImage(filepath);
+    }
+//    model.texture = new QImage(filepath);
 }
 
 //void ActorStatic::processCollision(std::vector<Tools3D::AABB> colliders){

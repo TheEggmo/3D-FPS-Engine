@@ -39,8 +39,8 @@ public:
     // Returns a copy of the actorList
     std::vector<Actor*> getActorList();
 
-    void addActor(ActorStatic a);
-    void addActor(ActorPlayer a);
+//    void addActor(ActorStatic a);
+//    void addActor(ActorPlayer a);
 
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
@@ -104,8 +104,13 @@ protected:
 
     int remoteActorIdx = 0;
 
+    ActorLight* light1; //TEMPTEMPTEMPTEMPTEMPTEMPTEMP
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote
+
+    Actor* addActor(ActorStatic a);
+    Actor* addActor(ActorPlayer a);
+    Actor* addActor(ActorLight a);
 };
 #endif // MAINWINDOW_H

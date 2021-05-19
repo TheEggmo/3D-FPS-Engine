@@ -139,7 +139,8 @@ public:
         Vector3 p[3]; // Triangle points' 3D coordinates
         UV t[3]; // Texture coordinates
 
-        Tools::Color8 color;
+//        Tools::Color8 color;
+        float shading = 1.0f;
         QImage *texture; // Whenever a triangle is clipped it retains a pointer to it's texture
 
         Triangle(){

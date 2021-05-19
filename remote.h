@@ -84,6 +84,11 @@ private:
     QPushButton *textureSelectBrowse;
     QPushButton *textureSelectApply;
 
+    QHBoxLayout *actorManagementLayout;
+    QPushButton *duplicateActorButton;
+    QPushButton *exportActorButton;
+    QPushButton *importActorButton;
+
     QPushButton *applyButton;
 
     Actor *storedActor; // Pointer used to access the selected actor
@@ -110,8 +115,12 @@ public slots:
     void updateStoredModel();
     void updateStoredModel(QString filepath);
     void updateStoredTexture();
+
+    void duplicateStoredActor();
 signals:
     void updateRemoteActor(int index); // Tells MainWindow to send data from actorList[index]
+    void addActor(ActorStatic a); // Tells MainWindow to add a new actor
+    void addActor(ActorPlayer a); // Tells MainWindow to add a new actor
 };
 
 #endif // REMOTE_H

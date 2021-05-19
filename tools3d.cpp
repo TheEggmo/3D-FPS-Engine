@@ -498,7 +498,6 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
 
                 if(texW > dBuffer[i*image->width() + j]){
                     // Get the required pixel from the texture
-//                    T2::Color8 color = T2::getPixel(texture, texU, texV);
                     T2::Color8 color;
 
                     uchar *pixIn = texture->scanLine((int)texV);
@@ -506,21 +505,8 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     color.b = pixIn[adrIn];
                     color.g = pixIn[adrIn+1];
                     color.r = pixIn[adrIn+2];
-//                    if(/*color.valid()*/1){
-////                        T2::drawPixel(image, j, i, T2::Color(texU, texV, texW));
-////                        T2::drawPixel(image, j, i, color);
-//                        // Inlining the drawing function improves performance by approx. 3 times
-//                        uchar *pix = image->scanLine(i);
-//                        int adr = 4 * j;
-//                        pix[adr] = color.b;
-//                        pix[adr+1] = color.g;
-//                        pix[adr+2] = color.r;
-//                        pix[adr+3] = 255;
-//                    }else{
-//                        // Draw cyan if the color is not a valid color
-//                        // Failsafe in case of bad UV mapping or other issues
-//                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
-//                    }
+                    // Apply shading
+                    color = color * tri.shading;
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
@@ -605,21 +591,8 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     color.b = pixIn[adrIn];
                     color.g = pixIn[adrIn+1];
                     color.r = pixIn[adrIn+2];
-//                    if(/*color.valid()*/1){
-////                        T2::drawPixel(image, j, i, T2::Color(texU, texV, texW));
-////                        T2::drawPixel(image, j, i, color);
-//                        // Inlining the drawing function improves performance by approx. 3 times
-//                        uchar *pix = image->scanLine(i);
-//                        int adr = 4 * j;
-//                        pix[adr] = color.b;
-//                        pix[adr+1] = color.g;
-//                        pix[adr+2] = color.r;
-//                        pix[adr+3] = 255;
-//                    }else{
-//                        // Draw cyan if the color is not a valid color
-//                        // Failsafe in case of bad UV mapping or other issues
-//                        T2::drawPixel(image, j, i, T2::Color8(0, 255, 255));
-//                    }
+                    // Apply shading
+                    color = color * tri.shading;
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
@@ -800,8 +773,9 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     // One point is on the inside, the triangle is clipped into a smaller triangle
     if(insidePointCount == 1 && outsidePointCount == 2){
         // Copy triangle color/texture data into the new triangle
-        outTri1.color = inTri.color;
+//        outTri1.color = inTri.color;
         outTri1.texture = inTri.texture;
+        outTri1.shading = inTri.shading;
 
         // Contruct the output triangle
         // One point is valid, so it doesn't need to be calculated
@@ -824,10 +798,12 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     // Two points are on the inside, the triangle is clipped and split into two smaller triangles
     if(insidePointCount == 2 && outsidePointCount == 1){
         // Copy triangle color/texture data into the new triangles
-        outTri1.color = inTri.color;
+//        outTri1.color = inTri.color;
         outTri1.texture = inTri.texture;
-        outTri2.color = inTri.color;
+        outTri1.shading = inTri.shading;
+//        outTri2.color = inTri.color;
         outTri2.texture = inTri.texture;
+        outTri2.shading = inTri.shading;
 
         // Contruct the first output triangle
         // It consists of the two inside points,

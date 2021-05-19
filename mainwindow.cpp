@@ -168,11 +168,18 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    addActor(capsule);
 //    addActor(watermelon);
 
+    // Add a light
+    ActorLight light;
+    light.name = "Light1";
+    light.position = {0.0f, 10.0f, 0.0f};
+    light.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
+    light1 = (ActorLight*)addActor(light);
 
-    // Initiate the projection Matrix
+
+    // Create the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
 
-    // Initiate the InputMap
+    // Create the InputMap
     Input.addAction("JUMP", Qt::Key_Space);
     Input.addAction("CROUCH", Qt::Key_Control);
     Input.addAction("LEFT", Qt::Key_A);
@@ -236,6 +243,8 @@ void MainWindow::process(){
             qDebug("Starting remote");
             remote.start();
             connect(&remote, SIGNAL(updateRemoteActor(int)), this, SLOT(setRemoteActorIdx(int)));
+            connect(&remote, SIGNAL(addActor(ActorStatic)), this, SLOT(addActor(ActorStatic)));
+            connect(&remote, SIGNAL(addActor(ActorPlayer)), this, SLOT(addActor(ActorPlayer)));
         }else{
             remote.raise();
             remote.activateWindow();
@@ -363,7 +372,7 @@ void MainWindow::screenUpdate(){
         }
     }
 
-    // Draw collision wireframes
+    // Draw collision wireframes, if enabled
     for(auto &tri : wireframeQueue){
         // Clip triangles against screen edges(walls of the view frustrum)
         T3::Triangle clipped[2];
@@ -525,7 +534,7 @@ void MainWindow::processActors(){
 //    return from + (to - from) * mod;
 //}
 
-void MainWindow::addActor(ActorStatic a){
+Actor* MainWindow::addActor(ActorStatic a){
     actorList.push_back(new ActorStatic);
     *(ActorStatic*)actorList.back() = a;
 
@@ -534,9 +543,11 @@ void MainWindow::addActor(ActorStatic a){
         names.push_back(a->name);
     }
     remote.updateActorSelect(names);
+
+    return actorList.back();
 }
 
-void MainWindow::addActor(ActorPlayer a){
+Actor* MainWindow::addActor(ActorPlayer a){
     actorList.push_back(new ActorPlayer);
     *(ActorPlayer*)actorList.back() = a;
 
@@ -545,6 +556,21 @@ void MainWindow::addActor(ActorPlayer a){
         names.push_back(a->name);
     }
     remote.updateActorSelect(names);
+
+    return actorList.back();
+}
+
+Actor* MainWindow::addActor(ActorLight a){
+    actorList.push_back(new ActorLight);
+    *(ActorLight*)actorList.back() = a;
+
+    std::vector<string> names;
+    for(Actor *a : actorList){
+        names.push_back(a->name);
+    }
+    remote.updateActorSelect(names);
+
+    return actorList.back();
 }
 
 void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
@@ -565,7 +591,7 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     line1 = triTransformed.p[1] - triTransformed.p[0];
     line2 = triTransformed.p[2] - triTransformed.p[0];
 
-    // Get the normal of the triangle surface and normalise it
+    // Get the normal of the triangle surface and normalize it
     normal = line1.crossProduct(line2);
     normal = normal.normalize();
 
@@ -573,14 +599,17 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     T3::Vector3 cameraRay = triTransformed.p[0] - camera;
     if(normal.dotProduct(cameraRay) < 0){
         // Add a light
-//            T3::Vector3 lightDirection = { 0.0f, 0.0f, -1.0f};
-        T3::Vector3 lightDirection = { 0.0f, 1.0f, 0.0f};
+//        T3::Vector3 lightPoint = {10.0f, 10.0f, 10.0f};
+        T3::Vector3 lightPoint = light1->position;
+        T3::Vector3 lightDirection;
+//        lightDirection = (tri.p[0] - lightPoint).normalize(); // Get the direction from the triangle to the lightsource
+        lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
         lightDirection = lightDirection.normalize();
 
         // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
         float dp = std::max(0.1f, normal.dotProduct(lightDirection));
-        T2::Color8 shadedColor;
-        shadedColor = drawingColor * dp;
+//        T2::Color8 shadedColor;
+//        shadedColor = drawingColor * dp;
 
 
         // Convert world space to view space
@@ -646,6 +675,7 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
 
             // Copy texture data to new triangle
 //            triProjected.color = shadedColor;
+            triProjected.shading = dp;
             triProjected.texture = texture;
 
             outputQueue->push_back(triProjected);

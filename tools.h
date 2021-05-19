@@ -57,7 +57,7 @@ public:
             this->b = 255;
         }
         Color8 operator*(float k){
-            Color8 out;
+            Color8 out = *this;
             out.r *= k;
             out.g *= k;
             out.b *= k;

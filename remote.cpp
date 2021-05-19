@@ -91,6 +91,17 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     actorGravity->setRange(-10.0, 10.0);
     actorInfoLayout->addRow("Gravity", actorGravity);
 
+    //
+    actorManagementLayout = new QHBoxLayout(this);
+    duplicateActorButton = new QPushButton("Duplicate Actor");
+    connect(duplicateActorButton, SIGNAL(clicked(bool)), this, SLOT(duplicateStoredActor()));
+    exportActorButton = new QPushButton("Export Actor(unimplemented)");
+    importActorButton = new QPushButton("Import Actor(unimplemented)");
+    actorManagementLayout->addWidget(duplicateActorButton);
+    actorManagementLayout->addWidget(exportActorButton);
+    actorManagementLayout->addWidget(importActorButton);
+    mainLayout->addLayout(actorManagementLayout);
+
     // Button that applies all current values in the remote to the selected actor
     // If this is not pressed and MainWindow regains focus, most changes will be lost
     applyButton = new QPushButton("Apply changes (returning to MainWindow will discard unapplied changes)");
@@ -223,7 +234,19 @@ void Remote::updateStoredTexture(){
     storedActor->setTexture(filepath);
 }
 
+void Remote::duplicateStoredActor(){
+    switch (storedActor->getType()) {
+    case Static:
+        emit addActor(*(ActorStatic*)storedActor); // Ask MainWindow to add a new actor that is a copy of the storedActor
+        break;
+    case Player:
+        emit addActor(*(ActorPlayer*)storedActor); // Ask MainWindow to add a new actor that is a copy of the storedActor
+        break;
+    }
+}
+
 void Remote::updateStoredActor(){
+    storedActor->name = actorName->text().toStdString();
     storedActor->visible = actorModelToggle->isChecked();
     storedActor->collisionEnabled = actorCollisionToggle->isChecked();
 //    storedActor->logicEnabled = actorLogicToggle->isChecked();

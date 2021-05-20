@@ -235,13 +235,22 @@ void Remote::updateStoredTexture(){
 }
 
 void Remote::duplicateStoredActor(){
+    // Ask MainWindow to add a new actor that is a copy of the storedActor
     switch (storedActor->getType()) {
     case Static:
-        emit addActor(*(ActorStatic*)storedActor); // Ask MainWindow to add a new actor that is a copy of the storedActor
+        emit addActor(*(ActorStatic*)storedActor);
+        qDebug("Duplicating ActorStatic");
         break;
     case Player:
-        emit addActor(*(ActorPlayer*)storedActor); // Ask MainWindow to add a new actor that is a copy of the storedActor
+        emit addActor(*(ActorPlayer*)storedActor);
+        qDebug("Duplicating ActorPlayer");
         break;
+    case Light:
+        emit addActor(*(ActorLight*)storedActor);
+        qDebug("Duplicating ActorLight");
+        break;
+    default:
+        qDebug("Duplicate actor failed - Unsupported actor");
     }
 }
 

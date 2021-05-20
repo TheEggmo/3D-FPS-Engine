@@ -119,8 +119,10 @@ public slots:
     void duplicateStoredActor();
 signals:
     void updateRemoteActor(int index); // Tells MainWindow to send data from actorList[index]
-    void addActor(ActorStatic a); // Tells MainWindow to add a new actor
-    void addActor(ActorPlayer a); // Tells MainWindow to add a new actor
+    // Tells MainWindow to add a new actor
+    void addActor(ActorStatic a);
+    void addActor(ActorPlayer a);
+    void addActor(ActorLight a);
 };
 
 #endif // REMOTE_H

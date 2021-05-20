@@ -104,7 +104,7 @@ protected:
 
     int remoteActorIdx = 0;
 
-    ActorLight* light1; //TEMPTEMPTEMPTEMPTEMPTEMPTEMP
+//    ActorLight* light1; //TEMPTEMPTEMPTEMPTEMPTEMPTEMP
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote

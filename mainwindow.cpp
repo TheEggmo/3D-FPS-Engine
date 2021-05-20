@@ -173,7 +173,8 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     light.name = "Light1";
     light.position = {0.0f, 10.0f, 0.0f};
     light.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
-    light1 = (ActorLight*)addActor(light);
+//    light1 = (ActorLight*)addActor(light);
+    addActor(light);
 
 
     // Create the projection Matrix
@@ -243,8 +244,10 @@ void MainWindow::process(){
             qDebug("Starting remote");
             remote.start();
             connect(&remote, SIGNAL(updateRemoteActor(int)), this, SLOT(setRemoteActorIdx(int)));
+
             connect(&remote, SIGNAL(addActor(ActorStatic)), this, SLOT(addActor(ActorStatic)));
             connect(&remote, SIGNAL(addActor(ActorPlayer)), this, SLOT(addActor(ActorPlayer)));
+            connect(&remote, SIGNAL(addActor(ActorLight)), this, SLOT(addActor(ActorLight)));
         }else{
             remote.raise();
             remote.activateWindow();
@@ -262,6 +265,10 @@ void MainWindow::process(){
             remote.update();
         }
     }
+
+//    if(bool lightFollowPlayer = false){
+//        light1->position = actorList[0]->position;
+//    }
 }
 
 void MainWindow::setRemoteActorIdx(int index){
@@ -304,7 +311,12 @@ void MainWindow::screenUpdate(){
             T3::MeshTexture model = a->getModel();
 //            model.flat = false;
             for(int i = 0; i < model.tris.size(); i++){
-                projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue, model.texture);
+                T3::Triangle t = model.tris[i];
+                t.p[0] += a->position;
+                t.p[1] += a->position;
+                t.p[2] += a->position;
+                projectTriangle(t, matWorld, camera, viewMatrix, &triangleQueue, model.texture);
+//                projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue, model.texture);
             }
         }
         // Project triangles for wireframe drawing
@@ -598,16 +610,26 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     // If the ray from triangle to camera is aligned with the normal, the triangle is visible
     T3::Vector3 cameraRay = triTransformed.p[0] - camera;
     if(normal.dotProduct(cameraRay) < 0){
-        // Add a light
-//        T3::Vector3 lightPoint = {10.0f, 10.0f, 10.0f};
-        T3::Vector3 lightPoint = light1->position;
-        T3::Vector3 lightDirection;
-//        lightDirection = (tri.p[0] - lightPoint).normalize(); // Get the direction from the triangle to the lightsource
-        lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
-        lightDirection = lightDirection.normalize();
+        // Calculate shading based on lights
+        float dp = 0;
+        for(Actor* a : actorList){
+            if(a->getType() != Light) continue;
 
-        // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
-        float dp = std::max(0.1f, normal.dotProduct(lightDirection));
+            T3::Vector3 lightPoint = a->position;
+            T3::Vector3 lightDirection;
+            lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
+            lightDirection = lightDirection.normalize();
+
+            // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
+            dp += std::max(0.1f, normal.dotProduct(lightDirection));
+        }
+//        T3::Vector3 lightPoint = light1->position;
+//        T3::Vector3 lightDirection;
+//        lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
+//        lightDirection = lightDirection.normalize();
+
+//        // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
+//        float dp = std::max(0.1f, normal.dotProduct(lightDirection));
 //        T2::Color8 shadedColor;
 //        shadedColor = drawingColor * dp;
 

@@ -510,10 +510,14 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
-                    pixOut[adrOut] = color.b;
-                    pixOut[adrOut+1] = color.g;
-                    pixOut[adrOut+2] = color.r;
+//                    pixOut[adrOut] = color.b;
+//                    pixOut[adrOut+1] = color.g;
+//                    pixOut[adrOut+2] = color.r;
+                    pixOut[adrOut] = T2::clamp(color.b, 0, 255);
+                    pixOut[adrOut+1] = T2::clamp(color.g, 0, 255);
+                    pixOut[adrOut+2] = T2::clamp(color.r, 0, 255);
                     pixOut[adrOut+3] = 255;
+
                     dBuffer[i*image->width() + j] = texW;
                 }
                 t += tStep;
@@ -596,10 +600,12 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
-                    pixOut[adrOut] = color.b;
-                    pixOut[adrOut+1] = color.g;
-                    pixOut[adrOut+2] = color.r;
-                    pixOut[adrOut+3] = 255;
+//                    pixOut[adrOut] = color.b;
+//                    pixOut[adrOut+1] = color.g;
+//                    pixOut[adrOut+2] = color.r;
+                    pixOut[adrOut] = T2::clamp(color.b, 0, 255);
+                    pixOut[adrOut+1] = T2::clamp(color.g, 0, 255);
+                    pixOut[adrOut+2] = T2::clamp(color.r, 0, 255);
                     dBuffer[i*image->width() + j] = texW;
                 }
                 t += tStep;

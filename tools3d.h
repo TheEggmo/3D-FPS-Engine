@@ -205,7 +205,7 @@ public:
 
     struct MeshTexture : public Mesh{
 //        bool flat = true;
-        QImage *texture;
+        QImage *texture = new QImage(10, 10, QImage::Format_ARGB32);
 
         // Load the mesh from obj file
         // Unlike Mesh, this one also reads texture data

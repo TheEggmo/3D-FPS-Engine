@@ -11,7 +11,7 @@ using T3 = Tools3D;
 
 enum ActorType{Base, Static, Player, Enemy, Light};
 
-// Base class. Doesn't have any logic other than colliding and preventing movement of ActorDynamic
+// Base class
 class Actor{
 protected:
     ActorType type = Base;
@@ -31,8 +31,6 @@ public:
     bool physicsEnabled = false; // If true, the body will have physics applied every frame (gravity etc.)
     bool logicEnabled = false; // If true, the body will process its logic(pathfinding, movement etc.)
     bool collisionEnabled = false; // If true, the body will have collisions
-
-
 
 //    virtual void processPhysics();
     virtual void processLogic() =0;

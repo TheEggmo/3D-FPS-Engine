@@ -16,8 +16,6 @@ Tools::Color8 Tools::getPixel(QImage *image, int x, int y){
     out.g = pix[adr+1];
     out.r = pix[adr+2];
 
-//    qDebug("%d %d %d", out.r, out.g, out.b);
-
     return out;
 }
 

@@ -39,9 +39,6 @@ public:
     // Returns a copy of the actorList
     std::vector<Actor*> getActorList();
 
-//    void addActor(ActorStatic a);
-//    void addActor(ActorPlayer a);
-
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
 
@@ -60,9 +57,6 @@ protected:
     void screenUpdate(); // Updates the screen by transforming the 3D world
     void processActors();
 
-//    float clamp(float in, float lo, float hi);
-//    float lerp(float from, float to, float mod);
-
     Tools3D::MeshTexture meshCube; // DELETE LATER, ONLY FOR DEBBUGING
     Tools3D::Mat4x4 matProj; // Projection matrix
 
@@ -80,8 +74,6 @@ protected:
     Tools::Vector2 lastMousePos = {0, 0};
     QCursor cursor;
 
-//    float *depthBuffer;
-//    std::vector<std::pair<float, Tools::Color8>> depthBuffer;
     std::vector<float> depthBuffer;
 
     std::vector<Actor*> actorList;
@@ -104,7 +96,6 @@ protected:
 
     int remoteActorIdx = 0;
 
-//    ActorLight* light1; //TEMPTEMPTEMPTEMPTEMPTEMPTEMP
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote

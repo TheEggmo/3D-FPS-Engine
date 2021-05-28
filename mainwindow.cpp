@@ -187,13 +187,6 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     Input.addAction("RIGHT", Qt::Key_D);
     Input.addAction("UP", Qt::Key_W);
     Input.addAction("DOWN", Qt::Key_S);
-//    Input = new InputMap;
-//    Input->addAction("JUMP", Qt::Key_Space);
-//    Input->addAction("CROUCH", Qt::Key_Control);
-//    Input->addAction("LEFT", Qt::Key_A);
-//    Input->addAction("RIGHT", Qt::Key_D);
-//    Input->addAction("UP", Qt::Key_W);
-//    Input->addAction("DOWN", Qt::Key_S);
 
     Input.addAction("TOGGLE_CAMFOLLOW", Qt::Key_Shift);
     Input.addAction("CAMJUMP", Qt::Key_PageUp);
@@ -309,8 +302,8 @@ void MainWindow::screenUpdate(){
         // Project triangles for drawing the Actor's model and texture
         if(a->visible){
             T3::MeshTexture model = a->getModel();
-//            model.flat = false;
             for(int i = 0; i < model.tris.size(); i++){
+                // THIS MIGHT NOT BE THE MOST OPTIMAL WAY
                 T3::Triangle t = model.tris[i];
                 t.p[0] += a->position;
                 t.p[1] += a->position;
@@ -320,7 +313,6 @@ void MainWindow::screenUpdate(){
             }
         }
         // Project triangles for wireframe drawing
-//        if(bool showColliders = true && a->collisionEnabled){
         if(remote.colWireEnabled() && a->collisionEnabled){
             if(camFollow && i == 0) continue;
             T3::Mesh collider = a->getCollider().toMesh(a->position);
@@ -436,8 +428,6 @@ void MainWindow::screenUpdate(){
 void MainWindow::mouseMoveEvent(QMouseEvent *event){
     if(!isActiveWindow()) return;
 
-//    qDebug("%d %d", event->x(), event->y());
-//    printf("%d %d", event->x(), event->y());
     T2::Vector2 sCenter = T2::Vector2(sWidth/2, sHeight/2);
     QPoint g = this->mapFromGlobal(QPoint(0, 0));
     sCenter.x -= g.x();
@@ -536,16 +526,6 @@ void MainWindow::processActors(){
     }
 }
 
-//float MainWindow::clamp(float in, float lo, float hi){
-//    if(in < lo) return lo;
-//    if(in > hi) return hi;
-//    return in;
-//}
-
-//float MainWindow::lerp(float from, float to, float mod){
-//    return from + (to - from) * mod;
-//}
-
 Actor* MainWindow::addActor(ActorStatic a){
     actorList.push_back(new ActorStatic);
     *(ActorStatic*)actorList.back() = a;
@@ -617,22 +597,25 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
 
             T3::Vector3 lightPoint = a->position;
             T3::Vector3 lightDirection;
-            lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
-            lightDirection = lightDirection.normalize();
+//            lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
+            lightDirection = (lightPoint - tri.getCentroid()).normalize(); // Get the direction from the triangle to the lightsource
+//            lightDirection = lightDirection.normalize();
 
             // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
-            dp += std::max(0.1f, normal.dotProduct(lightDirection));
+            float lightIntensity = 10;
+//            dp += std::max(0.1f, normal.dotProduct(lightDirection));
+//            dp += std::max(0.1f, normal.dotProduct(lightDirection)) * lightIntensity / (lightPoint - tri.p[0]).length();
+            dp += std::max(0.1f, normal.dotProduct(lightDirection)) * lightIntensity / (lightPoint - tri.getCentroid()).length();
         }
-//        T3::Vector3 lightPoint = light1->position;
-//        T3::Vector3 lightDirection;
-//        lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
-//        lightDirection = lightDirection.normalize();
 
-//        // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
-//        float dp = std::max(0.1f, normal.dotProduct(lightDirection));
-//        T2::Color8 shadedColor;
-//        shadedColor = drawingColor * dp;
-
+        // Super unoptimized shadow casting using raytracing
+        // 1.Create a sorted list of triangles, ordered by distance from the lightsource
+        // 2.Discard any triangles that are farther away than currently selected triangle
+        // 3.Check every triangle that is closer than this one and find out if the raycast
+        // going from the lightsource to this triangle is intersected
+//        auto dist = [&](Vector3 &p){
+//            return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - planeNormal.dotProduct(planePoint));
+//        };
 
         // Convert world space to view space
         triViewed = triTransformed * viewMatrix;
@@ -696,7 +679,6 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             triProjected.p[2].y *= 0.5f * (float)sHeight;
 
             // Copy texture data to new triangle
-//            triProjected.color = shadedColor;
             triProjected.shading = dp;
             triProjected.texture = texture;
 

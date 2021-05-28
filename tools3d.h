@@ -180,6 +180,10 @@ public:
 
             return out;
         }
+
+        Vector3 getCentroid(){
+            return  (p[0] + p[1] + p[2])/3;
+        }
     };
 
     // Struct representing a mesh of triangles

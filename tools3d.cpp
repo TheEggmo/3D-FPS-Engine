@@ -57,15 +57,13 @@ bool Tools3D::Mesh::loadFromFile(const QString& fileName){
 void Tools3D::Mesh::scale(float mod){
     for(int tIdx = 0; tIdx < tris.size(); tIdx++){
         for(int pIdx = 0; pIdx <= 2; pIdx++){
-//            tris[tIdx].p[pIdx] = tris[tIdx].p[pIdx] * mod;
             tris[tIdx].p[pIdx] *= mod;
         }
     }
 }
 void Tools3D::Mesh::scaleX(float mod){
     for(int tIdx = 0; tIdx < tris.size(); tIdx++){
-        for(int pIdx = 0; pIdx <= 2; pIdx++){
-//            tris[tIdx].p[pIdx].x = tris[tIdx].p[pIdx].x * mod;
+        for(int pIdx = 0; pIdx <= 2; pIdx++){;
             tris[tIdx].p[pIdx].x *= mod;
         }
     }
@@ -73,7 +71,6 @@ void Tools3D::Mesh::scaleX(float mod){
 void Tools3D::Mesh::scaleY(float mod){
     for(int tIdx = 0; tIdx < tris.size(); tIdx++){
         for(int pIdx = 0; pIdx <= 2; pIdx++){
-//            tris[tIdx].p[pIdx].y = tris[tIdx].p[pIdx].y * mod;
             tris[tIdx].p[pIdx].y *= mod;
         }
     }
@@ -81,7 +78,6 @@ void Tools3D::Mesh::scaleY(float mod){
 void Tools3D::Mesh::scaleZ(float mod){
     for(int tIdx = 0; tIdx < tris.size(); tIdx++){
         for(int pIdx = 0; pIdx <= 2; pIdx++){
-//            tris[tIdx].p[pIdx].z = tris[tIdx].p[pIdx].z * mod;
             tris[tIdx].p[pIdx].z *= mod;
         }
     }
@@ -90,9 +86,6 @@ void Tools3D::Mesh::move(Tools3D::Vector3 v){
     Mat4x4 mat = newMatTrans(v.x, v.y, v.z);
     for(int i = 0; i < tris.size(); i++){
         tris[i] = tris[i] * mat;
-//        tris[i].p[0] = tris[i].p[0] + v;
-//        tris[i].p[1] = tris[i].p[1] + v;
-//        tris[i].p[2] = tris[i].p[2] + v;
     }
 }
 bool Tools3D::Mesh::empty(){
@@ -122,7 +115,7 @@ bool Tools3D::MeshTexture::loadFromFile(const QString& fileName){
                         v.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
                     }else if(lineParts.at(0).compare("vn", Qt::CaseInsensitive) == 0){
                         //NORMAL
-//                                vn.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
+//                      vn.push_back({lineParts.at(1).toFloat(),lineParts.at(2).toFloat(),lineParts.at(3).toFloat()});
                     }else if(lineParts.at(0).compare("vt", Qt::CaseInsensitive) == 0){
                         //TEXTURE
                         vt.push_back({lineParts.at(1).toFloat(), lineParts.at(2).toFloat()});
@@ -140,14 +133,11 @@ bool Tools3D::MeshTexture::loadFromFile(const QString& fileName){
                             tri.t[1] = vt.at(lineParts.at(2).split("/").at(1).toInt() - 1);
                             tri.t[2] = vt.at(lineParts.at(3).split("/").at(1).toInt() - 1);
                         }
-//                        }else{
-//                            flat = true;
-//                        }
                         // Normals
                         // Currently unused
-//                                x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
-//                                x = v.at(lineParts.at(2).split("/").at(2).toInt() - 1);
-//                                x = v.at(lineParts.at(3).split("/").at(2).toInt() - 1);
+//                      x = v.at(lineParts.at(1).split("/").at(2).toInt() - 1);
+//                      x = v.at(lineParts.at(2).split("/").at(2).toInt() - 1);
+//                      x = v.at(lineParts.at(3).split("/").at(2).toInt() - 1);
 
                         tris.push_back(tri);
                     }
@@ -196,9 +186,6 @@ bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
 Tools3D::Mesh Tools3D::AABB::toMesh(Vector3 offset){
     Tools3D::Mesh out;
     out.loadFromFile("Assets/cube.obj");
-//    out.scaleX(size.x);
-//    out.scaleY(size.y);
-//    out.scaleZ(size.z);
     out.scaleX(size.x/2.0f);
     out.scaleY(size.y/2.0f);
     out.scaleZ(size.z/2.0f);
@@ -228,8 +215,9 @@ void Tools3D::drawTri(QImage *image, Triangle tri, T2::Color color){
     drawTri(image, tri, color.convert());
 }
 
-// Draw a filled triangle
+// Draw a filled triangle using a single color
 // Taken from OneLonelyCoder game engine tutorial, slightly modified by me
+// DEPRECIATED, USE textureTri() INSTEAD
 void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color8 color){
     auto SWAP = [](int &x, int &y) { int t = x; x = y; y = t; }; // Swaps the two values
 
@@ -695,7 +683,6 @@ Tools3D::Mat4x4 Tools3D::matPointAt(Vector3 pos, Vector3 target, Vector3 up){
 
     // Up
     Vector3 a = newForward * up.dotProduct(newForward);
-//    Vector3 a = newForward * dotProduct(up, newForward);
     Vector3 newUp = up - a;
     newUp = newUp.normalize();
 

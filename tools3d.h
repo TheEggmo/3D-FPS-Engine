@@ -56,45 +56,69 @@ public:
 
         // Overloads for basic math
         Vector3 operator+(Vector3 v){
-            Vector3 out;
-            out.x = this->x + v.x;
-            out.y = this->y + v.y;
-            out.z = this->z + v.z;
-            out.w = this->w + v.w;
-            return out;
+//            Vector3 out;
+//            out.x = this->x + v.x;
+//            out.y = this->y + v.y;
+//            out.z = this->z + v.z;
+//            out.w = this->w + v.w;
+//            return out;
+            return {
+                this->x + v.x,
+                this->y + v.y,
+                this->z + v.z,
+                this->w + v.w,
+            };
         }
         void operator+=(Vector3 v){
             *this = *this + v;
         }
         Vector3 operator-(Vector3 v){
-            Vector3 out;
-            out.x = this->x - v.x;
-            out.y = this->y - v.y;
-            out.z = this->z - v.z;
-//            out.w = this->w - v.w;
-            return out;
+//            Vector3 out;
+//            out.x = this->x - v.x;
+//            out.y = this->y - v.y;
+//            out.z = this->z - v.z;
+////            out.w = this->w - v.w;
+//            return out;
+            return {
+                this->x - v.x,
+                this->y - v.y,
+                this->z - v.z,
+                this->w - v.w,
+            };
         }
         Vector3 operator-=(Vector3 v){
             *this = *this - v;
         }
         Vector3 operator*(float k){
-            Vector3 out;
-            out.x = this->x * k;
-            out.y = this->y * k;
-            out.z = this->z * k;
-//            out.w = this->w * k;
-            return out;
+//            Vector3 out;
+//            out.x = this->x * k;
+//            out.y = this->y * k;
+//            out.z = this->z * k;
+////            out.w = this->w * k;
+//            return out;
+            return {
+                this->x * k,
+                this->y * k,
+                this->z * k,
+                this->w * k,
+            };
         }
         Vector3 operator*=(float k){
             *this = *this * k;
         }
         Vector3 operator/(float k){
-            Vector3 out;
-            out.x = this->x / k;
-            out.y = this->y / k;
-            out.z = this->z / k;
-//            out.w = this->w / k;
-            return out;
+//            Vector3 out;
+//            out.x = this->x / k;
+//            out.y = this->y / k;
+//            out.z = this->z / k;
+////            out.w = this->w / k;
+//            return out;
+            return {
+                this->x / k,
+                this->y / k,
+                this->z / k,
+                this->w / k,
+            };
         }
         Vector3 operator/=(float k){
             *this = *this / k;
@@ -132,6 +156,17 @@ public:
             float Nz = x * v.y - y * v.x;
             return {Nx, Ny, Nz};
         }
+        float distanceSquaredTo(Vector3 v){
+            return (v.x - this->x) * (v.x - this->x)
+                   + (v.y - this->y) * (v.y - this->y)
+                   + (v.z - this->z) * (v.z - this->z);
+        }
+        float distanceTo(Vector3 v){
+            return sqrt(distanceSquaredTo(v));
+        }
+        Vector3 directionTo(Vector3 v){
+            return (v - *this).normalize();
+        }
     };
 
     // Struct representing a triangle. Triangle points must be in clockwise order to properly calculate normals
@@ -140,7 +175,8 @@ public:
         UV t[3]; // Texture coordinates
 
 //        Tools::Color8 color;
-        float shading = 1.0f;
+        float shading = 0.1f;
+//        float shading = 1.0f;
         QImage *texture; // Whenever a triangle is clipped it retains a pointer to it's texture
 
         Triangle(){
@@ -183,6 +219,9 @@ public:
 
         Vector3 getCentroid(){
             return  (p[0] + p[1] + p[2])/3;
+        }
+        Vector3 getNormal(){
+            return (p[1] - p[0]).crossProduct(p[2] - p[0]).normalize();
         }
     };
 
@@ -349,6 +388,8 @@ public:
     // Clips a triangle against a plane. Returns the amount of triangles produced by clipping (0-2).
     // New triangles created by clipping are placed in outTri1 and outTri2.
     static int clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTri, Triangle &outTri1, Triangle &outTri2);
+
+    static bool rayIntersectsTriangle(Vector3 rayOrigin, Vector3 rayVector, Triangle* inTriangle, Vector3& outIntersectionPoint);
 };
 
 #endif // TOOLS3D_H

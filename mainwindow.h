@@ -13,6 +13,8 @@
 #include <chrono>
 #include <ctime>
 #include <utility>
+#include <vector>
+#include <utility> //pair()
 
 #include <tools.h>
 #include <tools3d.h>
@@ -96,6 +98,9 @@ protected:
 
     int remoteActorIdx = 0;
 
+    std::vector<T3::Triangle> trianglePool;
+    std::vector<T3::Triangle*> trianglePoolPointers;
+    std::vector<std::pair<ActorLight*, std::vector<Tools3D::Triangle*>>> lightPairs;
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote

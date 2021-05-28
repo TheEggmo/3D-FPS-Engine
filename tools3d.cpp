@@ -830,3 +830,36 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
 
     qDebug("CLIP TRIANGLE REACHED AN UNEXPETED END");
 }
+
+bool Tools3D::rayIntersectsTriangle(Tools3D::Vector3 rayOrigin, Tools3D::Vector3 rayVector,
+                                    Tools3D::Triangle *inTriangle, Tools3D::Vector3 &outIntersectionPoint){
+    const float EPSILON = 0.0000001;
+    Vector3 vertex0 = inTriangle->p[0];
+    Vector3 vertex1 = inTriangle->p[1];
+    Vector3 vertex2 = inTriangle->p[2];
+    Vector3 edge1, edge2, h, s, q;
+    float a,f,u,v;
+    edge1 = vertex1 - vertex0;
+    edge2 = vertex2 - vertex0;
+    h = rayVector.crossProduct(edge2);
+    a = edge1.dotProduct(h);
+    if (a > -EPSILON && a < EPSILON)
+        return false;    // This ray is parallel to this triangle.
+    f = 1.0/a;
+    s = rayOrigin - vertex0;
+    u = f * s.dotProduct(h);
+    if (u < 0.0 || u > 1.0)
+        return false;
+    q = s.crossProduct(edge1);
+    v = f * rayVector.dotProduct(q);
+    if (v < 0.0 || u + v > 1.0)
+        return false;
+    // At this stage we can compute t to find out where the intersection point is on the line.
+    float t = f * edge2.dotProduct(q);
+    if (t > EPSILON) // ray intersection
+    {
+        outIntersectionPoint = rayOrigin + rayVector * t;
+        return true;
+    }
+    else // This means that there is a line intersection but not a ray intersection.
+        return false;}

@@ -110,7 +110,7 @@ void InputMap::processInput(){
 bool InputMap::isActionJustPressed(string action){
     int idx = has(action);
     if(idx == -1){
-        qDebug("ACTION %s NOT FOUND", action);
+        qDebug("ACTION %s NOT FOUND", action.c_str());
         return false;
     }
     return actionMap[idx].state == PRESS;
@@ -119,7 +119,7 @@ bool InputMap::isActionJustPressed(string action){
 bool InputMap::isActionPressed(string action){
     int idx = has(action);
     if(idx == -1){
-        qDebug("ACTION %s NOT FOUND", action);
+        qDebug("ACTION %s NOT FOUND", action.c_str());
     }
     return actionMap[idx].state != NONE;
 }
@@ -127,7 +127,7 @@ bool InputMap::isActionPressed(string action){
 bool InputMap::isActionJustReleased(string action){
     int idx = has(action);
     if(idx == -1){
-        qDebug("ACTION %s NOT FOUND", action);
+        qDebug("ACTION %s NOT FOUND", action.c_str());
     }
     return actionMap[idx].state == RELEASE;
 }

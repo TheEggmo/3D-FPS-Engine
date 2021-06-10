@@ -83,9 +83,14 @@ void Tools3D::Mesh::scaleZ(float mod){
     }
 }
 void Tools3D::Mesh::move(Tools3D::Vector3 v){
-    Mat4x4 mat = newMatTrans(v.x, v.y, v.z);
+//    Mat4x4 mat = newMatTrans(v.x, v.y, v.z);
+//    for(int i = 0; i < tris.size(); i++){
+//        tris[i] = tris[i] * mat;
+//    }
     for(int i = 0; i < tris.size(); i++){
-        tris[i] = tris[i] * mat;
+        tris[i].p[0] += v;
+        tris[i].p[1] += v;
+        tris[i].p[2] += v;
     }
 }
 bool Tools3D::Mesh::empty(){
@@ -185,12 +190,50 @@ bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
 
 Tools3D::Mesh Tools3D::AABB::toMesh(Vector3 offset){
     Tools3D::Mesh out;
-    out.loadFromFile("Assets/cube.obj");
-    out.scaleX(size.x/2.0f);
-    out.scaleY(size.y/2.0f);
-    out.scaleZ(size.z/2.0f);
-    out.move(offset);
+//    out.loadFromFile("Assets/cube.obj");
+//    out.scaleX(size.x/2.0f);
+//    out.scaleY(size.y/2.0f);
+//    out.scaleZ(size.z/2.0f);
 
+    out.tris = {
+
+        // SOUTH
+        { {position.x, position.y, position.z},    {position.x, end.y, position.z},    {end.x, end.y, position.z},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {position.x, position.y, position.z},    {end.x, end.y, position.z},    {end.x, position.y, position.z},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {0.0f, 0.0f, 0.0f},    {0.0f, 1.0f, 0.0f},    {1.0f, 1.0f, 0.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 0.0f},    {1.0f, 1.0f, 0.0f},    {1.0f, 0.0f, 0.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+        // EAST
+        { {end.x, position.y, position.z},    {end.x, end.y, position.z},    {end.x, end.y, end.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {end.x, position.y, position.z},    {end.x, end.y, end.z},    {end.x, position.y, end.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+//        { {1.0f, 0.0f, 0.0f},    {1.0f, 1.0f, 0.0f},    {1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 0.0f},    {1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+
+        // NORTH
+        { {end.x, position.y, end.z},    {end.x, end.y, end.z},    {position.x, end.y, end.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {end.x, position.y, end.z},    {position.x, end.y, end.z},    {position.x, position.y, end.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+        // WEST
+        { {position.x, position.y, end.z},    {position.x, end.y, end.z},    {position.x, end.y, position.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {position.x, position.y, end.z},    {position.x, end.y, position.z},    {position.x, position.y, position.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f},    {0.0f, 0.0f, 0.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+        // TOP
+        { {position.x, end.y, position.z},    {position.x, end.y, end.z},    {end.x, end.y, end.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {position.x, end.y, position.z},    {end.x, end.y, end.z},    {end.x, end.y, position.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {0.0f, 1.0f, 0.0f},    {0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 1.0f, 0.0f},    {1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+
+        // BOTTOM
+        { {end.x, position.y, end.z},    {position.x, position.y, end.z},    {position.x, position.y, position.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {end.x, position.y, end.z},    {position.x, position.y, position.z},    {end.x, position.y, position.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f},    {1.0f, 0.0f, 0.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+    };
+    out.move(offset);
     return out;
 }
 
@@ -831,27 +874,38 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     qDebug("CLIP TRIANGLE REACHED AN UNEXPETED END");
 }
 
+// Moller-Trumbore intersection algorithm
 bool Tools3D::rayIntersectsTriangle(Tools3D::Vector3 rayOrigin, Tools3D::Vector3 rayVector,
                                     Tools3D::Triangle *inTriangle, Tools3D::Vector3 &outIntersectionPoint){
+    /// rayOrigin, rayVector is orig, dir in the paper
     const float EPSILON = 0.0000001;
-    Vector3 vertex0 = inTriangle->p[0];
-    Vector3 vertex1 = inTriangle->p[1];
-    Vector3 vertex2 = inTriangle->p[2];
-    Vector3 edge1, edge2, h, s, q;
-    float a,f,u,v;
-    edge1 = vertex1 - vertex0;
-    edge2 = vertex2 - vertex0;
-    h = rayVector.crossProduct(edge2);
-    a = edge1.dotProduct(h);
+    Vector3 vertex0 = inTriangle->p[0]; /// vert0 in the paper
+//    Vector3 vertex0 = inTriangle->p[0]; /// vert0 in the paper
+    Vector3 vertex1 = inTriangle->p[1]; /// vert1 in the paper
+    Vector3 vertex2 = inTriangle->p[2]; /// vert2 in the paper
+//    Vector3 vertex2 = inTriangle->p[2]; /// vert2 in the paper
+    Vector3 edge1, edge2, h, s, q; /// h, s, q is pvec, tvec, qvec in the paper
+    float a,f,u,v; /// a is det, u,v are parts of output vector
+
+    edge1 = vertex1 - vertex0; /// SUB(edge1, vert1, vert0
+    edge2 = vertex2 - vertex0; /// SUB(edge2, vert2, vert0
+
+    h = rayVector.crossProduct(edge2); /// CROSS(pvec, dir, edge2)
+    a = edge1.dotProduct(h); /// det = DOT(edge1, pvec)
+
     if (a > -EPSILON && a < EPSILON)
         return false;    // This ray is parallel to this triangle.
+
     f = 1.0/a;
-    s = rayOrigin - vertex0;
-    u = f * s.dotProduct(h);
+
+    s = rayOrigin - vertex0; /// SUB(tvec, orig, vert0)
+
+    u = f * s.dotProduct(h); /// u = DOT(tvec, pvec)
     if (u < 0.0 || u > 1.0)
         return false;
-    q = s.crossProduct(edge1);
-    v = f * rayVector.dotProduct(q);
+
+    q = s.crossProduct(edge1); /// CROSS(qvec, tvec, edge1)
+    v = f * rayVector.dotProduct(q); /// v = DOT(dir, qvec)
     if (v < 0.0 || u + v > 1.0)
         return false;
     // At this stage we can compute t to find out where the intersection point is on the line.
@@ -862,4 +916,5 @@ bool Tools3D::rayIntersectsTriangle(Tools3D::Vector3 rayOrigin, Tools3D::Vector3
         return true;
     }
     else // This means that there is a line intersection but not a ray intersection.
-        return false;}
+        return false;
+}

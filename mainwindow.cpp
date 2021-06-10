@@ -75,22 +75,38 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //   meshHub.loadFromFile("D:/Projects/Qt/NEW/build-Engine-Desktop_Qt_5_14_2_MinGW_64_bit-Release/Assets/capsule.obj");
     meshHub.loadFromFile("Assets/Artisans Hub.obj");
     meshHub.texture = new QImage("Assets/Artisans Hub.png");
+//    meshHub.texture = new QImage("Assets/debugWhite.png");
     ActorStatic hub;
     hub.setModel(meshHub);
     hub.visible = true;
     hub.setCollision(T3::AABB(meshHub));
     hub.name = "Hub";
     addActor(hub);
-//    meshCube.loadFromFile("Assets/capsule.obj");
 
 
-//   T3::MeshTexture meshCapsule;
-//   meshCapsule.loadFromFile("Assets/capsule.obj");
+    T3::MeshTexture meshCapsule;
+    meshCapsule.loadFromFile("Assets/capsule.obj");
+    meshCapsule.texture = new QImage("Assets/debugWhite.png");
 //   meshCapsule.texture = new QImage("Assets/capsule.jpg");
-//   Actor capsule;
-//   capsule.setModel(meshCapsule);
-//   capsule.visible = false;
-//   capsule.name = "Capsule";
+    meshCapsule.scaleX(100);
+    meshCapsule.scaleY(10);
+    meshCapsule.scaleZ(100);
+    ActorStatic capsule;
+    capsule.setModel(meshCapsule);
+    capsule.name = "Capsule";
+    capsule.position = {0, -10, 70};
+//    addActor(capsule);
+
+    T3::MeshTexture meshCube;
+    meshCube.loadFromFile("Assets/cube.obj");
+    meshCube.texture = new QImage("Assets/debugWhite.png");
+    meshCube.scaleX(30);
+    meshCube.scaleZ(30);
+    ActorStatic cube;
+    cube.setModel(meshCube);
+    cube.name = "Cube";
+    cube.position = {0, 30, 0};
+//    addActor(cube);
 
 //   T3::MeshTexture meshWatermelon;
 //   meshWatermelon.loadFromFile("Assets/watermelon2.obj");
@@ -178,158 +194,34 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 //    addActor(light);
 
 
-
-    // The following code will generate shading on triangles.
-    // Currently it runs only once on runtime, but I will change it later to also work when lights/objects move
-
-    // Generate a list of all triangles from actors
-//    std::vector<T3::Triangle> trianglePool;
-//    std::vector<T3::Triangle*> trianglePoolPointers;
-    for(Actor* a : actorList){
-        if(a->visible){
-            T3::MeshTexture mesh = a->getModel();
-            for(T3::Triangle tri : mesh.tris){
-                tri.texture = mesh.texture;
-                trianglePool.push_back(tri);
-            }
-        }
-    }
-    // Generate a list of pointer to triangles in trianglePool
-    trianglePoolPointers.resize(trianglePool.size());
-    for(int i = 0; i < trianglePool.size(); i++){
-        trianglePoolPointers[i] = &trianglePool[i];
-    }
-
-    // Add randomly placed lights
-    int lightCount = 5;
+   // Add randomly placed lights
+    int lightCount = 1;
 //    srand(time(NULL));
     srand(1);
+//    std::vector<ActorLight*> lightPointers;
     for(int i = 0; i < lightCount; i++){
-        ActorLight light;
-        light.name = "Light" + std::to_string(i);
-        light.position = {float(rand() % 1000) / 10.0,
-                          float(rand() % 100) / 10.0 + 10,
-                          float(rand() % 1000) / 10.0 - 100};
-        // Lights don't actually have collisions, only for debugging purposes
-        light.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
-//        addActor(light);
-//        lightPairs.push_back(std::pair<ActorLight*, std::vector<Tools3D::Triangle*>);
-
-        // Create a pair of the ActorLight and a copy of the list of pointers to trianglePool triangles
-        lightPairs.push_back(
-                    std::make_pair(
-                        (ActorLight*)addActor(light),
-                        trianglePoolPointers));
+       ActorLight light;
+       light.name = "Light" + std::to_string(i);
+       light.position = {0, 60, 0};
+//        light.position = {20, 60, -60};
+//        light.position = {float(rand() % 1000) / 10.0,
+//                          float(rand() % 100) / 10.0 + 10,
+//                          float(rand() % 1000) / 10.0 - 100};
+       // Lights don't actually have collisions, only for debugging purposes
+        light.setCollision(T3::AABB({-0.5, -0.5, -0.5}, {1, 1, 1}));
+        lightPointers.push_back((ActorLight*)addActor(light));
     }
-
-    // Remove triangles that can't be "seen" by the ActorLight (their normal points AWAY from the light)
-    // For every Actor...
-    for(int i = 0; i < lightPairs.size(); i++){
-        ActorLight* a = lightPairs[i].first;
-        std::vector<int> markedIdxs; // Holds the indexes of triangles marked for removal
-        // For every triangle...
-        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
-            T3::Triangle* tri = lightPairs[i].second[triIdx];
-            // Use cross-product to get surface normal
-            T3::Vector3 normal, line1, line2;
-
-            // Get two lines of the triangle
-            line1 = tri->p[1] - tri->p[0];
-            line2 = tri->p[2] - tri->p[0];
-
-            // Get the normal of the triangle surface and normalize it
-            normal = line1.crossProduct(line2);
-            normal = normal.normalize();
-
-//            T3::Vector3 lightRay = a->position - tri->getCentroid();
-            T3::Vector3 lightRay = tri->getCentroid() - a->position;
-            if(normal.dotProduct(lightRay.normalize()) >= 0){
-                markedIdxs.push_back(triIdx);
-            }
-        }
-        // Erase marked triangles
-        // These triangles will be ignored by this ActorLight
-        while(!markedIdxs.empty()){
-            int idx = markedIdxs.back();
-            markedIdxs.pop_back();
-            lightPairs[i].second.erase(lightPairs[i].second.begin() + idx);
-        }
-    }
-
-    // Sort the triangles in lightPairs based on their distance from the ActorLight.
-    // Then, remove triangles that don't have a direct line of sight to the ActorLight
-    // For every Actor...
-    for(int i = 0; i < lightPairs.size(); i++){
-        // Create the sorting function as a Lambda expression
-        // Sort based on distance squred(faster) from triangle centroid to ActorLight position
-        auto sortFunc = [&](T3::Triangle *tri1, T3::Triangle *tri2){
-            return tri1->getCentroid().distanceSquaredTo(lightPairs[i].first->position)
-                    < tri2->getCentroid().distanceSquaredTo(lightPairs[i].first->position);
-        };
-        // Sort the triangles
-        std::sort(lightPairs[i].second.begin(),
-                  lightPairs[i].second.end(),
-                  sortFunc);
-        // Mark triangles for removal
-        std::vector<int> markedIdxs; // Holds the indexes of triangles marked for removal
-        // For every triangle in the list...
-        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
-//            bool marked = false;
-            T3::Vector3 iPoint; // Unused, collects output from rayIntersectsTriangle()
-            // For all triangles that are closer to the ActorLight...
-            for(int closerIdx = triIdx - 1; closerIdx >= 0; closerIdx--){
-                // Check if the triangle blocks the ray from triIdx triangle to the ActorLight
-                // If true, mark it for removal
-                if(T3::rayIntersectsTriangle(lightPairs[i].first->position,
-                                             lightPairs[i].second[triIdx]->getCentroid(),
-                                             lightPairs[i].second[closerIdx],
-                                             iPoint)){
-//                    marked = true;
-                    markedIdxs.push_back(triIdx);
-                    break;
-                }
-            }
-//            if(marked) markedIdxs.push_back(triIdx);
-        }
-        // Erase marked triangles
-        // Erased triangles will be ignored by this ActorLight
-        while(!markedIdxs.empty()){
-            int idx = markedIdxs.back();
-            markedIdxs.pop_back();
-            lightPairs[i].second.erase(lightPairs[i].second.begin() + idx);
-        }
-    }
-
-    // Finally, apply shading to triangles
-    float lightIntensity = 10;
-    for(int i = 0; i < lightPairs.size(); i++){
-        for(T3::Triangle* tri : lightPairs[i].second){
-            T3::Vector3 lightPoint = lightPairs[i].first->position;
-//            T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid());
-            T3::Vector3 lightDirection = (lightPoint - tri->getCentroid()).normalize();
-//            tri->shading += std::max(0.0f, tri->getNormal()
-//                                     .dotProduct(lightDirection)
-//                                     * lightIntensity
-//                                     / lightPoint.distanceTo(tri->getCentroid()));
-
-            T3::Vector3 normal, line1, line2;
-            line1 = tri->p[1] - tri->p[0];
-            line2 = tri->p[2] - tri->p[0];
-            normal = line1.crossProduct(line2);
-            normal = normal.normalize();
-            tri->shading += std::max(0.0f, normal.dotProduct(lightDirection)
-                                     * lightIntensity
-                                     / (lightPoint - tri->getCentroid()).length());
-
-        }
-    }
+    // The following code will generate shading on triangles.
+    // Currently it runs only once on runtime, but I will change it later to also work when lights/objects move
+    castShadows(lightPointers);
 
     // Create the projection Matrix
     matProj = T3::newMatProj(90.0f, (float)sHeight/(float)sWidth, 0.1f, 1000.f);
 
     // Create the InputMap
     Input.addAction("JUMP", Qt::Key_Space);
-    Input.addAction("CROUCH", Qt::Key_Control);
+    Input.addAction("SPRINT", Qt::Key_Control);
+//    Input.addAction("CROUCH", Qt::Key_Control);
     Input.addAction("LEFT", Qt::Key_A);
     Input.addAction("RIGHT", Qt::Key_D);
     Input.addAction("UP", Qt::Key_W);
@@ -379,11 +271,13 @@ void MainWindow::process(){
     delta = frameTime.count();
     lastFrameTime = newFrameTime;
     if(Input.isActionJustPressed("START_REMOTE")){
+        // MOVE THIS TO A SEPARATE FUNCTION
         if(!remote){
             // If remote is not started, start it
             qDebug("Starting remote");
             remote.start();
             connect(&remote, SIGNAL(updateRemoteActor(int)), this, SLOT(setRemoteActorIdx(int)));
+            connect(&remote, SIGNAL(recastShadows()), this, SLOT(remoteCastShadows()));
 
             connect(&remote, SIGNAL(addActor(ActorStatic)), this, SLOT(addActor(ActorStatic)));
             connect(&remote, SIGNAL(addActor(ActorPlayer)), this, SLOT(addActor(ActorPlayer)));
@@ -478,8 +372,9 @@ void MainWindow::screenUpdate(){
     for(int i = 0; i < actorList.size(); i++){
         Actor *a = actorList[i];
         if(remote.colWireEnabled() && a->collisionEnabled){
-            if(camFollow && i == 0) continue;
-            T3::Mesh collider = a->getCollider().toMesh(a->position);
+            if(camFollow && i == 0) continue; // Don't render player collider when camera is attached
+            T3::Mesh collider = a->getCollider().toMesh();
+//            T3::Mesh collider = a->getCollider().toMesh(a->position);
             for(int i = 0; i < collider.tris.size(); i++){
                 projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
             }
@@ -636,7 +531,7 @@ void MainWindow::cameraUpdate(){
         camera = player->position;
     }else{
         // Calculate directions for movement relative to camera rotation
-        float speed = 1;
+        float speed = 1 + int(Input.isActionPressed("SPRINT"));
 
         T3::Vector3 forward = lookDir * speed;
         forward.y = 0;
@@ -911,3 +806,200 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     }
 }
 
+void MainWindow::castShadows(std::vector<ActorLight *> lights){
+    qDebug("Starting castShadows()");
+    // Generate a list of all triangles from visible actors
+    qDebug("Generating trianglePool");
+    trianglePool.clear();
+    for(Actor* a : actorList){
+        if(a->visible){
+            if(a->getType() == Light){
+                qDebug("SKIPPING LIGHT");
+            }else{
+                T3::MeshTexture mesh = a->getModel();
+                for(T3::Triangle tri : mesh.tris){
+                    tri.texture = mesh.texture;
+                    tri.p[0] += a->position;
+                    tri.p[1] += a->position;
+                    tri.p[2] += a->position;
+                    trianglePool.push_back(tri);
+                }
+            }
+        }
+    }
+
+    // Generate a list of pointer to triangles in trianglePool
+    qDebug("Generating trianglePoolPointers");
+    trianglePoolPointers.resize(trianglePool.size());
+    for(int i = 0; i < trianglePool.size(); i++){
+        trianglePoolPointers[i] = &trianglePool[i];
+    }
+
+    // Create pairs of the ActorLight and a copy of the list of pointers to trianglePool triangles
+    qDebug("Generating lightPairs");
+    lightPairs.clear();
+    for(ActorLight* light : lights){
+        std::vector<T3::Triangle*> pointers = trianglePoolPointers;
+        lightPairs.push_back(std::make_pair(light, pointers));
+    }
+
+//    // Remove triangles that can't be "seen" by the ActorLight (their normal points AWAY from the light)
+//    // For every Actor...
+//    for(int i = 0; i < lightPairs.size(); i++){
+//        ActorLight* a = lightPairs[i].first;
+//        std::vector<int> markedIdxs; // Holds the indexes of triangles marked for removal
+//        // For every triangle...
+//        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
+//            T3::Triangle* tri = lightPairs[i].second[triIdx];
+//            // Use cross-product to get surface normal
+//            T3::Vector3 normal, line1, line2;
+
+//            // Get two lines of the triangle
+//            line1 = tri->p[1] - tri->p[0];
+//            line2 = tri->p[2] - tri->p[0];
+
+//            // Get the normal of the triangle surface and normalize it
+//            normal = line1.crossProduct(line2);
+//            normal = normal.normalize();
+
+//            T3::Vector3 lightRay = tri->getCentroid() - a->position;
+//            if(normal.dotProduct(lightRay.normalize()) >=  0){
+//                markedIdxs.push_back(triIdx);
+//            }
+//        }
+//        // Erase marked triangles
+//        // These triangles will be ignored by this ActorLight
+//        while(!markedIdxs.empty()){
+//            int idx = markedIdxs.back();
+//            markedIdxs.pop_back();
+//            lightPairs[i].second.erase(lightPairs[i].second.begin() + idx);
+//        }
+//    }
+
+    // Sort the triangles in lightPairs based on their distance from the ActorLight.
+    // Then, remove triangles that don't have a direct line of sight to the ActorLight
+    // For every Actor...
+    for(int i = 0; i < lightPairs.size(); i++){
+        qDebug("Checking pair %d", i);
+        T3::Vector3 lightPos = lightPairs[i].first->position;
+//        T3::Vector3 lightPos = lightPairs[i].first->position + T3::Vector3(0, 15, 0);
+//        // Create the sorting function as a Lambda expression
+//        // Sort based on distance squred(faster) from triangle centroid to ActorLight position
+//        auto sortFunc = [=](T3::Triangle *tri1, T3::Triangle *tri2){
+//            return tri1->getCentroid().distanceSquaredTo(lightPairs[i].first->position)
+//                    < tri2->getCentroid().distanceSquaredTo(lightPairs[i].first->position);
+//        };
+//        // Sort the triangles
+//        std::sort(lightPairs[i].second.begin(),
+//                  lightPairs[i].second.end(),
+//                  sortFunc);
+        // Mark triangles for removal
+//        std::vector<int> markedIdxs; // Holds the indexes of triangles marked for removal
+//        // For every triangle in the SORTED list...
+//        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
+//            T3::Vector3 iPoint; // Unused, collects output from rayIntersectsTriangle()
+//            // For all triangles that are closer to the ActorLight...
+//            for(int closerIdx = 0; closerIdx < lightPairs[i].second.size(); closerIdx++){
+//                if(closerIdx == triIdx) continue;
+//                // Check if the closerIdx triangle blocks the ray from ActorLight to the triIdx triangle
+//                // If true, mark it for removal
+//                if(T3::rayIntersectsTriangle(lightPairs[i].first->position,
+////                                             lightPairs[i].second[triIdx]->p[0],
+//                                             lightPairs[i].second[triIdx]->getCentroid() + lightPairs[i].second[triIdx]->getNormal()*0.1,
+//                                             lightPairs[i].second[closerIdx],
+//                                             iPoint)){
+//                    markedIdxs.push_back(triIdx);
+//                    break;
+//                }
+//            }
+//        }
+        // For every triangle in the UNSORTED list...
+        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
+            // If the triangle is visible from the light, apply shading to it
+            T3::Triangle* tri = lightPairs[i].second[triIdx];
+            T3::Vector3 iPoint;
+            bool visible = true;
+            // Check every triangle
+            for(int otherIdx = 0; otherIdx < lightPairs[i].second.size(); otherIdx++){
+                if (triIdx == otherIdx) continue;
+
+                // If the ray from the light to the triangle
+                // is stopped by the other triangle, mark as not visible
+                T3::Vector3 centroid = tri->getCentroid();
+                if(T3::rayIntersectsTriangle(centroid,
+                                             (lightPos-centroid),
+//                                             (lightPos-centroid).normalize(),//normalizing is not necessary here
+                                             lightPairs[i].second[otherIdx],
+                                             iPoint)){
+//                if(T3::rayIntersectsTriangle(lightPairs[i].first->position,
+//                                             centroid,
+//                                             lightPairs[i].second[otherIdx],
+//                                             iPoint)){
+//                    qDebug("NOT VISIBLE, VERTS: P1(%f, %f, %f), P2(%f, %f, %f), P3(%f, %f, %f)",
+//                           tri->p[0].x, tri->p[0].y, tri->p[0].z,
+//                           tri->p[1].x, tri->p[1].y, tri->p[1].z,
+//                           tri->p[2].x, tri->p[2].y, tri->p[2].z);
+
+//                    qDebug("CENTROID: (%f, %f, %f)", centroid.x, centroid.y, centroid.z);
+                    visible = false;
+                    break;
+                }
+            }
+            // If triangle wasn't discarded, apply shading to it
+            if(visible){
+                int lightIntensity = 250;
+                T3::Vector3 lightPoint = lightPairs[i].first->position;
+                T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid()) * -1;
+//                T3::Vector3 lightDirection = (lightPoint - lightPairs[i].second[triIdx]->getCentroid()).normalize();
+                tri->shading += std::max(0.0f, tri->getNormal().dotProduct(lightDirection));
+//                tri->shading += std::max(0.0f, tri->getNormal().dotProduct(lightDirection)
+//                                         * lightIntensity
+//                                         / lightPoint.distanceTo(tri->getCentroid()));
+
+//                T3::Vector3 normal = tri->getNormal();
+//                lightPairs[i].second[triIdx]->shading += std::max(0.0f, normal.dotProduct(lightDirection));
+            }
+        }
+
+        //        // Erase marked triangles
+        //        // Erased triangles will be ignored by this ActorLight
+        //        while(!markedIdxs.empty()){
+        //            break;
+        //            int idx = markedIdxs.back();
+        //            markedIdxs.pop_back();
+        //            lightPairs[i].second.erase(lightPairs[i].second.begin() + idx);
+        //        }
+    }
+
+//    // Finally, apply shading to triangles
+//    float lightIntensity = 250;
+//    for(int i = 0; i < lightPairs.size(); i++){
+//        for(T3::Triangle* tri : lightPairs[i].second){
+
+//            T3::Vector3 lightPoint = lightPairs[i].first->position;
+////            T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid());
+//            T3::Vector3 lightDirection = (lightPoint - tri->getCentroid()).normalize();
+////            tri->shading += std::max(0.0f, tri->getNormal()
+////                                     .dotProduct(lightDirection)
+////                                     * lightIntensity
+////                                     / lightPoint.distanceTo(tri->getCentroid()));
+
+//            T3::Vector3 normal, line1, line2;
+//            line1 = tri->p[1] - tri->p[0];
+//            line2 = tri->p[2] - tri->p[0];
+//            normal = line1.crossProduct(line2);
+//            normal = normal.normalize();
+////            tri->shading += std::max(0.0f, normal.dotProduct(lightDirection)
+////                                     * lightIntensity
+////                                     / (lightPoint - tri->getCentroid()).length());
+//            tri->shading += std::max(0.0f, normal.dotProduct(lightDirection));
+
+//        }
+//    }
+    qDebug("castShadows() finished");
+}
+
+void MainWindow::remoteCastShadows(){
+    qDebug("Remote requested castShadows()");
+    castShadows(lightPointers);
+}

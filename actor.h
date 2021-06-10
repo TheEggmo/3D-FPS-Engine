@@ -103,7 +103,7 @@ public:
     }
 
     void processLogic() override {}
-    void processCollision(std::vector<Tools3D::AABB> colliders) override {}
+    void processCollision(std::vector<Tools3D::AABB> colliders) override;
 };
 
 #endif // ACTOR_H

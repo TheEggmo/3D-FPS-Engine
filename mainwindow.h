@@ -101,9 +101,14 @@ protected:
     std::vector<T3::Triangle> trianglePool;
     std::vector<T3::Triangle*> trianglePoolPointers;
     std::vector<std::pair<ActorLight*, std::vector<Tools3D::Triangle*>>> lightPairs;
+
+    std::vector<ActorLight*> lightPointers;
+    void castShadows(std::vector<ActorLight*> lights);
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote
+
+    void remoteCastShadows();
 
     Actor* addActor(ActorStatic a);
     Actor* addActor(ActorPlayer a);

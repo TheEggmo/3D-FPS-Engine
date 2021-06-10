@@ -58,9 +58,9 @@ void ActorPlayer::processLogic(){
     if(Input->isActionJustPressed("JUMP")){
         velocity.y = jumpSpeed;
     }
-    if(Input->isActionPressed("CROUCH")){
-        velocity.y -= jumpSpeed;
-    }
+//    if(Input->isActionPressed("CROUCH")){
+//        velocity.y -= jumpSpeed;
+//    }
 
     // Friction
     velocity.x = T2::lerp(velocity.x, 0, 0.1);
@@ -194,4 +194,8 @@ void ActorPlayer::processCollision(std::vector<Tools3D::AABB> colliders){
 
 void ActorEnemy::processCollision(std::vector<Tools3D::AABB> colliders){
 
+}
+
+void ActorLight::processCollision(std::vector<Tools3D::AABB> colliders){
+    collision.updatePosition(this->position);
 }

@@ -123,6 +123,7 @@ signals:
     void addActor(ActorStatic a);
     void addActor(ActorPlayer a);
     void addActor(ActorLight a);
+    void recastShadows();
 };
 
 #endif // REMOTE_H

@@ -4,24 +4,18 @@
 
 Remote::Remote(QWidget *parent) : QWidget(parent){
     setWindowTitle("Remote Access");
-//    resize(300, 300);
 
     mainLayout = new QVBoxLayout(this);
-//    setLayout(mainLayout);
 
     fpsDisplay = new QLabel("X FPS", this);
-//    fpsDisplay->move(10, 10);
-//    fpsDisplay->resize(100, 10)
     mainLayout->addWidget(fpsDisplay);
 
     colWireToggle = new QCheckBox("Enable collision wireframes", this);
-    colWireToggle->setChecked(false);
-//    colWireToggle->move(10, 40);
+    colWireToggle->setChecked(true);
     mainLayout->addWidget(colWireToggle);
     modelWireToggle = new QCheckBox("Enable model wireframes", this);
     modelWireToggle->setChecked(false);
     mainLayout->addWidget(modelWireToggle);
-//    modelWireToggle->move(10, 70);
 
     // Following widgets are used for modifying actor data during gameplay
     // Combobox for selecting an actor
@@ -263,6 +257,7 @@ void Remote::updateStoredActor(){
     storedActor->position.y = posY->value();
     storedActor->position.z = posZ->value();
     storedActor->gravity = actorGravity->value();
+    emit recastShadows();
 }
 
 //void Remote::updateStoredName(){

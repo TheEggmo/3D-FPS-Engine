@@ -43,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Setup mouse tracking/camera movement
     setMouseTracking(true);
     cursor = QCursor(Qt::BlankCursor);
-//    cursor = QCursor(Qt::CrossCursor);
     setCursor(cursor);
     yaw = pitch = 0.1f;
 
@@ -59,18 +58,8 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     player.name = "Player";
     player.position = {0, 100, 0};
     addActor(player);
-//    qDebug(player.Input);
-//    qDebug(&Input);
-//    actorList.push_back(&player);
-//    actorList.push_back(new Actor);
-//    *actorList[0] = player;
 
-    // Load debug/testing model
-//    meshCube.loadFromFile("Assets/axis.obj");
-//    meshCube.loadFromFile("Assets/watermelon.obj");
-//    meshCube.loadFromFile("Assets/watermelon2.obj");
-//    meshCube.loadFromFile("Assets/Hurricos.obj");
-//    meshCube.loadFromFile("Assets/Artisans Hub.obj");
+    // Load debug/testing models
     T3::MeshTexture meshHub;
 //   meshHub.loadFromFile("D:/Projects/Qt/NEW/build-Engine-Desktop_Qt_5_14_2_MinGW_64_bit-Release/Assets/capsule.obj");
     meshHub.loadFromFile("Assets/Artisans Hub.obj");
@@ -108,111 +97,23 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     cube.position = {0, 30, 0};
 //    addActor(cube);
 
-//   T3::MeshTexture meshWatermelon;
-//   meshWatermelon.loadFromFile("Assets/watermelon2.obj");
-//   meshWatermelon.scale(10);
-//   meshWatermelon.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
-//   Actor watermelon;
-//   watermelon.setModel(meshWatermelon);
-//   watermelon.visible = false;
-//   watermelon.name = "Watermelon";
-
-
-
-//    meshCube.tris = {
-
-//        // SOUTH
-//        { {0.0f, 0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-
-//        // EAST
-//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {1.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
-
-//        // NORTH
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-
-//        // WEST
-//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-
-//        // TOP
-//        { {0.0f, 1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {0.0f, 1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-
-//        // BOTTOM
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-//        { {1.0f, 0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 0.0f, 1.0f},    {1.0f, 0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
-//    };
-//    meshCube.scale(10);
-//    for(int i = 0; i < meshCube.tris.size(); i++){
-//        meshCube.tris[i] = meshCube.tris[i] * T3::newMatTrans(0, 50, 0);
-//    }
-
-//    meshCube.flat = true;
-
-//    cubeTexture = new QImage("Assets/dolphin.jpg");
-//    cubeTexture = new QImage("Assets/railgunIcon.png");
-//    cubeTexture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
-//    cubeTexture = new QImage("Assets/Hurricos.png");
-//    cubeTexture = new QImage("Assets/Artisans Hub.png");
-//    meshCube.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.jpg");
-//    meshCube.texture = new QImage("Assets/SMK_JJ0KQAO2_Watermelon_8K_Albedo.png");
-//    meshCube.texture = new QImage("Assets/capsule.jpg");
-//    meshCube.texture = new QImage("Assets/Artisans Hub.png");
-//    QImage *cubeTexture = new QImage("Assets/capsule.jpg");
-
-
-//    meshCube.loadFromFile("Assets/cube.obj");
-//    Actor cubeActor;
-//    cubeActor.setModel(meshCube);
-//    cubeActor.visible = true;
-//    cubeActor.name = "Cube";
-
-//    actorList.push_back(&cubeActor);
-//    actorList.push_back(&capsule);
-//    actorList.push_back(&hub);
-//    actorList.push_back(&watermelon);
-//    actorList.push_back(new Actor);
-//    actorList.push_back(new Actor);
-//    actorList.push_back(new ActorStatic);
-//    actorList.push_back(new Actor);
-//    *actorList[1] = cubeActor;
-//    *actorList[2] = capsule;
-//    *actorList[3] = hub;
-//    *actorList[4] = watermelon;
-//    addActor(cubeActor);
-//    addActor(capsule);
-//    addActor(watermelon);
-
-//    // Add a light
-//    ActorLight light;
-//    light.name = "Light1";
-//    light.position = {0.0f, 10.0f, 0.0f};
-//    light.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
-//    addActor(light);
-
 
    // Add randomly placed lights
     int lightCount = 1;
-//    srand(time(NULL));
-    srand(1);
-//    std::vector<ActorLight*> lightPointers;
+    srand(time(NULL));
+//    srand(1);
     for(int i = 0; i < lightCount; i++){
        ActorLight light;
        light.name = "Light" + std::to_string(i);
-       light.position = {0, 60, 0};
-//        light.position = {20, 60, -60};
-//        light.position = {float(rand() % 1000) / 10.0,
-//                          float(rand() % 100) / 10.0 + 10,
-//                          float(rand() % 1000) / 10.0 - 100};
+//       light.position = {0, 60, 0};
+       light.position = {float(rand() % 1000) / 10.0,
+                          float(rand() % 1000) / 10.0 + 10,
+                          float(rand() % 1000) / 10.0 - 100};
        // Lights don't actually have collisions, only for debugging purposes
-        light.setCollision(T3::AABB({-0.5, -0.5, -0.5}, {1, 1, 1}));
-        lightPointers.push_back((ActorLight*)addActor(light));
+       light.setCollision(T3::AABB({-0.5, -0.5, -0.5}, {1, 1, 1}));
+       lightPointers.push_back((ActorLight*)addActor(light));
     }
-    // The following code will generate shading on triangles.
-    // Currently it runs only once on runtime, but I will change it later to also work when lights/objects move
+
     castShadows(lightPointers);
 
     // Create the projection Matrix
@@ -337,46 +238,22 @@ void MainWindow::screenUpdate(){
     T3::Mat4x4 cameraMatrix = T3::matPointAt(camera, target, up);
     T3::Mat4x4 viewMatrix = T3::matQuickInverse(cameraMatrix);
 
-    // Proces triangles of every visible actor and place them in the triangleQueue for drawin
-//    for(int i = 0; i < actorList.size(); i++){
-//        Actor *a = actorList[i];
-//        // Project triangles for drawing the Actor's model and texture
-//        if(a->visible){
-//            T3::MeshTexture model = a->getModel();
-//            for(int i = 0; i < model.tris.size(); i++){
-//                // THIS MIGHT NOT BE THE MOST OPTIMAL WAY
-//                T3::Triangle t = model.tris[i];
-//                t.p[0] += a->position;
-//                t.p[1] += a->position;
-//                t.p[2] += a->position;
-//                projectTriangle(t, matWorld, camera, viewMatrix, &triangleQueue, model.texture);
-////                projectTriangle(model.tris[i], matWorld, camera, viewMatrix, &triangleQueue, model.texture);
-//            }
-//        }
-//        // Project triangles for wireframe drawing
-//        if(remote.colWireEnabled() && a->collisionEnabled){
-//            if(camFollow && i == 0) continue;
-//            T3::Mesh collider = a->getCollider().toMesh(a->position);
-//            for(int i = 0; i < collider.tris.size(); i++){
-//                projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
-//            }
-//        }
-//    }
-
     // Process triangles from trianglePool and place them in triangleQueue for drawing
     for(T3::Triangle tri : trianglePool){
         projectTriangle(tri, matWorld, camera, viewMatrix, &triangleQueue, tri.texture);
     }
 
     // Project triangles for wireframe drawing
-    for(int i = 0; i < actorList.size(); i++){
-        Actor *a = actorList[i];
-        if(remote.colWireEnabled() && a->collisionEnabled){
-            if(camFollow && i == 0) continue; // Don't render player collider when camera is attached
-            T3::Mesh collider = a->getCollider().toMesh();
-//            T3::Mesh collider = a->getCollider().toMesh(a->position);
-            for(int i = 0; i < collider.tris.size(); i++){
-                projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
+    if(remote.colWireEnabled()){
+        for(int i = 0; i < actorList.size(); i++){
+            Actor *a = actorList[i];
+            if(a->collisionEnabled){
+                if(camFollow && i == 0) continue; // Don't render player collider when camera is attached
+//                T3::Mesh collider = a->getCollider().toMesh();
+                T3::Mesh collider = a->getCollider().toMesh(a->position);
+                for(int i = 0; i < collider.tris.size(); i++){
+                    projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
+                }
             }
         }
     }
@@ -649,23 +526,6 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     // If the ray from triangle to camera is aligned with the normal, the triangle is visible
     T3::Vector3 cameraRay = triTransformed.p[0] - camera;
     if(normal.dotProduct(cameraRay) < 0){
-//        // Calculate shading based on lights
-//        float dp = 0;
-//        for(Actor* a : actorList){
-//            if(a->getType() != Light) continue;
-
-//            T3::Vector3 lightPoint = a->position;
-//            T3::Vector3 lightDirection;
-////            lightDirection = (lightPoint - tri.p[0]).normalize(); // Get the direction from the triangle to the lightsource
-//            lightDirection = (lightPoint - tri.getCentroid()).normalize(); // Get the direction from the triangle to the lightsource
-////            lightDirection = lightDirection.normalize();
-
-//            // Calculate the dot product of the light source and the normal to determine the intensity of shading/illumination
-//            float lightIntensity = 10;
-////            dp += std::max(0.1f, normal.dotProduct(lightDirection));
-////            dp += std::max(0.1f, normal.dotProduct(lightDirection)) * lightIntensity / (lightPoint - tri.p[0]).length();
-//            dp += std::max(0.1f, normal.dotProduct(lightDirection)) * lightIntensity / (lightPoint - tri.getCentroid()).length();
-//        }
 
         // Convert world space to view space
         triViewed = triTransformed * viewMatrix;
@@ -843,159 +703,49 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
         lightPairs.push_back(std::make_pair(light, pointers));
     }
 
-//    // Remove triangles that can't be "seen" by the ActorLight (their normal points AWAY from the light)
-//    // For every Actor...
-//    for(int i = 0; i < lightPairs.size(); i++){
-//        ActorLight* a = lightPairs[i].first;
-//        std::vector<int> markedIdxs; // Holds the indexes of triangles marked for removal
-//        // For every triangle...
-//        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
-//            T3::Triangle* tri = lightPairs[i].second[triIdx];
-//            // Use cross-product to get surface normal
-//            T3::Vector3 normal, line1, line2;
-
-//            // Get two lines of the triangle
-//            line1 = tri->p[1] - tri->p[0];
-//            line2 = tri->p[2] - tri->p[0];
-
-//            // Get the normal of the triangle surface and normalize it
-//            normal = line1.crossProduct(line2);
-//            normal = normal.normalize();
-
-//            T3::Vector3 lightRay = tri->getCentroid() - a->position;
-//            if(normal.dotProduct(lightRay.normalize()) >=  0){
-//                markedIdxs.push_back(triIdx);
-//            }
-//        }
-//        // Erase marked triangles
-//        // These triangles will be ignored by this ActorLight
-//        while(!markedIdxs.empty()){
-//            int idx = markedIdxs.back();
-//            markedIdxs.pop_back();
-//            lightPairs[i].second.erase(lightPairs[i].second.begin() + idx);
-//        }
-//    }
-
-    // Sort the triangles in lightPairs based on their distance from the ActorLight.
-    // Then, remove triangles that don't have a direct line of sight to the ActorLight
+    // Check every triangle
+    // If the triangle is visible from the light, apply shading to it
     // For every Actor...
     for(int i = 0; i < lightPairs.size(); i++){
         qDebug("Checking pair %d", i);
+
         T3::Vector3 lightPos = lightPairs[i].first->position;
-//        T3::Vector3 lightPos = lightPairs[i].first->position + T3::Vector3(0, 15, 0);
-//        // Create the sorting function as a Lambda expression
-//        // Sort based on distance squred(faster) from triangle centroid to ActorLight position
-//        auto sortFunc = [=](T3::Triangle *tri1, T3::Triangle *tri2){
-//            return tri1->getCentroid().distanceSquaredTo(lightPairs[i].first->position)
-//                    < tri2->getCentroid().distanceSquaredTo(lightPairs[i].first->position);
-//        };
-//        // Sort the triangles
-//        std::sort(lightPairs[i].second.begin(),
-//                  lightPairs[i].second.end(),
-//                  sortFunc);
-        // Mark triangles for removal
-//        std::vector<int> markedIdxs; // Holds the indexes of triangles marked for removal
-//        // For every triangle in the SORTED list...
-//        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
-//            T3::Vector3 iPoint; // Unused, collects output from rayIntersectsTriangle()
-//            // For all triangles that are closer to the ActorLight...
-//            for(int closerIdx = 0; closerIdx < lightPairs[i].second.size(); closerIdx++){
-//                if(closerIdx == triIdx) continue;
-//                // Check if the closerIdx triangle blocks the ray from ActorLight to the triIdx triangle
-//                // If true, mark it for removal
-//                if(T3::rayIntersectsTriangle(lightPairs[i].first->position,
-////                                             lightPairs[i].second[triIdx]->p[0],
-//                                             lightPairs[i].second[triIdx]->getCentroid() + lightPairs[i].second[triIdx]->getNormal()*0.1,
-//                                             lightPairs[i].second[closerIdx],
-//                                             iPoint)){
-//                    markedIdxs.push_back(triIdx);
-//                    break;
-//                }
-//            }
-//        }
-        // For every triangle in the UNSORTED list...
+
+        // For every triangle in the list...
         for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
-            // If the triangle is visible from the light, apply shading to it
             T3::Triangle* tri = lightPairs[i].second[triIdx];
             T3::Vector3 iPoint;
             bool visible = true;
+
             // Check every triangle
             for(int otherIdx = 0; otherIdx < lightPairs[i].second.size(); otherIdx++){
                 if (triIdx == otherIdx) continue;
 
-                // If the ray from the light to the triangle
+                // If the ray from the triangle to the light
                 // is stopped by the other triangle, mark as not visible
+                // Might me faster to inline this part
                 T3::Vector3 centroid = tri->getCentroid();
                 if(T3::rayIntersectsTriangle(centroid,
                                              (lightPos-centroid),
 //                                             (lightPos-centroid).normalize(),//normalizing is not necessary here
                                              lightPairs[i].second[otherIdx],
                                              iPoint)){
-//                if(T3::rayIntersectsTriangle(lightPairs[i].first->position,
-//                                             centroid,
-//                                             lightPairs[i].second[otherIdx],
-//                                             iPoint)){
-//                    qDebug("NOT VISIBLE, VERTS: P1(%f, %f, %f), P2(%f, %f, %f), P3(%f, %f, %f)",
-//                           tri->p[0].x, tri->p[0].y, tri->p[0].z,
-//                           tri->p[1].x, tri->p[1].y, tri->p[1].z,
-//                           tri->p[2].x, tri->p[2].y, tri->p[2].z);
-
-//                    qDebug("CENTROID: (%f, %f, %f)", centroid.x, centroid.y, centroid.z);
                     visible = false;
                     break;
                 }
             }
             // If triangle wasn't discarded, apply shading to it
             if(visible){
-                int lightIntensity = 250;
+                int lightIntensity = 150;
                 T3::Vector3 lightPoint = lightPairs[i].first->position;
                 T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid()) * -1;
-//                T3::Vector3 lightDirection = (lightPoint - lightPairs[i].second[triIdx]->getCentroid()).normalize();
-                tri->shading += std::max(0.0f, tri->getNormal().dotProduct(lightDirection));
-//                tri->shading += std::max(0.0f, tri->getNormal().dotProduct(lightDirection)
-//                                         * lightIntensity
-//                                         / lightPoint.distanceTo(tri->getCentroid()));
+                tri->shading += std::max(0.0f, tri->getNormal().dotProduct(lightDirection)
+                                         * lightIntensity
+                                         / lightPoint.distanceTo(tri->getCentroid()));
 
-//                T3::Vector3 normal = tri->getNormal();
-//                lightPairs[i].second[triIdx]->shading += std::max(0.0f, normal.dotProduct(lightDirection));
             }
         }
-
-        //        // Erase marked triangles
-        //        // Erased triangles will be ignored by this ActorLight
-        //        while(!markedIdxs.empty()){
-        //            break;
-        //            int idx = markedIdxs.back();
-        //            markedIdxs.pop_back();
-        //            lightPairs[i].second.erase(lightPairs[i].second.begin() + idx);
-        //        }
     }
-
-//    // Finally, apply shading to triangles
-//    float lightIntensity = 250;
-//    for(int i = 0; i < lightPairs.size(); i++){
-//        for(T3::Triangle* tri : lightPairs[i].second){
-
-//            T3::Vector3 lightPoint = lightPairs[i].first->position;
-////            T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid());
-//            T3::Vector3 lightDirection = (lightPoint - tri->getCentroid()).normalize();
-////            tri->shading += std::max(0.0f, tri->getNormal()
-////                                     .dotProduct(lightDirection)
-////                                     * lightIntensity
-////                                     / lightPoint.distanceTo(tri->getCentroid()));
-
-//            T3::Vector3 normal, line1, line2;
-//            line1 = tri->p[1] - tri->p[0];
-//            line2 = tri->p[2] - tri->p[0];
-//            normal = line1.crossProduct(line2);
-//            normal = normal.normalize();
-////            tri->shading += std::max(0.0f, normal.dotProduct(lightDirection)
-////                                     * lightIntensity
-////                                     / (lightPoint - tri->getCentroid()).length());
-//            tri->shading += std::max(0.0f, normal.dotProduct(lightDirection));
-
-//        }
-//    }
     qDebug("castShadows() finished");
 }
 

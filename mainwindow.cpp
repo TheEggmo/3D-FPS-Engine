@@ -716,6 +716,7 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
             T3::Triangle* tri = lightPairs[i].second[triIdx];
             T3::Vector3 iPoint;
             bool visible = true;
+            float lightPow[3] = {0,0,0};
 
             // Check every triangle
             for(int otherIdx = 0; otherIdx < lightPairs[i].second.size(); otherIdx++){
@@ -723,7 +724,7 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
 
                 // If the ray from the triangle to the light
                 // is stopped by the other triangle, mark as not visible
-                // Might me faster to inline this part
+                // Might be faster to inline this part
                 T3::Vector3 centroid = tri->getCentroid();
                 if(T3::rayIntersectsTriangle(centroid,
                                              (lightPos-centroid),
@@ -733,7 +734,26 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
                     visible = false;
                     break;
                 }
+                // Cast rays to triangle edges for shading interpolation
+                for(int j = 0; j <= 2 ; j++){
+                    if(T3::rayIntersectsTriangle(tri->p[j],
+                                                 lightPos - tri->p[j],
+                                                 lightPairs[i].second[otherIdx],
+                                                 iPoint)){
+                        lightPow[j] = 0;
+                    }else{
+                        int lightIntensity = 150;
+                        T3::Vector3 lightPoint = lightPairs[i].first->position;
+                        T3::Vector3 lightDirection = lightPoint.directionTo(tri->p[j]) * -1;
+//                        lightPow[j] = 1;
+                        lightPow[j] = std::max(0.1f, tri->getNormal().dotProduct(lightDirection)
+                                                * lightIntensity
+                                                / lightPoint.distanceTo(tri->p[j]));
+                    }
+                }
             }
+//            if(lightPow[0] == lightPow[1] == lightPow[2] == 0) visible = false;
+
             // If triangle wasn't discarded, apply shading to it
             if(visible){
                 int lightIntensity = 150;
@@ -743,6 +763,11 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
                                          * lightIntensity
                                          / lightPoint.distanceTo(tri->getCentroid()));
 
+            }
+            if(true/*visible*/){
+                tri->l[0] += lightPow[0];
+                tri->l[1] += lightPow[1];
+                tri->l[2] += lightPow[2];
             }
         }
     }

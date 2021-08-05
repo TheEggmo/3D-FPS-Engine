@@ -411,6 +411,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
     float w1 = tri.t[0].w;
     float w2 = tri.t[1].w;
     float w3 = tri.t[2].w;
+    float l1 = tri.l[0];
+    float l2 = tri.l[1];
+    float l3 = tri.l[2];
 
 
     // Sort points and their corresponding uv values
@@ -420,6 +423,7 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
         std::swap(u1, u2);
         std::swap(v1, v2);
         std::swap(w1, w2);
+        std::swap(l1, l2);
     }
     if(y3 < y1){
         std::swap(y1, y3);
@@ -427,6 +431,7 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
         std::swap(u1, u3);
         std::swap(v1, v3);
         std::swap(w1, w3);
+        std::swap(l1, l3);
     }
     if(y3 < y2){
         std::swap(y2, y3);
@@ -434,6 +439,7 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
         std::swap(u2, u3);
         std::swap(v2, v3);
         std::swap(w2, w3);
+        std::swap(l2, l3);
     }
 
     // Calculate triangle sides
@@ -515,7 +521,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     color.g = pixIn[adrIn+1];
                     color.r = pixIn[adrIn+2];
                     // Apply shading
-                    color = color * tri.shading;
+//                    color = color * tri.shading;
+                    color = color * T2::lerp(l1, l2, t);
+
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
@@ -546,7 +554,7 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
     if (dy1) dw1Step = dw1 / (float)abs(dy1);
 
     // Second loop goes from y2 to y3
-    // Mostly the same as second loop
+    // Mostly the same as first loop
     if(dy1){
         for(int i = y2; i <= y3; i++){
             int ax = x2 + (float)(i - y2) * daxStep;
@@ -586,8 +594,8 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                 // Scale UV coordinates to texture size
                 texU *= (texture->width() - 1);
                 texV *= (texture->height() - 1);
-                // Bitwise operation hack
-                // Works only if the texture dimensions are a power of 2
+//                // Bitwise operation hack
+//                // Works only if the texture dimensions are a power of 2
 //                unsigned int u = (unsigned int)texU & 255;
 
                 if(texW > dBuffer[i*image->width() + j]){
@@ -601,7 +609,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     color.g = pixIn[adrIn+1];
                     color.r = pixIn[adrIn+2];
                     // Apply shading
-                    color = color * tri.shading;
+//                    color = color * tri.shading;
+                    color = color * T2::lerp(l2, l3, t);
+//                    qDebug("%f %f %f", color.r, color.g, color.b);
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
@@ -747,24 +757,52 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         return (planeNormal.x * p.x + planeNormal.y * p.y + planeNormal.z * p.z - planeNormal.dotProduct(planePoint));
     };
 
+    // TEMP
+    if(!(inTri.l[0] == inTri.l[1] == inTri.l[2] == 0.1)){
+        qDebug("pog");
+    }
+
     // Create two temporary storage arrays to classify points either side of the plane
     // If distance sign is positive, point lies on the "inside" of the plane
     Vector3* insidePoints[3]; int insidePointCount = 0;
     Vector3* outsidePoints[3]; int outsidePointCount = 0;
     UV* insideTex[3]; int insideTexCount = 0;
     UV* outsideTex[3]; int outsideTexCount = 0;
+    float* insideLight[3]; int insideLightCount = 0;
+    float* outsideLight[3]; int outsideLightCount = 0;
 
     //Get distance of each point in triangle to plane
     float d0 = dist(inTri.p[0]);
     float d1 = dist(inTri.p[1]);
     float d2 = dist(inTri.p[2]);
 
-    if(d0 >= 0){ insidePoints[insidePointCount++] = &inTri.p[0]; insideTex[insideTexCount++] = &inTri.t[0];}
-    else{ outsidePoints[outsidePointCount++] = &inTri.p[0]; outsideTex[outsideTexCount++] = &inTri.t[0];}
-    if(d1 >= 0){ insidePoints[insidePointCount++] = &inTri.p[1]; insideTex[insideTexCount++] = &inTri.t[1];}
-    else{ outsidePoints[outsidePointCount++] = &inTri.p[1]; outsideTex[outsideTexCount++] = &inTri.t[1];}
-    if(d2 >= 0){ insidePoints[insidePointCount++] = &inTri.p[2]; insideTex[insideTexCount++] = &inTri.t[2];}
-    else{ outsidePoints[outsidePointCount++] = &inTri.p[2]; outsideTex[outsideTexCount++] = &inTri.t[2];}
+    if(d0 >= 0){
+        insidePoints[insidePointCount++] = &inTri.p[0];
+        insideTex[insideTexCount++] = &inTri.t[0];
+        insideLight[insideLightCount++] = &inTri.l[0];
+    }else{
+        outsidePoints[outsidePointCount++] = &inTri.p[0];
+        outsideTex[outsideTexCount++] = &inTri.t[0];
+        outsideLight[outsideLightCount++] = &inTri.l[0];
+    }
+    if(d1 >= 0){
+        insidePoints[insidePointCount++] = &inTri.p[1];
+        insideTex[insideTexCount++] = &inTri.t[1];
+        insideLight[insideLightCount++] = &inTri.l[1];
+    }else{
+        outsidePoints[outsidePointCount++] = &inTri.p[1];
+        outsideTex[outsideTexCount++] = &inTri.t[1];
+        outsideLight[outsideLightCount++] = &inTri.l[1];
+    }
+    if(d2 >= 0){
+        insidePoints[insidePointCount++] = &inTri.p[2];
+        insideTex[insideTexCount++] = &inTri.t[2];
+        insideLight[insideLightCount++] = &inTri.l[2];
+    }else{
+        outsidePoints[outsidePointCount++] = &inTri.p[2];
+        outsideTex[outsideTexCount++] = &inTri.t[2];
+        outsideLight[outsideLightCount++] = &inTri.l[2];
+    }
 
     // Classify triangle points and split triangles into smaller triangles if necessary
 
@@ -787,17 +825,20 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         // One point is valid, so it doesn't need to be calculated
         outTri1.p[0] = *insidePoints[0];
         outTri1.t[0] = *insideTex[0];
+        outTri1.l[0] = *insideLight[0];
         // The other two points are on the intersecting plane
         float t;
         outTri1.p[1] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0], t);
         outTri1.t[1].u = t * (outsideTex[0]->u - insideTex[0]->u) + insideTex[0]->u;
         outTri1.t[1].v = t * (outsideTex[0]->v - insideTex[0]->v) + insideTex[0]->v;
         outTri1.t[1].w = t * (outsideTex[0]->w - insideTex[0]->w) + insideTex[0]->w;
+        outTri1.l[1] = T2::lerp(*insideLight[0], *outsideLight[0], t);
 
         outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[1], t);
         outTri1.t[2].u = t * (outsideTex[1]->u - insideTex[0]->u) + insideTex[0]->u;
         outTri1.t[2].v = t * (outsideTex[1]->v - insideTex[0]->v) + insideTex[0]->v;
         outTri1.t[2].w = t * (outsideTex[1]->w - insideTex[0]->w) + insideTex[0]->w;
+        outTri1.l[2] = T2::lerp(*insideLight[0], *outsideLight[1], t);
 
         return 1; // One triangle is valid
     }
@@ -813,28 +854,35 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
         // It consists of the two inside points,
         // and a new point determined by the point where one side of the triangle intersects with the plane
         outTri1.p[0] = *insidePoints[0];
-        outTri1.t[0] = *insideTex[0];
         outTri1.p[1] = *insidePoints[1];
+        outTri1.t[0] = *insideTex[0];
         outTri1.t[1] = *insideTex[1];
+        outTri1.l[0] = *insideLight[0];
+        outTri1.l[1] = *insideLight[1];
 
         float t;
         outTri1.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[0], *outsidePoints[0], t);
         outTri1.t[2].u = t * (outsideTex[0]->u - insideTex[0]->u) + insideTex[0]->u;
         outTri1.t[2].v = t * (outsideTex[0]->v - insideTex[0]->v) + insideTex[0]->v;
         outTri1.t[2].w = t * (outsideTex[0]->w - insideTex[0]->w) + insideTex[0]->w;
+        outTri1.l[2] = T2::lerp(*insideLight[0], *outsideLight[0], t);
 
         // Contruct the second output triangle
         // It consists of one inside point,
         // the new point created for the first triangle,
         // and a new point determined by the intersection of the other side of the triangle and the plane
         outTri2.p[0] = *insidePoints[1];
-        outTri2.t[0] = *insideTex[1];
         outTri2.p[1] = outTri1.p[2];
+        outTri2.t[0] = *insideTex[1];
         outTri2.t[1] = outTri1.t[2];
+        outTri2.l[0] = *insideLight[1];
+        outTri2.l[1] = outTri1.l[2];
+
         outTri2.p[2] = intersectPlane(planePoint, planeNormal, *insidePoints[1], *outsidePoints[0], t);
         outTri2.t[2].u = t * (outsideTex[0]->u - insideTex[1]->u) + insideTex[1]->u;
         outTri2.t[2].v = t * (outsideTex[0]->v - insideTex[1]->v) + insideTex[1]->v;
         outTri2.t[2].w = t * (outsideTex[0]->w - insideTex[1]->w) + insideTex[1]->w;
+        outTri2.l[2] = T2::lerp(*insideLight[1], *outsideLight[0], t);
 
         return 2; // Two triangles are valid
     }

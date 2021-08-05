@@ -173,6 +173,7 @@ public:
     struct Triangle{
         Vector3 p[3]; // Triangle points' 3D coordinates
         UV t[3]; // Texture coordinates
+        float l[3] = {0.1f, 0.1f, 0.1f}; // Light intensity of each point
 
 //        Tools::Color8 color;
         float shading = 0.1f;

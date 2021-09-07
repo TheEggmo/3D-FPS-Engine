@@ -123,13 +123,16 @@ void Remote::trackDeltas(float delta){
     // Track the deltas over the last second and display average fps
     // This assumes that the target fps are 60
     deltaQueue.push_back(delta);
+//    if(deltaQueue.size() > 60){
+//        deltaQueue.pop_front();
+//    }
+
+    float sum = 0;
+    for(float delta : deltaQueue){
+        sum += delta;
+    }
 
     if(deltaQueue.size() >= 60){
-        float sum = 0;
-        for(float delta : deltaQueue){
-            sum += delta;
-        }
-
         float averageDelta = sum / (float)deltaQueue.size();
         int averageFps = 1.0/averageDelta;
         fpsDisplay->setText((std::to_string(averageFps) + " FPS").c_str());

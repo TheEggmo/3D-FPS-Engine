@@ -190,30 +190,48 @@ bool Tools3D::AABB::intersects(const Tools3D::AABB &other){
 
 Tools3D::Mesh Tools3D::AABB::toMesh(Vector3 offset){
     Tools3D::Mesh out;
+//    out.loadFromFile("Assets/cube.obj");
+//    out.scaleX(size.x/2.0f);
+//    out.scaleY(size.y/2.0f);
+//    out.scaleZ(size.z/2.0f);
+
     out.tris = {
+
         // SOUTH
-        { {positionLocal.x, positionLocal.y, positionLocal.z},    {positionLocal.x, endLocal.y, positionLocal.z},    {endLocal.x, endLocal.y, positionLocal.z},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {positionLocal.x, positionLocal.y, positionLocal.z},    {endLocal.x, endLocal.y, positionLocal.z},    {endLocal.x, positionLocal.y, positionLocal.z},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        { {position.x, position.y, position.z},    {position.x, end.y, position.z},    {end.x, end.y, position.z},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {position.x, position.y, position.z},    {end.x, end.y, position.z},    {end.x, position.y, position.z},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {0.0f, 0.0f, 0.0f},    {0.0f, 1.0f, 0.0f},    {1.0f, 1.0f, 0.0f},		{0.0f, 1.0f},   {0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 0.0f},    {1.0f, 1.0f, 0.0f},    {1.0f, 0.0f, 0.0f},		{0.0f, 1.0f},   {1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
         // EAST
-        { {endLocal.x, positionLocal.y, positionLocal.z},    {endLocal.x, endLocal.y, positionLocal.z},    {endLocal.x, endLocal.y, endLocal.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {endLocal.x, positionLocal.y, positionLocal.z},    {endLocal.x, endLocal.y, endLocal.z},    {endLocal.x, positionLocal.y, endLocal.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+        { {end.x, position.y, position.z},    {end.x, end.y, position.z},    {end.x, end.y, end.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {end.x, position.y, position.z},    {end.x, end.y, end.z},    {end.x, position.y, end.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
+//        { {1.0f, 0.0f, 0.0f},    {1.0f, 1.0f, 0.0f},    {1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 0.0f},    {1.0f, 1.0f, 1.0f},    {1.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f},   {1.0f, 1.0f}, },
 
         // NORTH
-        { {endLocal.x, positionLocal.y, endLocal.z},    {endLocal.x, endLocal.y, endLocal.z},    {positionLocal.x, endLocal.y, endLocal.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {endLocal.x, positionLocal.y, endLocal.z},    {positionLocal.x, endLocal.y, endLocal.z},    {positionLocal.x, positionLocal.y, endLocal.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        { {end.x, position.y, end.z},    {end.x, end.y, end.z},    {position.x, end.y, end.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {end.x, position.y, end.z},    {position.x, end.y, end.z},    {position.x, position.y, end.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {1.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f},    {0.0f, 0.0f, 1.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
         // WEST
-        { {positionLocal.x, positionLocal.y, endLocal.z},    {positionLocal.x, endLocal.y, endLocal.z},    {positionLocal.x, endLocal.y, positionLocal.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {positionLocal.x, positionLocal.y, endLocal.z},    {positionLocal.x, endLocal.y, positionLocal.z},    {positionLocal.x, positionLocal.y, positionLocal.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        { {position.x, position.y, end.z},    {position.x, end.y, end.z},    {position.x, end.y, position.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {position.x, position.y, end.z},    {position.x, end.y, position.z},    {position.x, position.y, position.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 1.0f},    {0.0f, 1.0f, 0.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 0.0f, 1.0f},    {0.0f, 1.0f, 0.0f},    {0.0f, 0.0f, 0.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
         // TOP
-        { {positionLocal.x, endLocal.y, positionLocal.z},    {positionLocal.x, endLocal.y, endLocal.z},    {endLocal.x, endLocal.y, endLocal.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {positionLocal.x, endLocal.y, positionLocal.z},    {endLocal.x, endLocal.y, endLocal.z},    {endLocal.x, endLocal.y, positionLocal.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        { {position.x, end.y, position.z},    {position.x, end.y, end.z},    {end.x, end.y, end.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {position.x, end.y, position.z},    {end.x, end.y, end.z},    {end.x, end.y, position.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {0.0f, 1.0f, 0.0f},    {0.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 1.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {0.0f, 1.0f, 0.0f},    {1.0f, 1.0f, 1.0f},    {1.0f, 1.0f, 0.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
 
         // BOTTOM
-        { {endLocal.x, positionLocal.y, endLocal.z},    {positionLocal.x, positionLocal.y, endLocal.z},    {positionLocal.x, positionLocal.y, positionLocal.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
-        { {endLocal.x, positionLocal.y, endLocal.z},    {positionLocal.x, positionLocal.y, positionLocal.z},    {endLocal.x, positionLocal.y, positionLocal.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+        { {end.x, position.y, end.z},    {position.x, position.y, end.z},    {position.x, position.y, position.z},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+        { {end.x, position.y, end.z},    {position.x, position.y, position.z},    {end.x, position.y, position.z},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f},		{0.0f, 1.0f}, 	{0.0f, 0.0f},   {1.0f, 0.0f}, },
+//        { {1.0f, 0.0f, 1.0f},    {0.0f, 0.0f, 0.0f},    {1.0f, 0.0f, 0.0f},		{0.0f, 1.0f}, 	{1.0f, 0.0f}, 	{1.0f, 1.0f}, },
     };
     out.move(offset);
     return out;
@@ -241,6 +259,7 @@ void Tools3D::drawTri(QImage *image, Triangle tri, T2::Color color){
 }
 
 // Draw a filled triangle using a single color
+// Taken from OneLonelyCoder game engine tutorial, slightly modified by me
 // DEPRECIATED, USE textureTri() INSTEAD
 void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color8 color){
     auto SWAP = [](int &x, int &y) { int t = x; x = y; y = t; }; // Swaps the two values
@@ -252,6 +271,9 @@ void Tools3D::fillTri(QImage *image, Triangle tri, T2::Color8 color){
     int y1 = tri.p[0].y;
     int y2 = tri.p[1].y;
     int y3 = tri.p[2].y;
+//    int z1 = tri.p[0].z;
+//    int z2 = tri.p[1].z;
+//    int z3 = tri.p[2].z;
 
     int t1x, t2x, y, minx, maxx, t1xp, t2xp;
     bool changed1 = false;
@@ -519,6 +541,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
+//                    pixOut[adrOut] = color.b;
+//                    pixOut[adrOut+1] = color.g;
+//                    pixOut[adrOut+2] = color.r;
                     pixOut[adrOut] = T2::clamp(color.b, 0, 255);
                     pixOut[adrOut+1] = T2::clamp(color.g, 0, 255);
                     pixOut[adrOut+2] = T2::clamp(color.r, 0, 255);
@@ -548,6 +573,7 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
     // Second loop goes from y2 to y3
     // Mostly the same as second loop
     if(dy1){
+        //ZMIENIĆ I NA FLOAT
         for(int i = y2; i <= y3; i++){
             int ax = x2 + (float)(i - y2) * daxStep;
             int bx = x1 + (float)(i - y1) * dbxStep;
@@ -605,6 +631,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     // Inlining the drawing function improves performance by approx. 3 times
                     uchar *pixOut = image->scanLine(i);
                     int adrOut = 4 * j;
+//                    pixOut[adrOut] = color.b;
+//                    pixOut[adrOut+1] = color.g;
+//                    pixOut[adrOut+2] = color.r;
                     pixOut[adrOut] = T2::clamp(color.b, 0, 255);
                     pixOut[adrOut+1] = T2::clamp(color.g, 0, 255);
                     pixOut[adrOut+2] = T2::clamp(color.r, 0, 255);
@@ -780,6 +809,7 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     // One point is on the inside, the triangle is clipped into a smaller triangle
     if(insidePointCount == 1 && outsidePointCount == 2){
         // Copy triangle color/texture data into the new triangle
+//        outTri1.color = inTri.color;
         outTri1.texture = inTri.texture;
         outTri1.shading = inTri.shading;
 
@@ -804,8 +834,10 @@ int Tools3D::clipTriangle(Vector3 planePoint, Vector3 planeNormal, Triangle inTr
     // Two points are on the inside, the triangle is clipped and split into two smaller triangles
     if(insidePointCount == 2 && outsidePointCount == 1){
         // Copy triangle color/texture data into the new triangles
+//        outTri1.color = inTri.color;
         outTri1.texture = inTri.texture;
         outTri1.shading = inTri.shading;
+//        outTri2.color = inTri.color;
         outTri2.texture = inTri.texture;
         outTri2.shading = inTri.shading;
 
@@ -848,8 +880,10 @@ bool Tools3D::rayIntersectsTriangle(Tools3D::Vector3 rayOrigin, Tools3D::Vector3
     /// rayOrigin, rayVector is orig, dir in the paper
     const float EPSILON = 0.0000001;
     Vector3 vertex0 = inTriangle->p[0]; /// vert0 in the paper
+//    Vector3 vertex0 = inTriangle->p[0]; /// vert0 in the paper
     Vector3 vertex1 = inTriangle->p[1]; /// vert1 in the paper
     Vector3 vertex2 = inTriangle->p[2]; /// vert2 in the paper
+//    Vector3 vertex2 = inTriangle->p[2]; /// vert2 in the paper
     Vector3 edge1, edge2, h, s, q; /// h, s, q is pvec, tvec, qvec in the paper
     float a,f,u,v; /// a is det, u,v are parts of output vector
 

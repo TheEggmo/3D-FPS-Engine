@@ -15,6 +15,7 @@ void Actor::setTexture(const QString &filepath){
     if(!newTexture->isNull()){
         model.texture = new QImage(filepath);
     }
+//    model.texture = new QImage(filepath);
 }
 
 //void ActorStatic::processCollision(std::vector<Tools3D::AABB> colliders){
@@ -25,6 +26,7 @@ void Actor::setTexture(const QString &filepath){
 //}
 
 void ActorPlayer::processLogic(){
+//    if(!logicEnabled) return;
     float jumpSpeed = 3;
     float maxJumpSpeed = 4;
     float moveSpeed = 0.5;

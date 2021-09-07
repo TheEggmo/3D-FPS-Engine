@@ -11,11 +11,14 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     mainLayout->addWidget(fpsDisplay);
 
     colWireToggle = new QCheckBox("Enable collision wireframes", this);
-    colWireToggle->setChecked(true);
+    colWireToggle->setChecked(false);
     mainLayout->addWidget(colWireToggle);
     modelWireToggle = new QCheckBox("Enable model wireframes", this);
     modelWireToggle->setChecked(false);
     mainLayout->addWidget(modelWireToggle);
+    shadingToggle = new QCheckBox("Enable shading", this);
+    shadingToggle->setChecked(false);
+    mainLayout->addWidget(shadingToggle);
 
     // Following widgets are used for modifying actor data during gameplay
     // Combobox for selecting an actor
@@ -89,12 +92,16 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     actorManagementLayout = new QHBoxLayout(this);
     duplicateActorButton = new QPushButton("Duplicate Actor");
     connect(duplicateActorButton, SIGNAL(clicked(bool)), this, SLOT(duplicateStoredActor()));
-    exportActorButton = new QPushButton("Export Actor(unimplemented)");
-    importActorButton = new QPushButton("Import Actor(unimplemented)");
+    exportActorButton = new QPushButton("Export Actor");
+    importActorButton = new QPushButton("Import Actor");
     actorManagementLayout->addWidget(duplicateActorButton);
     actorManagementLayout->addWidget(exportActorButton);
     actorManagementLayout->addWidget(importActorButton);
     mainLayout->addLayout(actorManagementLayout);
+
+    // TEMP, these two are unimplemented
+    exportActorButton->setDisabled(true);
+    importActorButton->setDisabled(true);
 
     // Button that applies all current values in the remote to the selected actor
     // If this is not pressed and MainWindow regains focus, most changes will be lost

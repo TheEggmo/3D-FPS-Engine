@@ -695,6 +695,14 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
         trianglePoolPointers[i] = &trianglePool[i];
     }
 
+    // If shading is disabled, apply maximum light to everything and return
+    if(!remote.shadingEnabled()){
+        for(T3::Triangle *tri : trianglePoolPointers){
+            tri->shading = 1;
+        }
+        return;
+    }
+
     // Create pairs of the ActorLight and a copy of the list of pointers to trianglePool triangles
     qDebug("Generating lightPairs");
     lightPairs.clear();

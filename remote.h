@@ -43,6 +43,9 @@ public:
     bool modelWireEnabled(){
         return modelWireToggle->isChecked();
     }
+    bool shadingEnabled(){
+        return shadingToggle->isChecked();
+    }
     void updateActorSelect(std::vector<std::string> names);
     void updateActorInfo(Actor *actor);
 //    void updateActorInfo(ActorDynamic *actor);
@@ -57,6 +60,7 @@ private:
 
     QCheckBox *colWireToggle;
     QCheckBox *modelWireToggle;
+    QCheckBox *shadingToggle;
 
     QComboBox *actorSelect;
     QFormLayout *actorInfoLayout;

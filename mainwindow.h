@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <utility> //pair()
+#include <thread>
 
 #include <tools.h>
 #include <tools3d.h>
@@ -43,6 +44,17 @@ public:
 
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
+
+    // Multithreading stuff
+    // Thread counts
+    unsigned int overrideTC = 100; // Set other TCs to this if above 0
+    unsigned int shadingTC = 1;
+    unsigned int projectionTC = 1;
+    unsigned int drawingTC = 1;
+    // Storage vectors
+    std::vector<std::thread> shadingThreads;
+    std::vector<std::thread> projectionThreads;
+    std::vector<std::thread> drawingThreads;
 
     void closeEvent(QCloseEvent *event) override;
 //    void mousePressEvent(QMouseEvent *event) override;
@@ -103,7 +115,9 @@ protected:
     std::vector<std::pair<ActorLight*, std::vector<Tools3D::Triangle*>>> lightPairs;
 
     std::vector<ActorLight*> lightPointers;
+    void shadeTriangle(int triIdx, T3::Vector3 lightPoint, std::vector<T3::Triangle*> tPointers);
     void castShadows(std::vector<ActorLight*> lights);
+    void castShadowsThread(unsigned int threadID);
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote

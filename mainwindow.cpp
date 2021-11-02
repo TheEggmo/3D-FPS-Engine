@@ -6,7 +6,6 @@
 #include <list>
 #include <typeinfo>
 #include <cstdlib> // rand()
-//#include <map>
 
 #include <QDebug>
 
@@ -53,18 +52,26 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Refresh every 16 msec, which is aprox 60fps
     processTimer->start(1000/targetFps);
 
+    // Multithreading
+    if(overrideTC > 0){
+        shadingTC = overrideTC;
+        projectionTC = overrideTC;
+        drawingTC = overrideTC;
+    }
+
+    // Create actors
+
+    // Player
     ActorPlayer player = ActorPlayer(&Input, &lookDir);
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
     player.position = {0, 100, 0};
     addActor(player);
 
-    // Load debug/testing models
+    // Terrain
     T3::MeshTexture meshHub;
-//   meshHub.loadFromFile("D:/Projects/Qt/NEW/build-Engine-Desktop_Qt_5_14_2_MinGW_64_bit-Release/Assets/capsule.obj");
     meshHub.loadFromFile("Assets/Artisans Hub.obj");
     meshHub.texture = new QImage("Assets/Artisans Hub.png");
-//    meshHub.texture = new QImage("Assets/debugWhite.png");
     ActorStatic hub;
     hub.setModel(meshHub);
     hub.visible = true;
@@ -73,35 +80,34 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     addActor(hub);
 
 
-    T3::MeshTexture meshCapsule;
-    meshCapsule.loadFromFile("Assets/capsule.obj");
-    meshCapsule.texture = new QImage("Assets/debugWhite.png");
+//    T3::MeshTexture meshCapsule;
+//    meshCapsule.loadFromFile("Assets/capsule.obj");
+//    meshCapsule.texture = new QImage("Assets/debugWhite.png");
 //   meshCapsule.texture = new QImage("Assets/capsule.jpg");
-    meshCapsule.scaleX(100);
-    meshCapsule.scaleY(10);
-    meshCapsule.scaleZ(100);
-    ActorStatic capsule;
-    capsule.setModel(meshCapsule);
-    capsule.name = "Capsule";
-    capsule.position = {0, -10, 70};
+//    meshCapsule.scaleX(100);
+//    meshCapsule.scaleY(10);
+//    meshCapsule.scaleZ(100);
+//    ActorStatic capsule;
+//    capsule.setModel(meshCapsule);
+//    capsule.name = "Capsule";
+//    capsule.position = {0, -10, 70};
 //    addActor(capsule);
 
-    T3::MeshTexture meshCube;
-    meshCube.loadFromFile("Assets/cube.obj");
-    meshCube.texture = new QImage("Assets/debugWhite.png");
-    meshCube.scaleX(30);
-    meshCube.scaleZ(30);
-    ActorStatic cube;
-    cube.setModel(meshCube);
-    cube.name = "Cube";
-    cube.position = {0, 30, 0};
+//    T3::MeshTexture meshCube;
+//    meshCube.loadFromFile("Assets/cube.obj");
+//    meshCube.texture = new QImage("Assets/debugWhite.png");
+//    meshCube.scaleX(30);
+//    meshCube.scaleZ(30);
+//    ActorStatic cube;
+//    cube.setModel(meshCube);
+//    cube.name = "Cube";
+//    cube.position = {0, 30, 0};
 //    addActor(cube);
 
 
-   // Add randomly placed lights
+   // Add randomly placed light actors
     int lightCount = 1;
     srand(time(NULL));
-//    srand(1);
     for(int i = 0; i < lightCount; i++){
        ActorLight light;
        light.name = "Light" + std::to_string(i);
@@ -122,7 +128,6 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     // Create the InputMap
     Input.addAction("JUMP", Qt::Key_Space);
     Input.addAction("SPRINT", Qt::Key_Control);
-//    Input.addAction("CROUCH", Qt::Key_Control);
     Input.addAction("LEFT", Qt::Key_A);
     Input.addAction("RIGHT", Qt::Key_D);
     Input.addAction("UP", Qt::Key_W);
@@ -153,8 +158,14 @@ std::vector<Actor*> MainWindow::getActorList(){
 }
 
 void MainWindow::closeEvent(QCloseEvent *event){
-    // When MainWindow is closed the remote might break due to pointers
+//    // Wait for threads
+//    for(int i = 0; i < shadingTC; i++){
+//        shadingThreads[i].join();
+//    }
+
+    // Close remote
     remote.close();
+
     event->accept();
 }
 
@@ -251,7 +262,6 @@ void MainWindow::screenUpdate(){
             Actor *a = actorList[i];
             if(a->collisionEnabled){
                 if(camFollow && i == 0) continue; // Don't render player collider when camera is attached
-//                T3::Mesh collider = a->getCollider().toMesh();
                 T3::Mesh collider = a->getCollider().toMesh(a->position);
                 for(int i = 0; i < collider.tris.size(); i++){
                     projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
@@ -670,8 +680,52 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
     }
 }
 
+void MainWindow::shadeTriangle(int triIdx, T3::Vector3 lightPoint, std::vector<T3::Triangle*> tPointers){
+    T3::Triangle* tri = tPointers[triIdx];
+    T3::Vector3 iPoint; // Intersection point, unused
+    bool visible = true;
+
+    // Check every triangle to see if it blocks the light
+    for(int otherIdx = 0; otherIdx < tPointers.size(); otherIdx++){
+        if (triIdx == otherIdx) continue;
+
+        // If the ray from the triangle to the light
+        // is stopped by the other triangle, mark as not visible
+        T3::Vector3 centroid = tri->getCentroid();
+        if(T3::rayIntersectsTriangle(centroid,
+                                     (lightPoint-centroid),
+                                     tPointers[otherIdx],
+                                     iPoint)){
+            visible = false;
+            break;
+        }
+    }
+    // If triangle wasn't discarded, apply shading to it
+    if(visible){
+        int lightIntensity = 150;
+        T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid()) * -1;
+        float angle = tri->getNormal().dotProduct(lightDirection);
+        float distance = lightPoint.distanceTo(tri->getCentroid());
+        tri->shading += std::max(0.0f, angle
+                                 * lightIntensity
+                                 / distance);
+
+    }
+}
+
+void MainWindow::castShadowsThread(unsigned int threadID){
+    // For each light...
+    for(int i = 0; i < lightPairs.size(); i++){
+        // ...shade triangles corresponding to threadID
+        for(int triIdx = threadID; triIdx < lightPairs[i].second.size(); triIdx += shadingTC){
+            shadeTriangle(triIdx, lightPairs[i].first->position, lightPairs[i].second);
+        }
+    }
+}
+
 void MainWindow::castShadows(std::vector<ActorLight *> lights){
     qDebug("Starting castShadows()");
+
     // Generate a list of all triangles from visible actors
     qDebug("Generating trianglePool");
     trianglePool.clear();
@@ -699,11 +753,9 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
         trianglePoolPointers[i] = &trianglePool[i];
     }
 
-    // MEASURE START TIME
-    // START SHADING MULTITHREADING
-
     // If shading is disabled, apply maximum light to everything and return
     if(!remote.shadingEnabled()){
+        qDebug("Shading is disabled, returning");
         for(T3::Triangle *tri : trianglePoolPointers){
             tri->shading = 1;
         }
@@ -718,52 +770,15 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
         lightPairs.push_back(std::make_pair(light, pointers));
     }
 
-    // Check every triangle
-    // If the triangle is visible from the light, apply shading to it
-    // For every Actor...
-    for(int i = 0; i < lightPairs.size(); i++){
-        qDebug("Checking pair %d", i);
-
-        T3::Vector3 lightPos = lightPairs[i].first->position;
-
-        // For every triangle in the list...
-        for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
-            T3::Triangle* tri = lightPairs[i].second[triIdx];
-            T3::Vector3 iPoint;
-            bool visible = true;
-
-            // Check every triangle
-            for(int otherIdx = 0; otherIdx < lightPairs[i].second.size(); otherIdx++){
-                if (triIdx == otherIdx) continue;
-
-                // If the ray from the triangle to the light
-                // is stopped by the other triangle, mark as not visible
-                // Might me faster to inline this part
-                T3::Vector3 centroid = tri->getCentroid();
-                if(T3::rayIntersectsTriangle(centroid,
-                                             (lightPos-centroid),
-//                                             (lightPos-centroid).normalize(),//normalizing is not necessary here
-                                             lightPairs[i].second[otherIdx],
-                                             iPoint)){
-                    visible = false;
-                    break;
-                }
-            }
-            // If triangle wasn't discarded, apply shading to it
-            if(visible){
-                int lightIntensity = 150;
-                T3::Vector3 lightPoint = lightPairs[i].first->position;
-                T3::Vector3 lightDirection = lightPoint.directionTo(tri->getCentroid()) * -1;
-                tri->shading += std::max(0.0f, tri->getNormal().dotProduct(lightDirection)
-                                         * lightIntensity
-                                         / lightPoint.distanceTo(tri->getCentroid()));
-
-            }
-        }
+    // Start threads
+    qDebug("Threads starting");
+    shadingThreads.clear();
+    shadingThreads.resize(shadingTC);
+    for(int id = 0; id < shadingTC; id++){
+        shadingThreads[id] = std::thread(&MainWindow::castShadowsThread, this, id);
+        shadingThreads[id].detach();
     }
-
-    // END SHADOW MULTITHREADING
-    // MEASURE END TIME AND COMPARE TO START TIME
+    qDebug("Threads started");
 
     qDebug("castShadows() finished");
 }

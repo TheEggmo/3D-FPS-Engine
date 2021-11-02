@@ -17,7 +17,7 @@ Remote::Remote(QWidget *parent) : QWidget(parent){
     modelWireToggle->setChecked(false);
     mainLayout->addWidget(modelWireToggle);
     shadingToggle = new QCheckBox("Enable shading", this);
-    shadingToggle->setChecked(false);
+    shadingToggle->setChecked(true);
     mainLayout->addWidget(shadingToggle);
 
     // Following widgets are used for modifying actor data during gameplay

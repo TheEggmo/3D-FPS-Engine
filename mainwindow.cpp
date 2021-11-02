@@ -239,11 +239,13 @@ void MainWindow::screenUpdate(){
     T3::Mat4x4 viewMatrix = T3::matQuickInverse(cameraMatrix);
 
     // Process triangles from trianglePool and place them in triangleQueue for drawing
+    // START PROJECTION MULTITHREADING
     for(T3::Triangle tri : trianglePool){
         projectTriangle(tri, matWorld, camera, viewMatrix, &triangleQueue, tri.texture);
     }
+    // END PROJECTION MULTITHREADING
 
-    // Project triangles for wireframe drawing
+    // Project collision meshes' triangles for wireframe drawing
     if(remote.colWireEnabled()){
         for(int i = 0; i < actorList.size(); i++){
             Actor *a = actorList[i];
@@ -258,6 +260,7 @@ void MainWindow::screenUpdate(){
         }
     }
 
+    // START DRAWING MULTITHREADING
     // Draw models
     for(auto &tri : triangleQueue){
         // Clip triangles against screen edges(walls of the view frustrum
@@ -311,6 +314,7 @@ void MainWindow::screenUpdate(){
             }
         }
     }
+    // END DRAWING MULTITHREADING
 
     // Draw collision wireframes, if enabled
     for(auto &tri : wireframeQueue){
@@ -695,6 +699,9 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
         trianglePoolPointers[i] = &trianglePool[i];
     }
 
+    // MEASURE START TIME
+    // START SHADING MULTITHREADING
+
     // If shading is disabled, apply maximum light to everything and return
     if(!remote.shadingEnabled()){
         for(T3::Triangle *tri : trianglePoolPointers){
@@ -754,6 +761,10 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
             }
         }
     }
+
+    // END SHADOW MULTITHREADING
+    // MEASURE END TIME AND COMPARE TO START TIME
+
     qDebug("castShadows() finished");
 }
 

@@ -524,7 +524,9 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     pixOut[adrOut+2] = T2::clamp(color.r, 0, 255);
                     pixOut[adrOut+3] = 255;
 
+                    // LOCK DBUFFER MUTEX
                     dBuffer[i*image->width() + j] = texW;
+                    // UNLOCK DBUFFER MUTEX
                 }
                 t += tStep;
             }
@@ -608,7 +610,10 @@ void Tools3D::textureTri(QImage *image, Triangle tri, QImage *texture, std::vect
                     pixOut[adrOut] = T2::clamp(color.b, 0, 255);
                     pixOut[adrOut+1] = T2::clamp(color.g, 0, 255);
                     pixOut[adrOut+2] = T2::clamp(color.r, 0, 255);
+
+                    // LOCK DBUFFER MUTEX
                     dBuffer[i*image->width() + j] = texW;
+                    // UNLOCK DBUFFER MUTEX
                 }
                 t += tStep;
             }

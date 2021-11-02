@@ -49,6 +49,8 @@ else()
     actor.h
     remote.h
     remote.cpp
+    threadmanager.cpp
+    threadmanager.h
 
   )
 endif()

@@ -60,7 +60,6 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     }
 
     // Create actors
-
     // Player
     ActorPlayer player = ActorPlayer(&Input, &lookDir);
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
@@ -250,9 +249,23 @@ void MainWindow::screenUpdate(){
     T3::Mat4x4 viewMatrix = T3::matQuickInverse(cameraMatrix);
 
     // Process triangles from trianglePool and place them in triangleQueue for drawing
-    // START PROJECTION MULTITHREADING
-    for(T3::Triangle tri : trianglePool){
-        projectTriangle(tri, matWorld, camera, viewMatrix, &triangleQueue, tri.texture);
+    // Prepare threads
+    if(useMT && useProjectionMT){
+        projectionThreads.resize(shadingTC);
+        for(int threadID = 0; threadID < shadingTC; threadID++){
+//            shadingThreads[id] = std::thread(&MainWindow::castShadowsThread, this, id);
+            projectionThreads[threadID] = std::thread(&MainWindow::projectTriangleThread, this,
+                                                      threadID, trianglePool, matWorld,
+                                                      camera, viewMatrix, &triangleQueue);
+        }
+        for(int threadID = 0; threadID < shadingTC; threadID++){
+            projectionThreads[threadID].join();
+            //qDebug("Projection thread %d finished", threadID);
+        }
+    }else{
+        for(T3::Triangle tri : trianglePool){
+            projectTriangle(tri, matWorld, camera, viewMatrix, &triangleQueue, tri.texture);
+        }
     }
     // END PROJECTION MULTITHREADING
 
@@ -515,6 +528,25 @@ Actor* MainWindow::addActor(ActorLight a){
     return actorList.back();
 }
 
+void MainWindow::projectTriangleThread(unsigned int threadID,
+                                       std::vector<Tools3D::Triangle> tris, Tools3D::Mat4x4 transformMatrix,
+                                       Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                                       std::vector<Tools3D::Triangle> *outputQueue){
+    bool useTextures = true;
+    std::vector<Tools3D::Triangle> outputQueueTemp;
+    if(useTextures){
+        for(int i = threadID; i < tris.size(); i += projectionTC){
+            projectTriangle(tris[i], transformMatrix, camera, viewMatrix, &outputQueueTemp, tris[i].texture);
+        }
+    }else{
+        for(int i = threadID; i < tris.size(); i += projectionTC){
+            projectTriangle(tris[i], transformMatrix, camera, viewMatrix, &outputQueueTemp);
+        }
+    }
+    std::lock_guard<std::mutex> guard(outputQueueMutex);
+    outputQueue->insert(outputQueue->end(), outputQueueTemp.begin(), outputQueueTemp.end());
+}
+
 void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                                  Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                                  std::vector<Tools3D::Triangle> *outputQueue, QImage *texture){
@@ -606,6 +638,7 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             triProjected.shading = tri.shading;
             triProjected.texture = texture;
 
+//            std::lock_guard<std::mutex> guard(outputQueueMutex);
             outputQueue->push_back(triProjected);
         }
     }
@@ -675,6 +708,7 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             triProjected.p[2].x *= 0.5f * (float)sWidth;
             triProjected.p[2].y *= 0.5f * (float)sHeight;
 
+//            std::lock_guard<std::mutex> guard(outputQueueMutex);
             outputQueue->push_back(triProjected);
         }
     }
@@ -718,7 +752,9 @@ void MainWindow::castShadowsThread(unsigned int threadID){
     for(int i = 0; i < lightPairs.size(); i++){
         // ...shade triangles corresponding to threadID
         for(int triIdx = threadID; triIdx < lightPairs[i].second.size(); triIdx += shadingTC){
-            shadeTriangle(triIdx, lightPairs[i].first->position, lightPairs[i].second);
+            shadeTriangle(triIdx,
+                          lightPairs[i].first->position, // position of light i
+                          lightPairs[i].second); // pool of triangles paired with light i
         }
     }
 }
@@ -770,15 +806,32 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
         lightPairs.push_back(std::make_pair(light, pointers));
     }
 
-    // Start threads
-    qDebug("Threads starting");
-    shadingThreads.clear();
-    shadingThreads.resize(shadingTC);
-    for(int id = 0; id < shadingTC; id++){
-        shadingThreads[id] = std::thread(&MainWindow::castShadowsThread, this, id);
-        shadingThreads[id].detach();
+    if(useMT && useShadingMT){
+        // Start threads
+        qDebug("Threads starting");
+        shadingThreads.clear();
+        shadingThreads.resize(shadingTC);
+        for(int id = 0; id < shadingTC; id++){
+            shadingThreads[id] = std::thread(&MainWindow::castShadowsThread, this, id);
+            shadingThreads[id].detach();
+        }
+        qDebug("Threads started and detached");
+    }else{
+        auto start = std::chrono::system_clock::now();
+        qDebug("Using main thread");
+        // For each light...
+        for(int i = 0; i < lightPairs.size(); i++){
+            // ...shade triangles
+            for(int triIdx = 0; triIdx < lightPairs[i].second.size(); triIdx++){
+                shadeTriangle(triIdx,
+                              lightPairs[i].first->position, // position of light i
+                              lightPairs[i].second); // pool of triangles paired with light i
+            }
+        }
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<float> time = end - start;
+        qDebug("Shading finished. Duration without multithreading: %f", time.count());
     }
-    qDebug("Threads started");
 
     qDebug("castShadows() finished");
 }

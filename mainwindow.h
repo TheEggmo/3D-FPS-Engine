@@ -16,6 +16,7 @@
 #include <vector>
 #include <utility> //pair()
 #include <thread>
+#include <mutex>
 
 #include <tools.h>
 #include <tools3d.h>
@@ -46,15 +47,21 @@ protected:
     QTimer *processTimer; // Used to call the process() function every frame
 
     // Multithreading stuff
+    bool useMT = true;
+    bool useShadingMT = true;
+    bool useProjectionMT = true;
+    bool usedDrawingMT = true;
     // Thread counts
-    unsigned int overrideTC = 100; // Set other TCs to this if above 0
-    unsigned int shadingTC = 1;
-    unsigned int projectionTC = 1;
+    unsigned int overrideTC = 0; // Set other TCs to this if above 0
+    unsigned int shadingTC = 100;
+    unsigned int projectionTC = 100;
     unsigned int drawingTC = 1;
     // Storage vectors
     std::vector<std::thread> shadingThreads;
     std::vector<std::thread> projectionThreads;
     std::vector<std::thread> drawingThreads;
+    // Mutex
+    std::mutex outputQueueMutex;
 
     void closeEvent(QCloseEvent *event) override;
 //    void mousePressEvent(QMouseEvent *event) override;
@@ -107,6 +114,13 @@ protected:
     void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                          std::vector<Tools3D::Triangle> *outputQueue);
+    void projectTriangles(std::vector<Tools3D::Triangle> tris, Tools3D::Mat4x4 transformMatrix,
+                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                          std::vector<Tools3D::Triangle> *outputQueue);
+    void projectTriangleThread(unsigned int threadID,
+                               std::vector<Tools3D::Triangle> tris, Tools3D::Mat4x4 transformMatrix,
+                               Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
+                               std::vector<Tools3D::Triangle> *outputQueue);
 
     int remoteActorIdx = 0;
 

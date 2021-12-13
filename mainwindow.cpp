@@ -252,13 +252,12 @@ void MainWindow::screenUpdate(){
     // Prepare threads
     if(useMT && useProjectionMT){
         projectionThreads.resize(shadingTC);
-        for(int threadID = 0; threadID < shadingTC; threadID++){
-//            shadingThreads[id] = std::thread(&MainWindow::castShadowsThread, this, id);
+        for(int threadID = 0; threadID < projectionTC; threadID++){
             projectionThreads[threadID] = std::thread(&MainWindow::projectTriangleThread, this,
                                                       threadID, trianglePool, matWorld,
                                                       camera, viewMatrix, &triangleQueue);
         }
-        for(int threadID = 0; threadID < shadingTC; threadID++){
+        for(int threadID = 0; threadID < projectionTC; threadID++){
             projectionThreads[threadID].join();
             //qDebug("Projection thread %d finished", threadID);
         }
@@ -532,22 +531,16 @@ void MainWindow::projectTriangleThread(unsigned int threadID,
                                        std::vector<Tools3D::Triangle> tris, Tools3D::Mat4x4 transformMatrix,
                                        Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                                        std::vector<Tools3D::Triangle> *outputQueue){
-    bool useTextures = true;
     std::vector<Tools3D::Triangle> outputQueueTemp;
-    if(useTextures){
-        for(int i = threadID; i < tris.size(); i += projectionTC){
-            projectTriangle(tris[i], transformMatrix, camera, viewMatrix, &outputQueueTemp, tris[i].texture);
-        }
-    }else{
-        for(int i = threadID; i < tris.size(); i += projectionTC){
-            projectTriangle(tris[i], transformMatrix, camera, viewMatrix, &outputQueueTemp);
-        }
+    // Use textures
+    for(int i = threadID; i < tris.size(); i += projectionTC){
+        projectTriangle(tris[i], transformMatrix, camera, viewMatrix, &outputQueueTemp, tris[i].texture);
     }
     std::lock_guard<std::mutex> guard(outputQueueMutex);
     outputQueue->insert(outputQueue->end(), outputQueueTemp.begin(), outputQueueTemp.end());
 }
 
-void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+inline void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                                  Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                                  std::vector<Tools3D::Triangle> *outputQueue, QImage *texture){
 
@@ -638,13 +631,12 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             triProjected.shading = tri.shading;
             triProjected.texture = texture;
 
-//            std::lock_guard<std::mutex> guard(outputQueueMutex);
             outputQueue->push_back(triProjected);
         }
     }
 }
 
-void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+inline void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                                  Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                                  std::vector<Tools3D::Triangle> *outputQueue){
     T3::Triangle triTransformed, triViewed, triProjected;
@@ -708,7 +700,6 @@ void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transfor
             triProjected.p[2].x *= 0.5f * (float)sWidth;
             triProjected.p[2].y *= 0.5f * (float)sHeight;
 
-//            std::lock_guard<std::mutex> guard(outputQueueMutex);
             outputQueue->push_back(triProjected);
         }
     }

@@ -107,11 +107,11 @@ protected:
     // camera is the player camera
     // viewMatrix is a transformation based on player camera
     // All output triangles are put in outputQueue.
-    void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+    inline void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                          std::vector<Tools3D::Triangle> *outputQueue, QImage *texture);
     // Same as above, but ignore texture and UV data
-    void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
+    inline void projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 transformMatrix,
                          Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                          std::vector<Tools3D::Triangle> *outputQueue);
     void projectTriangles(std::vector<Tools3D::Triangle> tris, Tools3D::Mat4x4 transformMatrix,

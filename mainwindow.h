@@ -49,19 +49,20 @@ protected:
     // Multithreading stuff
     bool useMT = true;
     bool useShadingMT = true;
-    bool useProjectionMT = true;
-    bool usedDrawingMT = true;
+    bool useProjectionMT = false;
+    bool useDrawingMT = false;
     // Thread counts
     unsigned int overrideTC = 0; // Set other TCs to this if above 0
     unsigned int shadingTC = 100;
     unsigned int projectionTC = 100;
-    unsigned int drawingTC = 1;
+    unsigned int drawingTC = 100;
     // Storage vectors
     std::vector<std::thread> shadingThreads;
     std::vector<std::thread> projectionThreads;
     std::vector<std::thread> drawingThreads;
     // Mutex
     std::mutex outputQueueMutex;
+    std::mutex dBufferMutex;
 
     void closeEvent(QCloseEvent *event) override;
 //    void mousePressEvent(QMouseEvent *event) override;
@@ -121,6 +122,10 @@ protected:
                                std::vector<Tools3D::Triangle> tris, Tools3D::Mat4x4 transformMatrix,
                                Tools3D::Vector3 camera, Tools3D::Mat4x4 viewMatrix,
                                std::vector<Tools3D::Triangle> *outputQueue);
+
+    // Draw triangles in the input queue
+    inline void processDrawingQueue(std::vector<T3::Triangle> *input);
+    inline void processDrawingQueueThread(std::vector<T3::Triangle> *input, int threadID);
 
     int remoteActorIdx = 0;
 

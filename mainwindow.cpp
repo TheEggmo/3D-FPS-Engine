@@ -284,57 +284,17 @@ void MainWindow::screenUpdate(){
 
     // START DRAWING MULTITHREADING
     // Draw models
-    for(auto &tri : triangleQueue){
-        // Clip triangles against screen edges(walls of the view frustrum
-        T3::Triangle clipped[2];
-        std::list<T3::Triangle> cTriangleQueue; // Queue of triangles for clipping
-        cTriangleQueue.push_back(tri);
-        int newTriangles = 1;
-
-        for(int p = 0; p < 4; p++){
-            int trianglesToAdd = 0;
-            while(newTriangles > 0){
-                T3::Triangle test = cTriangleQueue.front();
-                cTriangleQueue.pop_front();
-                newTriangles--;
-
-                switch(p){
-                case 0:
-                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-                                                      test, clipped[0], clipped[1]);
-                    break;
-                case 1:
-                    trianglesToAdd = T3::clipTriangle({0.0f, (float)sHeight - 1, 0.0f}, {0.0f, -1.0f, 0.0f},
-                                                      test, clipped[0], clipped[1]);
-                    break;
-                case 2:
-                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-                                                      test, clipped[0], clipped[1]);
-                    break;
-                case 3:
-                    trianglesToAdd = T3::clipTriangle({(float)sWidth - 1, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
-                                                      test, clipped[0], clipped[1]);
-                    break;
-                }
-
-                // Add newly created triangles to the queue for clipping against next planes
-                for(int w = 0; w < trianglesToAdd; w++){
-                    cTriangleQueue.push_back(clipped[w]);
-                }
-            }
-            newTriangles = cTriangleQueue.size();
+    if(useMT && useDrawingMT){
+        drawingThreads.resize(drawingTC);
+        for(int threadID = 0; threadID < drawingTC; threadID++){
+            drawingThreads[threadID] = std::thread(&MainWindow::processDrawingQueueThread, this,
+                                                  &triangleQueue, threadID);
         }
-
-        // Finally, draw the modified triangles on the screen
-        if(remote.modelWireEnabled()){
-            for(T3::Triangle &tri : cTriangleQueue){
-                T3::drawTri(mainImage, tri, drawingColor);
-            }
-        }else{
-            for(T3::Triangle &tri : cTriangleQueue){
-                T3::textureTri(mainImage, tri, tri.texture, depthBuffer);
-            }
+        for(int threadID = 0; threadID < drawingTC; threadID++){
+            drawingThreads[threadID].join();
         }
+    }else{
+        processDrawingQueue(&triangleQueue);
     }
     // END DRAWING MULTITHREADING
 
@@ -632,6 +592,119 @@ inline void MainWindow::projectTriangle(Tools3D::Triangle tri, Tools3D::Mat4x4 t
             triProjected.texture = texture;
 
             outputQueue->push_back(triProjected);
+        }
+    }
+}
+
+inline void MainWindow::processDrawingQueue(std::vector<Tools3D::Triangle> *input){
+    for(auto &tri : *input){
+        // Clip triangles against screen edges(walls of the view frustrum)
+        T3::Triangle clipped[2];
+        std::list<T3::Triangle> cTriangleQueue; // Queue of triangles for clipping
+        cTriangleQueue.push_back(tri);
+        int newTriangles = 1;
+
+        for(int p = 0; p < 4; p++){
+            int trianglesToAdd = 0;
+            while(newTriangles > 0){
+                T3::Triangle test = cTriangleQueue.front();
+                cTriangleQueue.pop_front();
+                newTriangles--;
+
+                switch(p){
+                case 0:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 1:
+                    trianglesToAdd = T3::clipTriangle({0.0f, (float)sHeight - 1, 0.0f}, {0.0f, -1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 2:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 3:
+                    trianglesToAdd = T3::clipTriangle({(float)sWidth - 1, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                }
+
+                // Add newly created triangles to the queue for clipping against next planes
+                for(int w = 0; w < trianglesToAdd; w++){
+                    cTriangleQueue.push_back(clipped[w]);
+                }
+            }
+            newTriangles = cTriangleQueue.size();
+        }
+
+        // Finally, draw the modified triangles on the screen
+        if(remote.modelWireEnabled()){
+            for(T3::Triangle &tri : cTriangleQueue){
+                T3::drawTri(mainImage, tri, drawingColor);
+            }
+        }else{
+            for(T3::Triangle &tri : cTriangleQueue){
+                T3::textureTri(mainImage, tri, tri.texture, depthBuffer);
+            }
+        }
+    }
+}
+
+inline void MainWindow::processDrawingQueueThread(std::vector<Tools3D::Triangle> *input, int threadID){
+    for(int i = threadID; i < input->size(); i += drawingTC){
+        T3::Triangle tri = input->at(i);
+
+        // Clip triangles against screen edges(walls of the view frustrum)
+        T3::Triangle clipped[2];
+        std::list<T3::Triangle> cTriangleQueue; // Queue of triangles for clipping
+        cTriangleQueue.push_back(tri);
+        int newTriangles = 1;
+
+        for(int p = 0; p < 4; p++){
+            int trianglesToAdd = 0;
+            while(newTriangles > 0){
+                T3::Triangle test = cTriangleQueue.front();
+                cTriangleQueue.pop_front();
+                newTriangles--;
+
+                switch(p){
+                case 0:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 1:
+                    trianglesToAdd = T3::clipTriangle({0.0f, (float)sHeight - 1, 0.0f}, {0.0f, -1.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 2:
+                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                case 3:
+                    trianglesToAdd = T3::clipTriangle({(float)sWidth - 1, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+                                                      test, clipped[0], clipped[1]);
+                    break;
+                }
+
+                // Add newly created triangles to the queue for clipping against next planes
+                for(int w = 0; w < trianglesToAdd; w++){
+                    cTriangleQueue.push_back(clipped[w]);
+                }
+            }
+            newTriangles = cTriangleQueue.size();
+        }
+
+        // Finally, draw the modified triangles on the screen
+        if(remote.modelWireEnabled()){
+            for(T3::Triangle &tri : cTriangleQueue){
+                T3::drawTri(mainImage, tri, drawingColor);
+            }
+        }else{
+            for(T3::Triangle &tri : cTriangleQueue){
+                std::lock_guard<std::mutex> guard(dBufferMutex);
+                T3::textureTri(mainImage, tri, tri.texture, depthBuffer);
+            }
         }
     }
 }

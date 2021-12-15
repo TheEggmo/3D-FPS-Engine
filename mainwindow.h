@@ -17,6 +17,7 @@
 #include <utility> //pair()
 #include <thread>
 #include <mutex>
+#include <barrier>
 
 #include <tools.h>
 #include <tools3d.h>
@@ -43,6 +44,7 @@ public:
     // Returns a copy of the actorList
     std::vector<Actor*> getActorList();
 
+    void redrawScreen(unsigned int threadID);
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
 

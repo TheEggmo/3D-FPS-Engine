@@ -73,55 +73,43 @@ public:
             *this = *this + v;
         }
         Vector3 operator-(Vector3 v){
-//            Vector3 out;
-//            out.x = this->x - v.x;
-//            out.y = this->y - v.y;
-//            out.z = this->z - v.z;
-////            out.w = this->w - v.w;
-//            return out;
             return {
                 this->x - v.x,
                 this->y - v.y,
                 this->z - v.z,
                 this->w - v.w,
             };
+            return *this;
         }
         Vector3 operator-=(Vector3 v){
             *this = *this - v;
+            return *this;
         }
         Vector3 operator*(float k){
-//            Vector3 out;
-//            out.x = this->x * k;
-//            out.y = this->y * k;
-//            out.z = this->z * k;
-////            out.w = this->w * k;
-//            return out;
             return {
                 this->x * k,
                 this->y * k,
                 this->z * k,
                 this->w * k,
             };
+            return *this;
         }
         Vector3 operator*=(float k){
             *this = *this * k;
+            return *this;
         }
         Vector3 operator/(float k){
-//            Vector3 out;
-//            out.x = this->x / k;
-//            out.y = this->y / k;
-//            out.z = this->z / k;
-////            out.w = this->w / k;
-//            return out;
             return {
                 this->x / k,
                 this->y / k,
                 this->z / k,
                 this->w / k,
             };
+            return *this;
         }
         Vector3 operator/=(float k){
             *this = *this / k;
+            return *this;
         }
 
         Vector3 operator*(Mat4x4 m){

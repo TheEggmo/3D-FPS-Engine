@@ -111,9 +111,9 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
        ActorLight light;
        light.name = "Light" + std::to_string(i);
 //       light.position = {0, 60, 0};
-       light.position = {float(rand() % 1000) / 10.0,
-                          float(rand() % 1000) / 10.0 + 10,
-                          float(rand() % 1000) / 10.0 - 100};
+       light.position = {float(rand() % 1000) / 10.0f,
+                          float(rand() % 1000) / 10.0f + 10,
+                          float(rand() % 1000) / 10.0f - 100};
        // Lights don't actually have collisions, only for debugging purposes
        light.setCollision(T3::AABB({-0.5, -0.5, -0.5}, {1, 1, 1}));
        lightPointers.push_back((ActorLight*)addActor(light));
@@ -144,6 +144,10 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
     // Create the depth buffer
     depthBuffer.resize(sWidth * sHeight, 0.0f);
+
+    // Prepare threads
+    projectionThreads.resize(projectionTC);
+
 }
 
 void MainWindow::paintEvent(QPaintEvent*){
@@ -903,4 +907,133 @@ void MainWindow::castShadows(std::vector<ActorLight *> lights){
 void MainWindow::remoteCastShadows(){
     qDebug("Remote requested castShadows()");
     castShadows(lightPointers);
+}
+
+void MainWindow::redrawScreen(unsigned int threadID){
+    T3::Mat4x4 matWorld;
+
+    if(threadID == 0)
+        for(int i = 0; i < sWidth * sHeight; i++)
+            depthBuffer[i] = 0.0f; // Clear the depth buffer
+
+    std::barrier
+
+    // Store triangles for drawing later
+    std::vector<T3::Triangle> triangleQueue;
+    triangleQueue.clear();
+    // Wireframe triangles, for debugging purposes
+    std::vector<T3::Triangle> wireframeQueue;
+    wireframeQueue.clear();
+
+    T3::Vector3 up = {0, 1, 0};
+    T3::Vector3 target = {0, 0, 1};
+
+    matWorld = T3::newMatIdentity();
+
+    T3::Mat4x4 cameraRotationMatrixY = T3::newMatRotY(yaw);
+    T3::Mat4x4 cameraRotationMatrixX = T3::newMatRotX(pitch);
+    lookDir = target * cameraRotationMatrixX;
+    lookDir = lookDir * cameraRotationMatrixY;
+    target = camera + lookDir;
+
+    T3::Mat4x4 cameraMatrix = T3::matPointAt(camera, target, up);
+    T3::Mat4x4 viewMatrix = T3::matQuickInverse(cameraMatrix);
+
+    // Process triangles from trianglePool and place them in triangleQueue for drawing
+    // Prepare threads
+    if(useMT && useProjectionMT){
+        projectionThreads.resize(shadingTC);
+        for(int threadID = 0; threadID < projectionTC; threadID++){
+            projectionThreads[threadID] = std::thread(&MainWindow::projectTriangleThread, this,
+                                                      threadID, trianglePool, matWorld,
+                                                      camera, viewMatrix, &triangleQueue);
+        }
+        for(int threadID = 0; threadID < projectionTC; threadID++){
+            projectionThreads[threadID].join();
+            //qDebug("Projection thread %d finished", threadID);
+        }
+    }else{
+        for(T3::Triangle tri : trianglePool){
+            projectTriangle(tri, matWorld, camera, viewMatrix, &triangleQueue, tri.texture);
+        }
+    }
+    // END PROJECTION MULTITHREADING
+
+//    // Project collision meshes' triangles for wireframe drawing
+//    if(remote.colWireEnabled()){
+//        for(int i = 0; i < actorList.size(); i++){
+//            Actor *a = actorList[i];
+//            if(a->collisionEnabled){
+//                if(camFollow && i == 0) continue; // Don't render player collider when camera is attached
+//                T3::Mesh collider = a->getCollider().toMesh(a->position);
+//                for(int i = 0; i < collider.tris.size(); i++){
+//                    projectTriangle(collider.tris[i], matWorld, camera, viewMatrix, &wireframeQueue);
+//                }
+//            }
+//        }
+//    }
+
+    // START DRAWING MULTITHREADING
+    // Draw models
+    if(useMT && useDrawingMT){
+        drawingThreads.resize(drawingTC);
+        for(int threadID = 0; threadID < drawingTC; threadID++){
+            drawingThreads[threadID] = std::thread(&MainWindow::processDrawingQueueThread, this,
+                                                  &triangleQueue, threadID);
+        }
+        for(int threadID = 0; threadID < drawingTC; threadID++){
+            drawingThreads[threadID].join();
+        }
+    }else{
+        processDrawingQueue(&triangleQueue);
+    }
+    // END DRAWING MULTITHREADING
+
+//    // Draw collision wireframes, if enabled
+//    for(auto &tri : wireframeQueue){
+//        // Clip triangles against screen edges(walls of the view frustrum)
+//        T3::Triangle clipped[2];
+//        std::list<T3::Triangle> cTriangleQueue; // Queue of triangles for clipping
+//        cTriangleQueue.push_back(tri);
+//        int newTriangles = 1;
+
+//        for(int p = 0; p < 4; p++){
+//            int trianglesToAdd = 0;
+//            while(newTriangles > 0){
+//                T3::Triangle test = cTriangleQueue.front();
+//                cTriangleQueue.pop_front();
+//                newTriangles--;
+
+//                switch(p){
+//                case 0:
+//                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+//                                                      test, clipped[0], clipped[1]);
+//                    break;
+//                case 1:
+//                    trianglesToAdd = T3::clipTriangle({0.0f, (float)sHeight - 1, 0.0f}, {0.0f, -1.0f, 0.0f},
+//                                                      test, clipped[0], clipped[1]);
+//                    break;
+//                case 2:
+//                    trianglesToAdd = T3::clipTriangle({0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+//                                                      test, clipped[0], clipped[1]);
+//                    break;
+//                case 3:
+//                    trianglesToAdd = T3::clipTriangle({(float)sWidth - 1, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+//                                                      test, clipped[0], clipped[1]);
+//                    break;
+//                }
+
+//                // Add newly created triangles to the queue for clipping against next planes
+//                for(int w = 0; w < trianglesToAdd; w++){
+//                    cTriangleQueue.push_back(clipped[w]);
+//                }
+//            }
+//            newTriangles = cTriangleQueue.size();
+//        }
+
+//        // Draw triangles
+//        for(T3::Triangle &tri : cTriangleQueue){
+//            T3::drawTri(mainImage, tri, T2::Color8(255, 255, 255));
+//        }
+//    }
 }

@@ -44,7 +44,7 @@ public:
     // Returns a copy of the actorList
     std::vector<Actor*> getActorList();
 
-    void redrawScreen(unsigned int threadID);
+    void redrawScreenLoop();
 protected:
     QTimer *processTimer; // Used to call the process() function every frame
 
@@ -55,9 +55,9 @@ protected:
     bool useDrawingMT = false;
     // Thread counts
     unsigned int overrideTC = 0; // Set other TCs to this if above 0
-    unsigned int shadingTC = 100;
-    unsigned int projectionTC = 100;
-    unsigned int drawingTC = 100;
+    unsigned int shadingTC = 10;
+    unsigned int projectionTC = 10;
+    unsigned int drawingTC = 10;
     // Storage vectors
     std::vector<std::thread> shadingThreads;
     std::vector<std::thread> projectionThreads;
@@ -139,6 +139,11 @@ protected:
     void shadeTriangle(int triIdx, T3::Vector3 lightPoint, std::vector<T3::Triangle*> tPointers);
     void castShadows(std::vector<ActorLight*> lights);
     void castShadowsThread(unsigned int threadID);
+
+    bool active = true;
+//    std::vector<T3::Triangle> mainTriangleQueue;
+//    std::mutex projectionMutex;
+//    std::barrier projectionSyncPoint(int);
 public slots:
     void process(); // The "frame" function, processes logic, graphics etc.
     void setRemoteActorIdx(int index); // Sets which actor's data will be sent to the remote

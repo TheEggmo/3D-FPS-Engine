@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
@@ -28,7 +28,8 @@ set(PROJECT_SOURCES
         actor.h
         remote.h
         remote.cpp
-
+        imagebuilder.h
+        imagebuilder.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

@@ -50,12 +50,12 @@ protected:
 
     // Multithreading stuff
     bool useMT = true;
-    bool useShadingMT = true;
+    bool useShadingMT = false;
     bool useProjectionMT = false;
     bool useDrawingMT = false;
     // Thread counts
     unsigned int overrideTC = 0; // Set other TCs to this if above 0
-    unsigned int shadingTC = 10;
+    unsigned int shadingTC = 2;
     unsigned int projectionTC = 10;
     unsigned int drawingTC = 10;
     // Storage vectors
@@ -86,7 +86,8 @@ protected:
 
     Tools3D::Vector3 camera; // Vector representing the camera
     Tools3D::Vector3 lookDir;
-    float yaw, pitch;
+    float yaw = 1.6;
+    float pitch;
     bool camFollow = true;
 
     float fTheta = 0;

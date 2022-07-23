@@ -43,7 +43,8 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     setMouseTracking(true);
     cursor = QCursor(Qt::BlankCursor);
     setCursor(cursor);
-    yaw = pitch = 0.1f;
+    yaw = 3.14f;
+    pitch = 0.8f;
 
     // Create a timer that will call process() every frame
     processTimer = new QTimer(this);
@@ -64,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
     ActorPlayer player = ActorPlayer(&Input, &lookDir);
     player.setCollision(T3::AABB({-1, -1, -1}, {2, 2, 2}));
     player.name = "Player";
-    player.position = {0, 100, 0};
+    player.position = {5, 100, 50};
     addActor(player);
 
     // Terrain
@@ -105,18 +106,21 @@ MainWindow::MainWindow(QWidget *parent): QWidget(parent){
 
 
    // Add randomly placed light actors
-    int lightCount = 1;
+    int lightCount = 10;
     srand(time(NULL));
     for(int i = 0; i < lightCount; i++){
-       ActorLight light;
-       light.name = "Light" + std::to_string(i);
-//       light.position = {0, 60, 0};
-       light.position = {float(rand() % 1000) / 10.0f,
+        ActorLight light;
+        light.name = "Light" + std::to_string(i);
+        //light.position = {0, 60, 0};
+        //light.position = {45, 100, -55};
+
+        light.position = {float(rand() % 1000) / 10.0f,
                           float(rand() % 1000) / 10.0f + 10,
                           float(rand() % 1000) / 10.0f - 100};
-       // Lights don't actually have collisions, only for debugging purposes
-       light.setCollision(T3::AABB({-0.5, -0.5, -0.5}, {1, 1, 1}));
-       lightPointers.push_back((ActorLight*)addActor(light));
+
+        // Lights don't actually have collisions, only for debugging purposes
+        light.setCollision(T3::AABB({-0.5, -0.5, -0.5}, {1, 1, 1}));
+        lightPointers.push_back((ActorLight*)addActor(light));
     }
 
     castShadows(lightPointers);
@@ -808,6 +812,8 @@ void MainWindow::shadeTriangle(int triIdx, T3::Vector3 lightPoint, std::vector<T
 }
 
 void MainWindow::castShadowsThread(unsigned int threadID){
+    auto start = std::chrono::system_clock::now();
+
     // For each light...
     for(int i = 0; i < lightPairs.size(); i++){
         // ...shade triangles corresponding to threadID
@@ -817,6 +823,10 @@ void MainWindow::castShadowsThread(unsigned int threadID){
                           lightPairs[i].second); // pool of triangles paired with light i
         }
     }
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<float> time = end - start;
+    qDebug("Shading thread %d finished. Duration: %f", threadID,time.count());
 }
 
 void MainWindow::castShadows(std::vector<ActorLight *> lights){
